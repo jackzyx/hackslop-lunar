@@ -1,0 +1,27 @@
+# data is fetched by scripts/fetch_data.sh, never committed
+data/*
+!data/README.md
+# python
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.pytest_cache/
+# node
+node_modules/
+dist/
+.vite/
+# env / secrets
+.env
+.env.*
+# editors / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+# media working files (keep final exports out of git; upload to video host)
+media/raw/
+*.mov
+*.MOV
+# Claude local settings
+.claude/settings.local.json

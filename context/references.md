@@ -1,0 +1,31 @@
+# References log
+
+Every dataset, library, paper, image, font, music track and AI tool used, added the
+moment it is used. Space Apps requires full citation; missing references can make a
+project ineligible. Format: what, who, link, what we used it for.
+
+## NASA data
+- LOLA south pole DEMs and PSR maps: Barker, M. K. et al. (2023), "A New View of the Lunar South Pole from LOLA", PGDA product 90, https://pgda.gsfc.nasa.gov/products/90, doi:10.60903/gsfcpgda-lola-spole; paper doi:10.3847/PSJ/acf3e1. Used for: horizon masks, relief print, polar map, PSR overlay.
+- LOLA site DEMs: Barker, M. K. et al. (2021), PSS 203, 105119, doi:10.1016/j.pss.2020.105119, PGDA product 78, https://pgda.gsfc.nasa.gov/products/78. Used for: (stretch) lander-scale horizons.
+- Lunar polar illumination: Mazarico, E. et al. (2011), Icarus 211, 1066-1081, doi:10.1016/j.icarus.2010.10.030, PGDA product 69, https://pgda.gsfc.nasa.gov/products/69. Used for: V4 benchmark.
+- NAIF SPICE generic kernels (naif0012.tls, pck00011.tpc, de440s.bsp, moon_pa_de440_200625.bpc, moon_de440_250416.tf), NASA/JPL NAIF, https://naif.jpl.nasa.gov/pub/naif/generic_kernels/. Acton, C. H. (1996), PSS 44, 65-70. Used for: Sun and Earth directions.
+- JPL Horizons System, https://ssd.jpl.nasa.gov/horizons/. Used for: independent validation (V1).
+- [add: LROC QuickMap screenshots, NAC frames, Artemis III region coordinates, mission site coordinates]
+
+## Facts used in the pitch
+- IM-2 Athena landing, 6 Mar 2025, ~250 m from target, on its side, ended ~13 h later: Spaceflight Now; SpacePolicyOnline. [add exact URLs]
+- Chang'e 7 missed its 23-24 Aug 2026 window: Space.com. [add exact URL]
+- Blue Ghost Mission 1 ended at lunar sunset 16 Mar 2025: [add source]
+
+## Software and libraries
+- SpiceyPy (Annex, A. et al., JOSS 2020, doi:10.21105/joss.02050), MIT.
+- NumPy, SciPy, rasterio, pyproj, trimesh, matplotlib, astroquery, geopandas.
+- Vite; [add front-end libraries as they are added].
+- Arduino AccelStepper (Mike McCauley), GPL.
+
+## Media
+- [fonts, icons, music]
+
+## AI tools
+- [tool, what it was used for, by whom; keep this honest and current]
+- Claude Code: environment setup, data-fetch scripts, context documents (13 Nov, before the event).
