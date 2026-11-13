@@ -64,7 +64,7 @@ nutation cycle, hourly, polar stereographic, R = 1737.4 km.
 | File (base `https://pgda.gsfc.nasa.gov/data/MoonIllumination/`) | Size | Use |
 |---|---|---|
 | `AVGVISIB_85S_060M_201608.TIF` | 34 MB | Average Sun visibility 85-90 S, 60 m. V4 benchmark |
-| `AVGVISIB_85S_060M_201608_EARTH.TIF` | ~34 MB | Average Earth visibility. Earth benchmark |
+| `AVGVISIB_85S_060M_201608_EARTH.TIF` | 23 MB | Average Earth visibility. Earth benchmark |
 | `LPSR_85S_060M_201608.TIF` | | PSR map at 60 m |
 
 The `_COG.TIF` variants linked on the page return "Not Found" (13 Nov); use the plain TIFs.
