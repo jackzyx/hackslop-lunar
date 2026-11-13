@@ -20,7 +20,7 @@ project ineligible. Format: what, who, link, what we used it for.
 ## Software and libraries
 - SpiceyPy (Annex, A. et al., JOSS 2020, doi:10.21105/joss.02050), MIT.
 - NumPy, SciPy, rasterio, pyproj, trimesh, matplotlib, astroquery, geopandas.
-- Vite; [add front-end libraries as they are added].
+- Vite 8.3.5 (Evan You and contributors), MIT, https://vite.dev. Used for: web app dev server and static build. No other front-end libraries (charts are hand-written SVG).
 - Arduino AccelStepper (Mike McCauley), GPL.
 
 ## Media
@@ -29,3 +29,4 @@ project ineligible. Format: what, who, link, what we used it for.
 ## AI tools
 - [tool, what it was used for, by whom; keep this honest and current]
 - Claude Code: environment setup, data-fetch scripts, context documents (13 Nov, before the event).
+- Claude Code (Claude Opus 5.5): web app mockup in `web/` (screen layout, SVG charts, metrics functions and tests, mock-data generator), Fri 13 Nov 22:40-23:30. All data in it is invented placeholder data.

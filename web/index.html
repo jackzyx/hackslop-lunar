@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Long Shadow</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header class="bar">
+      <h1>Long Shadow</h1>
+      <label class="date">Planned landing <input type="date" id="date" required /></label>
+      <span class="badge" title="Every number on this screen is a placeholder until real data replaces it">MOCK DATA</span>
+      <a class="valid" href="#validation">Sun and Earth angles vs JPL Horizons: not yet measured</a>
+    </header>
+
+    <section class="delay">
+      <label for="delay">Launch delay</label>
+      <input type="range" id="delay" min="-60" max="60" step="1" value="0" />
+      <output id="delay-out" for="delay"></output>
+    </section>
+
+    <main class="cols">
+      <article class="site" data-col="0"></article>
+      <article class="site" data-col="1"></article>
+    </main>
+    <p class="foot" id="foot"></p>
+
+    <section class="lower">
+      <figure class="card">
+        <h2>South pole</h2>
+        <svg id="map" viewBox="-30 -20 460 440" role="img" aria-label="Map of the lunar south pole with site pins"></svg>
+        <figcaption>0° longitude (the Earth-facing side) at the top. Schematic, not to scale: no terrain yet.</figcaption>
+      </figure>
+      <div class="card">
+        <h2>Model table</h2>
+        <p class="rig" id="rig"></p>
+        <p class="note" id="rig-note"></p>
+        <h2>What we do not model</h2>
+        <ul class="limits">
+          <li>No power or thermal model</li>
+          <li>No radio link budget: Earth contact is line of sight only</li>
+          <li>No slopes or landing hazards</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card" id="validation">
+      <h2>Validation</h2>
+      <p class="note">Stub. Filled by the Science pipeline (checks V1 to V8 in <code>context/04-science.md</code>).</p>
+      <table>
+        <thead>
+          <tr><th>Site</th><th>Body</th><th>Max |ΔEl|</th><th>Max |ΔAz|·cos El</th><th>Hours compared</th><th>Dates</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Near the pole (0° E, 89.9° S)</td><td>Sun</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
+          <tr><td>Near the pole (0° E, 89.9° S)</td><td>Earth</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
+          <tr><td>Mons Mouton region</td><td>Sun</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
+          <tr><td>Mons Mouton region</td><td>Earth</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
+          <tr><td>Apollo 11 (control)</td><td>Sun</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
+          <tr><td>Apollo 11 (control)</td><td>Earth</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
+        </tbody>
+      </table>
+      <p class="note">Reference: JPL Horizons, topocentric site on the Moon, airless, frame MOON_ME, correction LT+S. Not yet queried.</p>
+      <ul class="note">
+        <li>Flat-terrain horizon dip test (V2): not yet run</li>
+        <li>Horizon from 80 m vs 240 m terrain, RMS (V3): not yet run</li>
+        <li>Published illumination result reproduced, Mazarico et al. 2011 (V4): not yet run</li>
+      </ul>
+    </section>
+
+    <div class="tip" id="tip" hidden></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
