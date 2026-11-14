@@ -10,6 +10,7 @@ import SiteCard from "@/components/SiteCard";
 import ShadowMap from "@/components/ShadowMap";
 import DetailTabs from "@/components/DetailTabs";
 import About from "@/components/About";
+import LandingDatePicker from "@/components/LandingDatePicker";
 
 // Planned dates must leave room for the whole slider range plus the 30-day window.
 const DATE_MIN = iso(t0 + MAX_DELAY_D * DAY), DATE_MAX = iso(t0 + data.ephemeris.count * H - (MAX_DELAY_D + 30) * DAY);
@@ -79,10 +80,7 @@ export default function App() {
             <p className="tag">Sunlight and Earth contact at the lunar south pole, and what a launch slip does to them</p>
           </div>
           <div className="tools">
-            <label className="hud-label flex items-center gap-2">PLANNED LANDING
-              <input type="date" className="date" required min={DATE_MIN} max={DATE_MAX} value={date}
-                onChange={(ev) => { const x = ev.target.value; if (x && x >= DATE_MIN && x <= DATE_MAX) setDate(x); }} />
-            </label>
+            <LandingDatePicker value={date} min={DATE_MIN} max={DATE_MAX} onChange={setDate} />
             <Button variant="outline" size="sm" onClick={() => intro()}>✦ STARS INTRO</Button>
             {data.mock && <span className="mock" title="Every number on this screen is a placeholder until real data replaces it">MOCK DATA</span>}
             <Button type="button" variant="link" size="sm" onClick={showValidation}>Validation</Button>
