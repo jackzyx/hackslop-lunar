@@ -45,6 +45,15 @@ export function localSun(sun, x, y) {
   return { sinEl: up, cosEl: hz, dx: (n * sl + e * cl) / hz, dy: (n * cl - e * sl) / hz };
 }
 
+// RGBA pixels for a shadeView result: lit = warm white, shadow = near black, NaN = transparent.
+export function paint(b, px) {
+  for (let k = 0; k < b.length; k++) {
+    const v = b[k], o = 4 * k;
+    if (Number.isNaN(v)) { px[o + 3] = 0; continue; }
+    px[o] = 14 + 226 * v; px[o + 1] = 14 + 220 * v; px[o + 2] = 18 + 205 * v; px[o + 3] = 255;
+  }
+}
+
 function heightAt(t, x, y) {
   const c = (x + t.half) / t.px - 0.5, r = (t.half - y) / t.px - 0.5;
   if (!(c >= 0 && r >= 0 && c < t.n - 1 && r < t.n - 1)) return NaN;

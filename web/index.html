@@ -9,6 +9,7 @@
   <body>
     <header class="bar">
       <h1>Long Shadow</h1>
+      <button type="button" class="intro-btn" id="intro-btn">✦ STARS intro</button>
       <label class="date">Planned landing <input type="date" id="date" required /></label>
       <span class="badge" title="Every number on this screen is a placeholder until real data replaces it">MOCK DATA</span>
       <a class="valid" href="#validation" id="val-link"></a>
@@ -61,6 +62,11 @@
     </section>
 
     <div class="tip" id="tip" hidden></div>
+    <div class="intro" id="intro">
+      <canvas aria-hidden="true"></canvas>
+      <p class="stars-line"><b>✦ STARS</b><span></span></p>
+      <button type="button" class="skip">Skip intro</button>
+    </div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

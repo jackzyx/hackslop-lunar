@@ -44,3 +44,4 @@ project ineligible. Format: what, who, link, what we used it for.
 - Claude Code (Claude Opus 5.5): in-app shadow map of the real terrain (`web/src/shadow.js`, its tests, `scripts/export_terrain.py`), replacing the hardware table demo; site-card additions (N of 720 h, Sun elevation over the skyline, mission line), Sat 14 Nov 10:15-10:40. Requested by Davit.
 - Claude Code (Claude Opus 5.5): docs rewritten for the software-only plan (CLAUDE.md, README, context 03/04/06/07/08/10, the shadow-map, relief-print and twin-rig skills), Sat 14 Nov 10:30. Requested by Davit.
 - Claude Code (Claude Opus 5.5): Sun and Earth bars on the site cards, validation table read from `web/src/validation.json`, GitHub Pages workflow, Sat 14 Nov 10:45. Requested by Davit.
+- Claude Code (Claude Opus 5.5): STARS intro, a zoom from the Sun to the landing region drawn from the landing date and the ephemeris Sun vector (`web/src/intro.js` and its tests), Sat 14 Nov 11:00. Requested by Davit.
