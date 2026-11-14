@@ -41,9 +41,8 @@ const replay = page => page.evaluate(async () => {
     assert.deepEqual(await page.locator('.intro-site-marker span').allTextContents(), names, 'site labels must survive the handoff');
     assert.deepEqual(await page.locator('.shell .mapwrap .pin-label').allTextContents(), names, 'intro and map must use the same site labels');
     assert.ok(await page.locator('.shell .details').evaluate(el => el.getAnimations().length > 0), 'graphs should fade in during the handoff');
-    await page.waitForTimeout(750);
     assert.equal(await page.locator('.intro-site-marker').count(), 2);
-    assert.ok(await page.locator('.intro-map-decorations').evaluate(el => Number(getComputedStyle(el).opacity) > 0), 'map overlay should fade in before the intro ends');
+    assert.ok(await page.locator('.intro-map-decorations').evaluate(el => el.getAnimations().length > 0), 'map overlay should fade in during the handoff');
     await page.screenshot({ path: '.slide-tools/intro-handoff.png' });
     await page.waitForFunction(() => document.querySelector('#intro').hidden, { timeout: 20000 });
     assert.equal(await page.locator('.intro-site-marker').count(), 0, 'handoff markers must be removed after revealing the real map');

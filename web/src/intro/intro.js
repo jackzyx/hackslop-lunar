@@ -23,7 +23,7 @@ export function scene(ms, sun) {
 
 // Camera keyframes: [seconds, body to centre on, half the view in km].
 const KEYS = [[0, "sun", 1.35 * AU], [2, "earth", 6.5e5], [3.6, "moon", 2600], [5.4, "landing", 170]];
-const END = 7.8;
+const END = 6.2;
 const LINES = [
   [0, (w) => `Plotting your landing: ${w}.`],
   [5.4, () => "Compare two sites. Shift the landing date."],
@@ -130,6 +130,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   pos.landing = [pos.moon[0] + view.cx, pos.moon[1] + view.cy];
   let moon = imageCanvas(spherePixels(sun, 256, null), 256), land, landApproach;
   let shownMoon, shownLand, shownClose, closeLand, terrainUnavailable = false, elapsed = 0;
+  let assetVersion = 0, drawnVersion = -1, settled = false, drawnWidth = 0, drawnHeight = 0, drawnSize;
   const stars = Array.from({ length: 220 }, () => [Math.random(), Math.random(), Math.random() < 0.1 ? 2 : 1, 0.2 + 0.6 * Math.random()]);
   el.hidden = false;
 
@@ -230,17 +231,23 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
       const x = bounds.x + bounds.width / 2, y = bounds.y + bounds.height / 2;
       const scale = map.getBoundingClientRect().height / map.viewBox.baseVal.height;
       const style = getComputedStyle(label), text = marker.querySelector('span');
+      const textStart = text.getBoundingClientRect();
+      const startX = parseFloat(marker.style.left), startY = parseFloat(marker.style.top);
+      const fontSize = parseFloat(style.fontSize) * scale;
+      text.style.fontSize = `${fontSize}px`;
+      text.style.letterSpacing = `${parseFloat(style.letterSpacing || 0) * scale || 0}px`;
       handoffAnimations.push(marker.animate([
-        { left: marker.style.left, top: marker.style.top }, { left: `${x}px`, top: `${y}px` },
+        { transform: 'translate3d(0, 0, 0)' }, { transform: `translate3d(${x - startX}px, ${y - startY}px, 0)` },
       ], timing));
       handoffAnimations.push(text.animate([
-        { transform: text.style.transform, fontSize: '14px', letterSpacing: '0px' },
-        { transform: `translate(${textBounds.left - x}px, ${textBounds.top - y}px)`, fontSize: `${parseFloat(style.fontSize) * scale}px`, letterSpacing: `${parseFloat(style.letterSpacing || 0) * scale || 0}px` },
+        { transform: `translate(${textStart.left - startX}px, ${textStart.top - startY}px) scale(${14 / fontSize})` },
+        { transform: `translate(${textBounds.left - x}px, ${textBounds.top - y}px) scale(1)` },
       ], timing));
       const dot = marker.querySelector('i'), pinStyle = getComputedStyle(pin);
+      dot.style.width = dot.style.height = `${11 * scale}px`;
       handoffAnimations.push(dot.animate([
-        { width: '12px', height: '12px', backgroundColor: AMBER, borderColor: '#000' },
-        { width: `${11 * scale}px`, height: `${11 * scale}px`, backgroundColor: pinStyle.fill, borderColor: pinStyle.stroke },
+        { transform: `translate(-50%, -50%) scale(${12 / (11 * scale)})`, backgroundColor: AMBER, borderColor: '#000' },
+        { transform: 'translate(-50%, -50%) scale(1)', backgroundColor: pinStyle.fill, borderColor: pinStyle.stroke },
       ], timing));
     });
     if (map) {
@@ -395,7 +402,8 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
 
     let cur = LINES[0];
     for (const l of LINES) if (t >= l[0]) cur = l;
-    line.textContent = cur[1](when);
+    const caption = cur[1](when);
+    if (line.textContent !== caption) line.textContent = caption;
     return 2 * view.half * k;
   }
 
@@ -408,10 +416,15 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
     if (t >= 5.4 && !landing) loadLanding();
     const frame = Math.min(t, END);
     el.dataset.time = frame.toFixed(3);
-    const size = draw(frame);
+    if (frame < 5.4 || !settled || drawnVersion !== assetVersion || drawnWidth !== el.clientWidth || drawnHeight !== el.clientHeight) {
+      drawnSize = draw(frame);
+      settled = frame >= 5.4;
+      drawnVersion = assetVersion;
+      drawnWidth = el.clientWidth; drawnHeight = el.clientHeight;
+    }
     if (frame >= 5.4 && land) {
       const liveCanvas = document.querySelector('#landing-terrain canvas[data-frame]');
-      if (liveCanvas) placeTerrain(liveCanvas, el.clientWidth, el.clientHeight, size);
+      if (liveCanvas) placeTerrain(liveCanvas, el.clientWidth, el.clientHeight, drawnSize);
     }
     if (t >= END) loadLanding().then(reveal);
     else raf = requestAnimationFrame(tick);
@@ -425,6 +438,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   if (over) return;
   await prepareIntroAssets({ terrain: readyTerrain, sun, quality, closeView, textureUrl: new URL('moon-albedo-4k.jpg', document.baseURI).href }, assets => {
     if (over) return;
+    assetVersion++;
     if (assets.moon && assets.moon !== shownMoon) { moon = imageCanvas(assets.moon, assets.moonN); shownMoon = assets.moon; }
     if (assets.land && assets.land !== shownLand) {
       landApproach = imageCanvas(assets.land, assets.landN, 'approach');

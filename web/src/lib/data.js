@@ -68,7 +68,12 @@ export const vis = (id) => (visCache[id] ??= visibility(sites[id].horizon, data.
 export const sunAt = (id, i) => { const e = data.ephemeris.sites[id]; return sunVector(sites[id].lat, sites[id].lon, e.sun_az[i], e.sun_el[i]); };
 
 export const iso = (ms) => new Date(ms).toISOString().slice(0, 10);
-export const fmtDate = (ms, o) => new Date(ms).toLocaleDateString("en-IE", { timeZone: "UTC", day: "numeric", month: "short", ...o });
+const dateFormats = new Map();
+export const fmtDate = (ms, options) => {
+  const key = JSON.stringify(options ?? {});
+  if (!dateFormats.has(key)) dateFormats.set(key, new Intl.DateTimeFormat('en-IE', { timeZone: 'UTC', day: 'numeric', month: 'short', ...options }));
+  return dateFormats.get(key).format(new Date(ms));
+};
 export const fmtTime = (ms) => new Date(ms).toLocaleString("en-IE", { timeZone: "UTC", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 export const dur = (h) => {
   if (h < 48) return `${Math.round(h)} h`;

@@ -268,13 +268,14 @@ code { font-size: 0.9em; color: var(--accent-foreground); }
 .intro { position: fixed; inset: 0; z-index: 50; overflow: hidden; background: #000; }
 .intro canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .intro-scene { position: absolute; inset: 0; }
-.intro canvas.intro-terrain-copy { inset: auto; transform-origin: top left; background: #000; }
+.intro canvas.intro-terrain-copy { inset: auto; transform-origin: top left; background: #000; will-change: transform; }
 .intro[data-phase="revealing"] { background: transparent; }
 .intro[data-phase="revealing"] .intro-scene > canvas:not(.intro-terrain-copy),
 .intro[data-phase="revealing"] .stars-line,
 .intro[data-phase="revealing"] .skip { visibility: hidden; }
 body:has(.intro[data-phase="revealing"]) .shell .mapwrap > * { visibility: hidden; }
-.intro-site-marker { position: absolute; z-index: 3; pointer-events: none; }
+.intro-site-marker { position: absolute; z-index: 3; pointer-events: none; will-change: transform; }
+.intro-site-marker :is(i, span) { transform-origin: top left; will-change: transform; }
 .intro-site-marker i { position: absolute; width: 12px; height: 12px; transform: translate(-50%, -50%); border: 2px solid #000; border-radius: 50%; background: #ffb000; }
 .intro-site-marker span { position: absolute; white-space: nowrap; font: 600 14px var(--font-mono); color: #ffd98a; line-height: 1; text-shadow: -1px -1px #000, 1px -1px #000, -1px 1px #000, 1px 1px #000; }
 .intro .intro-map-decorations { position: absolute; z-index: 2; margin: 0; border: 0; background: transparent; pointer-events: none; }
