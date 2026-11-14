@@ -1,5 +1,5 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
-import { createTerrain3D, cameraMatrix, project, EXAG } from "@/terrain/terrain-3d.js";
+import { createTerrain3D, cameraMatrix, eyeOf, hidden, project, EXAG } from "@/terrain/terrain-3d.js";
 import { heightAt, mapView, toMap } from "@/terrain/shadow.js";
 import { data, sites, sunAt, vis } from "@/lib/data.js";
 import { siteLabel } from "@/lib/site-label.js";
@@ -77,11 +77,13 @@ export default function Terrain3D({ terrain, picks, i0, zoom, interacting }) {
     if (k) { e.preventDefault(); orbit(...k); }
   }
 
-  // Pins: the chosen sites (lit or dark at landing), custom sites, and the pole.
+  // Pins: the chosen sites (lit or dark at landing), custom sites, and the pole; none behind a ridge.
   const pins = [];
   if (mvp) {
-    const at = (lat, lon) => { const [x, y] = toMap(lat, lon); return project(mvp, [x, y, (heightAt(terrain, x, y) || 0) * EXAG], size.w, size.h); };
-    const pole = project(mvp, [0, 0, (heightAt(terrain, 0, 0) || 0) * EXAG], size.w, size.h);
+    const eye = eyeOf(cam);
+    const ground = (x, y) => { const p = [x, y, (heightAt(terrain, x, y) || 0) * EXAG]; return hidden(terrain, eye, p) ? null : project(mvp, p, size.w, size.h); };
+    const at = (lat, lon) => ground(...toMap(lat, lon));
+    const pole = ground(0, 0);
     if (pole) pins.push(<g key="pole" transform={`translate(${pole[0]},${pole[1]})`}><path className="cross" d="M-7,0h14M0,-7v14" /><text x="-9" y="14" textAnchor="end">POLE</text></g>);
     const pickX = picks.map(id => sites[id].terrain_modelled === false ? null : at(sites[id].lat, sites[id].lon)?.[0]);
     for (const s of data.sites) {

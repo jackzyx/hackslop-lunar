@@ -2,6 +2,7 @@
 // (shadow-gpu.js) for the landing instant, drawn as amber contours over sunlit ground.
 // World axes: x, y in map km (+y toward lon 0), z = height km x EXAG.
 import { createGPUShadow } from './shadow-gpu.js';
+import { heightAt } from './shadow.js';
 
 export const EXAG = 4; // vertical exaggeration, shown on screen
 const STEP = 2; // mesh vertex every 2 grid pixels = 1 km
@@ -51,10 +52,25 @@ function mul(a, b) {
 }
 
 // Orbit camera: yaw is the map bearing from the target to the eye (180 = looking toward lon 0).
-export function cameraMatrix({ target, yaw, pitch, dist }, aspect) {
+export function eyeOf({ target, yaw, pitch, dist }) {
   const y = yaw * Math.PI / 180, p = pitch * Math.PI / 180;
-  const eye = [target[0] + dist * Math.cos(p) * Math.sin(y), target[1] + dist * Math.cos(p) * Math.cos(y), target[2] + dist * Math.sin(p)];
-  return mul(perspective(40 * Math.PI / 180, aspect, dist * 0.02, dist * 3 + 800), lookAt(eye, target));
+  return [target[0] + dist * Math.cos(p) * Math.sin(y), target[1] + dist * Math.cos(p) * Math.cos(y), target[2] + dist * Math.sin(p)];
+}
+export function cameraMatrix(cam, aspect) {
+  return mul(perspective(40 * Math.PI / 180, aspect, cam.dist * 0.02, cam.dist * 3 + 800), lookAt(eyeOf(cam), cam.target));
+}
+
+// True when the terrain rises above the sight line from the eye to a ground point (world units).
+// Skips the last 1 km next to the point (its own surface) and allows 50 m of mesh-vs-grid slack.
+export function hidden(t, eye, [x, y, z]) {
+  const dx = x - eye[0], dy = y - eye[1], len = Math.hypot(dx, dy);
+  if (len <= 1) return false;
+  const n = Math.min(800, Math.ceil(len / (t.px / 2))), end = 1 - 1 / len;
+  for (let i = 1; i < n && i / n < end; i++) {
+    const f = i / n, h = heightAt(t, eye[0] + dx * f, eye[1] + dy * f);
+    if (h * EXAG > eye[2] + (z - eye[2]) * f + 0.05 * EXAG) return true; // NaN (off the grid) compares false
+  }
+  return false;
 }
 
 // World point -> CSS pixels in a w x h viewport; null when behind the camera.
