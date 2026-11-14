@@ -1,4 +1,4 @@
-import ephemerisUrl from "@/mock-data.json?url&no-inline";
+import ephemerisUrl from "@/data/ephemeris.json?url&no-inline";
 import { visibility } from "@/domain/metrics.js";
 import { sunVector } from "@/terrain/shadow.js";
 

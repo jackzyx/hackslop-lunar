@@ -30,8 +30,8 @@ import rasterio
 ROOT = Path(__file__).resolve().parent.parent
 DEM_80M = ROOT / "data" / "dem" / "LDEM_80S_80MPP_ADJ.TIF"
 DEM_240M = ROOT / "data" / "dem" / "LDEM_60S_240MPP_ADJ.TIF"
-MOCK_DATA_PATH = ROOT / "web" / "src" / "mock-data.json"
-OUT_JSON_PATH = ROOT / "web" / "src" / "horizon-masks.json"
+MOCK_DATA_PATH = ROOT / "web" / "src" / "data" / "ephemeris.json"
+OUT_JSON_PATH = ROOT / "web" / "src" / "data" / "horizon-masks.json"
 
 R_MOON_KM = 1737.4     # LOLA datum sphere radius (km)
 R_MOON_M = 1737400.0   # LOLA datum sphere radius (m)
@@ -311,7 +311,7 @@ def main():
         }
         print(f"done in {elapsed:.2f}s (h0={h0:.1f}m, min={min(mask_rounded)}°, max={max(mask_rounded)}°, mean={computed_masks[site['id']]['mean_deg']}°)")
 
-    # Update web/src/mock-data.json
+    # Update web/src/data/ephemeris.json
     if MOCK_DATA_PATH.exists():
         print(f"\nUpdating app data file: {MOCK_DATA_PATH}...")
         with open(MOCK_DATA_PATH, "r", encoding="utf-8") as f:
@@ -336,7 +336,7 @@ def main():
             json.dump(app_data, f, separators=(",", ":"))
         print(f"  Saved {MOCK_DATA_PATH} ({MOCK_DATA_PATH.stat().st_size / 1024:.1f} KB)")
 
-    # Also output standalone horizon-masks.json in web/src/
+    # Also output standalone horizon-masks.json in web/src/data/
     standalone_output = []
     for sid, res in computed_masks.items():
         standalone_output.append({

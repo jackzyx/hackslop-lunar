@@ -1,4 +1,4 @@
-// Writes web/src/mock-data.json: FAKE sites, horizon masks and ephemeris for the
+// Writes web/src/data/ephemeris.json: FAKE sites, horizon masks and ephemeris for the
 // UI mockup, in the shape the real Science outputs will have (see web/README.md).
 // Geometry is real (site ENU frame, az clockwise from north), the inputs are invented:
 // sub-solar and sub-Earth points are sine waves, masks are random skylines.
@@ -79,7 +79,7 @@ const out = {
   sites,
   ephemeris: { ...head, frame: "MOON_ME", az: "deg clockwise from north", el: "deg", sites: eph },
 };
-writeFileSync(new URL("../src/mock-data.json", import.meta.url), JSON.stringify(out));
+writeFileSync(new URL("../src/data/ephemeris.json", import.meta.url), JSON.stringify(out));
 
 // The story the mockup must tell, at the default planned date: A loses the Sun as the delay grows, B holds.
 const iPlanned = (Date.parse("2026-11-20T00:00:00Z") - START) / 3600e3;
@@ -92,4 +92,4 @@ const dA = verdictDelay(vis.A, iPlanned);
 assert.equal(grade(windowMetrics(vis.A, iPlanned).sunlit), "good", "A should start well lit");
 assert.ok(dA >= 8 && dA <= 25, `A should fall below half sunlight after 8-25 days, got ${dA}`);
 assert.equal(verdictDelay(vis.B, iPlanned), null, "B should hold through 60 days");
-console.log("story OK, wrote src/mock-data.json");
+console.log("story OK, wrote src/data/ephemeris.json");

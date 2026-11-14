@@ -16,7 +16,7 @@ FRAME = "MOON_ME"
 CORRECTION = "LT+S"
 PASS_DEG = 0.01
 PRECISION = 6
-OUTPUT = ROOT / "web" / "src" / "mock-data.json"
+OUTPUT = ROOT / "web" / "src" / "data" / "ephemeris.json"
 SITES = [
     *DEMO_SITES,
     {"id": "C", "name": "de Gerlache Rim 2", "kind": "crater rim", "mission": "Artemis III region", "lat": -88.20, "lon": 295.6},

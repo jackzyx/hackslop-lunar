@@ -91,12 +91,12 @@ npm run dev      # http://localhost:5173
 npm test         # metrics unit tests (node:test, no extra deps)
 npm run build    # dist/ (relative paths: any static server, USB stick, Pages subpath)
 python dist/serve.py   # USB stick / offline: serves dist on http://127.0.0.1:8000 and opens it (file:// pages can't load the app)
-npm run mock     # WARNING: overwrites src/mock-data.json (now the real SPICE table) with invented data
+npm run mock     # WARNING: overwrites src/data/ephemeris.json (now the real SPICE table) with invented data
 ```
 
 ## Precomputed lunar ephemeris
 
-`src/mock-data.json` contains the hourly SPICE ephemeris and LOLA horizon masks for
+`src/data/ephemeris.json` contains the hourly SPICE ephemeris and LOLA horizon masks for
 the eight curated sites. The browser computes the metrics from this file and shows
 the **MOCK DATA** badge when its `mock` flag is true. To restore or regenerate the
 SPICE data, run `python science/lunar_ephemeris.py` from the repo root with the
@@ -113,7 +113,7 @@ observer's position includes the LOLA ground height and the 2 m mast. The SPICE
 generator checks Sun and Earth against one Horizons epoch at (0° E, 89.9° S,
 0 km altitude) before replacing the data.
 
-The validation table and the header line read `src/validation.json` (Science writes it;
+The validation table and the header line read `src/data/validation.json` (Science writes it;
 `null` shows as "not yet measured"): `queried` (date string), `pass_deg` (0.01), `rows[]` =
 `{site, body, max_del_deg, max_daz_cos_deg, hours, start, stop}` (deg, ISO dates), and
 `checks[]` = `{id, label, result}` (result is a short sentence, e.g. "0.087° dip, within 0.001°").

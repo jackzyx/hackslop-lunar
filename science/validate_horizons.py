@@ -19,7 +19,7 @@ Period:
 
 Outputs:
   - Raw Horizons responses saved to data/horizons/
-  - Results written to web/src/validation.json
+  - Results written to web/src/data/validation.json
 """
 import json
 import math
@@ -31,7 +31,7 @@ import spiceypy as sp
 
 ROOT = Path(__file__).resolve().parent.parent
 HORIZONS_DIR = ROOT / "data" / "horizons"
-VALIDATION_JSON = ROOT / "web" / "src" / "validation.json"
+VALIDATION_JSON = ROOT / "web" / "src" / "data" / "validation.json"
 KERNEL_TM = ROOT / "data" / "kernels" / "lunar.tm"
 
 R_MOON_KM = 1737.4  # LOLA datum / Horizons lunar sphere radius
@@ -262,7 +262,7 @@ def main():
     print(f"Overall V1 status: {'PASS ✓' if all_passed else 'FAIL ✗'}")
     print("=" * 70)
 
-    # Update web/src/validation.json
+    # Update web/src/data/validation.json
     val_data = {}
     if VALIDATION_JSON.exists():
         try:

@@ -6,7 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 // The intro needs one landing instant, not the full multi-year ephemeris bundle.
 function introScene() {
-  const d = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, 'src/mock-data.json'), 'utf8'));
+  const d = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, 'src/data/ephemeris.json'), 'utf8'));
   const ms = Date.parse('2026-11-20T00:00:00Z'), i = Math.round((ms - Date.parse(d.ephemeris.start_utc)) / 3600000);
   const site = d.sites[0], eph = d.ephemeris.sites[site.id];
   return JSON.stringify({ ms, sun: sunVector(site.lat, site.lon, eph.sun_az[i], eph.sun_el[i]), picks: d.sites.slice(0, 2).map(({name,lat,lon}) => ({name,lat,lon})), when: new Date(ms).toLocaleDateString('en-IE', {timeZone:'UTC',day:'numeric',month:'short',year:'numeric'}) });

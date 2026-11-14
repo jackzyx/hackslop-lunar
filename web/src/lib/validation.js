@@ -1,5 +1,5 @@
 // Science writes src/validation.json; null = not measured yet. Nobody types these numbers by hand.
-import validation from "@/validation.json";
+import validation from "@/data/validation.json";
 
 export { validation };
 // Two significant figures however small (Horizons agreement is ~0.00003 deg; 4 decimals would print 0).
