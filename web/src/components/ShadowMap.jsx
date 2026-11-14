@@ -196,7 +196,7 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
           <path className="ch-mark" d={`M${hover.sx - 6},${hover.sy}h12M${hover.sx},${hover.sy - 6}v12`} />
           <circle className="ch-mark" cx={hover.sx} cy={hover.sy} r="10" />
           {(() => {
-            const right = hover.sx < mapWidth - 150, x = hover.sx + (right ? 14 : -14), y = Math.max(22, Math.min(MAP - 26, hover.sy - 14));
+            const right = hover.sx < mapWidth - 270, x = hover.sx + (right ? 14 : -14), y = Math.max(22, Math.min(MAP - 26, hover.sy - 14));
             const a = right ? "start" : "end";
             return <g className="ch-text">
               <text x={x} y={y} textAnchor={a}>{Math.abs(hover.lat).toFixed(3)}°S {hover.lon.toFixed(2)}°E</text>

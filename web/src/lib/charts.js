@@ -69,18 +69,28 @@ export function mapOverlay(view, picks, i0, size, height = size) {
   let g = "";
 
   // Polar grid: rings every `km` from the pole, meridians every 30 deg (0 deg = Earth-facing, up).
-  const far = Math.hypot(Math.abs(view.cx) + view.half * size / height, Math.abs(view.cy) + view.half), off = Math.hypot(view.cx, view.cy);
+  // Only what crosses the view: rings between the nearest and farthest view point from the pole, and when
+  // the pole is off-screen only the arc inside the view's angular span. Full dashed circles thousands of
+  // pixels wide made deep zoom lag.
+  const hx = view.half * size / height, far = Math.hypot(Math.abs(view.cx) + hx, Math.abs(view.cy) + view.half), off = Math.hypot(view.cx, view.cy);
+  const near = Math.hypot(Math.max(0, Math.abs(view.cx) - hx), Math.max(0, Math.abs(view.cy) - view.half));
   const toward = off > 1 ? [view.cx / off, view.cy / off] : [0, 1]; // ring labels sit on the line toward the view centre
-  for (let r = km; r <= far; r += km) {
-    g += `<circle class="ring" cx="${pole[0].toFixed(1)}" cy="${pole[1].toFixed(1)}" r="${(r * kmPx).toFixed(1)}"/>`;
+  const c = Math.atan2(view.cx, view.cy), rel = ([x, y]) => ((Math.atan2(x, y) - c + 3 * Math.PI) % (2 * Math.PI)) - Math.PI;
+  const span = near > 0 && [[-hx, -view.half], [-hx, view.half], [hx, -view.half], [hx, view.half]].map(([dx, dy]) => rel([view.cx + dx, view.cy + dy]));
+  const [lo, hi] = span ? [Math.min(...span) - 0.01, Math.max(...span) + 0.01] : [0, 0];
+  for (let r = Math.max(km, Math.ceil(near / km) * km); r <= far; r += km) {
+    if (span) {
+      const [a, b] = [toPx([r * Math.sin(c + lo), r * Math.cos(c + lo)]), toPx([r * Math.sin(c + hi), r * Math.cos(c + hi)])];
+      g += `<path class="ring" d="M${a[0].toFixed(1)},${a[1].toFixed(1)}A${(r * kmPx).toFixed(1)},${(r * kmPx).toFixed(1)} 0 0 1 ${b[0].toFixed(1)},${b[1].toFixed(1)}"/>`;
+    } else g += `<circle class="ring" cx="${pole[0].toFixed(1)}" cy="${pole[1].toFixed(1)}" r="${(r * kmPx).toFixed(1)}"/>`;
     const lp = toPx([toward[0] * r, toward[1] * r]);
     if (inView(lp, -14)) g += `<text class="grid-label" x="${(lp[0] + 4).toFixed(1)}" y="${(lp[1] - 4).toFixed(1)}">${r} KM</text>`;
   }
   const names = { 0: "0°", 90: "90°E", 180: "180°", 270: "90°W" };
   for (let lon = 0; lon < 360; lon += 30) {
     const dir = [Math.sin(lon * RAD), Math.cos(lon * RAD)];
-    const end = toPx([dir[0] * far, dir[1] * far]);
-    g += `<line class="meridian" x1="${pole[0].toFixed(1)}" y1="${pole[1].toFixed(1)}" x2="${end[0].toFixed(1)}" y2="${end[1].toFixed(1)}"/>`;
+    const start = toPx([dir[0] * near, dir[1] * near]), end = toPx([dir[0] * far, dir[1] * far]);
+    if (!span || (rel(dir) >= lo && rel(dir) <= hi)) g += `<line class="meridian" x1="${start[0].toFixed(1)}" y1="${start[1].toFixed(1)}" x2="${end[0].toFixed(1)}" y2="${end[1].toFixed(1)}"/>`;
     if (!(lon in names)) continue;
     for (let r = far; r > 0; r -= view.half / 25) {
       const p = toPx([dir[0] * r, dir[1] * r]);
