@@ -6,12 +6,12 @@ export const R_KM = 1737.4;
 export const TERRAIN = { n: 1000, px: 0.5, half: 250 }; // keep in step with scripts/export_terrain.py
 const RAD = Math.PI / 180;
 
-export function terrainFrom(buffer) {
+export function terrainFrom(buffer, geometry = TERRAIN) {
   const h = new Int16Array(buffer);
-  if (h.length !== TERRAIN.n * TERRAIN.n) throw new Error(`terrain file has ${h.length} heights, expected ${TERRAIN.n ** 2}`);
+  if (h.length !== geometry.n * geometry.n) throw new Error(`terrain file has ${h.length} heights, expected ${geometry.n ** 2}`);
   let hmax = -Infinity;
   for (const v of h) if (v > hmax) hmax = v;
-  return { ...TERRAIN, h, hmax: hmax / 1000 };
+  return { ...geometry, h, hmax: hmax / 1000 };
 }
 
 // Sun unit vector (MOON_ME) from its azimuth and elevation seen at one site. The Sun is so far

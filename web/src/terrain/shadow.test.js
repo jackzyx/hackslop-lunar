@@ -1,9 +1,19 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { sunVector, toMap, localSun, mapViewport, MIN_MAP_HALF, shadeView, TERRAIN, transformMapViewport } from "./shadow.js";
+import { sunVector, toMap, localSun, mapViewport, MIN_MAP_HALF, shadeView, terrainFrom, TERRAIN, transformMapViewport } from "./shadow.js";
 
 const near = (a, b, tol) => assert.ok(Math.abs(a - b) < tol, `${a} vs ${b}`);
 const flat = (fill = 0) => ({ ...TERRAIN, h: new Int16Array(TERRAIN.n ** 2).fill(fill), hmax: fill / 1000 });
+
+test('approach terrain keeps its own grid geometry instead of the planner defaults', () => {
+  const buffer = new Int16Array(16).fill(1500).buffer;
+  const terrain = terrainFrom(buffer, { n: 4, px: 1.5, half: 3 });
+  assert.equal(terrain.n, 4);
+  assert.equal(terrain.px, 1.5);
+  assert.equal(terrain.half, 3);
+  assert.equal(terrain.hmax, 1.5);
+  assert.throws(() => terrainFrom(buffer), /expected 1000000/);
+});
 
 test("sun az/el at a site comes back out of localSun, and map directions match azimuths", () => {
   for (const [lat, lon] of [[-89.5, 0], [-87, 120], [-85, 250]]) {
