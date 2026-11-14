@@ -66,6 +66,10 @@ button:hover { border-color: var(--muted); }
 .delay input::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; margin-top: -9px; border-radius: 50%; background: var(--sun); border: 3px solid var(--page); box-shadow: 0 0 0 2px var(--sun), 0 0 18px rgba(240, 163, 42, 0.5); }
 .delay input::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--sun); border: 3px solid var(--page); box-shadow: 0 0 0 2px var(--sun), 0 0 18px rgba(240, 163, 42, 0.5); }
 
+/* STARS narrator: one computed sentence under the slider (narrator.js) */
+.narrator { display: flex; align-items: baseline; gap: 12px; margin: 12px 4px 0; font-size: 19px; font-weight: 600; color: var(--ink); }
+.narrator b { flex: none; font-size: 13px; letter-spacing: 0.3em; color: var(--sun); }
+
 /* --- hero row: site 1 | map | site 2 */
 .stage { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; align-items: start; }
 .site::before { display: block; font-size: 13px; font-weight: 700; letter-spacing: 0.16em; color: var(--muted); margin-bottom: 4px; }
@@ -160,4 +164,5 @@ code { font-size: 0.9em; color: var(--ink-2); }
   .delay input { flex-basis: 100%; order: 3; }
   .delay output { min-width: 0; text-align: left; font-size: 20px; }
   .big { font-size: 60px; }
+  .narrator { flex-direction: column; gap: 4px; font-size: 17px; }
 }

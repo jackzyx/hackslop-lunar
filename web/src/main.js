@@ -3,6 +3,7 @@ import validation from "./validation.json";
 import { visibility, windowMetrics, verdictDelay, grade, maskAt, WINDOW_H, MAX_DELAY_D } from "./metrics.js";
 import { terrainFrom, shadeView, sunVector, toMap, paint } from "./shadow.js";
 import { playIntro } from "./intro.js";
+import { narrate } from "./narrator.js";
 
 const H = 3600e3, DAY = 86400e3;
 const t0 = Date.parse(data.ephemeris.start_utc);
@@ -241,6 +242,7 @@ function renderCol(col, id, i0, iPlanned, yr) {
   col.q(".nums").innerHTML = nums.map(([k, val]) => `<div><dt>${k}</dt><dd>${val}</dd></div>`).join("");
   col.q(".timeline").innerHTML = timeline(v, i0);
   col.q(".pano").innerHTML = panorama(sites[id].horizon, data.ephemeris.sites[id], i0, yr);
+  return { name: s.name, now: m.sunlit, onTime: windowMetrics(v, iPlanned).sunlit, d }; // for the narrator
 }
 
 const plannedIndex = () => (Date.parse(state.date + "T00:00:00Z") - t0) / H;
@@ -252,7 +254,7 @@ function render() {
   const n = Math.abs(state.delay), days = `${n} day${n === 1 ? "" : "s"}`;
   $("#delay-out").textContent = state.delay === 0 ? `On time · lands ${when}` : `${state.delay > 0 ? "+" : "−"}${days} · lands ${when}`;
   const yr = yRange(state.picks);
-  cols.forEach((col, c) => renderCol(col, state.picks[c], i0, iPlanned, yr));
+  $("#narrator span").textContent = narrate(state.delay, cols.map((col, c) => renderCol(col, state.picks[c], i0, iPlanned, yr)));
   cancelAnimationFrame(mapFrame); // the map takes ~0.1 s: draw once per frame while the slider moves
   mapFrame = requestAnimationFrame(() => drawMap(i0, when));
 }
