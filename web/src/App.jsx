@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { windowMetrics, verdictDelay, MAX_DELAY_D } from "@/domain/metrics.js";
 import { addCustomSite, removeCustomSite, restoreCustomSites, customSites, MAX_CUSTOM } from "@/lib/custom-sites.js";
 import { initialTerrain } from '@/terrain/startup.js';
@@ -84,6 +84,7 @@ export default function App() {
 function Planner({ hidden }) {
   const [date, setDate] = useState("2026-11-20");
   const [delay, setDelay] = useState(0);
+  const slipTrack = useRef(null);
   const [interacting, setInteracting] = useState(false);
   const [picks, setPicks] = useState(["A", "B"]);
   const [zoom, setZoom] = useState(true);
@@ -91,6 +92,29 @@ function Planner({ hidden }) {
   const [terrain, setTerrain] = useState(null);
   const [terrainErr, setTerrainErr] = useState(null);
   const [customKey, setCustomKey] = useState(0); // bumps when custom sites are added or removed
+
+  useEffect(() => {
+    const track = slipTrack.current;
+    let accumulated = 0;
+    let lastWheel = 0;
+    const scrollSlip = (event) => {
+      if (event.ctrlKey) return; // Preserve trackpad pinch zoom.
+      const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+      if (!delta) return;
+      event.preventDefault();
+      const now = performance.now();
+      if (now - lastWheel > 200 || Math.sign(delta) !== Math.sign(accumulated)) accumulated = 0;
+      lastWheel = now;
+      accumulated += delta * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? track.clientWidth : 1);
+      const days = Math.trunc(accumulated / 40);
+      if (days) {
+        accumulated -= days * 40;
+        setDelay(value => Math.max(-MAX_DELAY_D, Math.min(MAX_DELAY_D, value + days)));
+      }
+    };
+    track.addEventListener('wheel', scrollSlip, { passive: false });
+    return () => track.removeEventListener('wheel', scrollSlip);
+  }, []);
 
   // A click on the map: build the site, show it as site 2. Returns an error message or null.
   const placeSite = (lat, lon, name) => {
@@ -152,7 +176,7 @@ function Planner({ hidden }) {
 
         <section className="hud panel slipbar">
           <label htmlFor="slip" className="hud-label shrink-0">LAUNCH SLIP</label>
-          <div className="slip-track">
+          <div className="slip-track" ref={slipTrack} title="Scroll to adjust launch slip">
             <Slider
               id="slip"
               aria-label="Launch delay in days"
