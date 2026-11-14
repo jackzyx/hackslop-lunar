@@ -51,3 +51,4 @@ project ineligible. Format: what, who, link, what we used it for.
 - Claude Code (Claude Opus 5.5): STARS intro, a zoom from the Sun to the landing region drawn from the landing date and the ephemeris Sun vector (`web/src/intro.js` and its tests), Sat 14 Nov 11:00. Requested by Davit.
 - ChatGPT Codex: hourly lunar ephemeris generator, single-epoch Sun and Earth comparison with JPL Horizons, and app data integration, Sat 14 Nov 2026.
 - Claude Code (Claude Opus 5.5): visual polish of the app (dark projector theme, site 1 | map | site 2 hero row, per-site detail cards, validation pill and table from Nicolas's `validation.json`, phone layout), Sat 14 Nov 11:05. Requested by Davit.
+- Claude Code (Claude Opus 5.5): STARS narrator line built from the app's computed numbers (`web/src/narrator.js` and its tests), `web/public/serve.py` to run the offline build from a USB stick, Sat 14 Nov 11:23. Requested by Davit.

@@ -17,6 +17,7 @@ cd web && npm install
 npm run dev      # http://localhost:5173
 npm test         # metrics unit tests (node:test, no extra deps)
 npm run build    # dist/ (relative paths: any static server, USB stick, Pages subpath)
+python dist/serve.py   # USB stick / offline: serves dist on http://127.0.0.1:8000 and opens it (file:// pages can't load the app)
 npm run mock     # regenerate src/mock-data.json and check it still tells the story
 ```
 
