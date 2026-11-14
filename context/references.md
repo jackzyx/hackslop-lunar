@@ -41,7 +41,6 @@ project ineligible. Format: what, who, link, what we used it for.
 - [fonts, icons, music]
 
 ## AI tools
-- Codex: Humanizer and PowerPoint skill research, wording/design review, and native PowerPoint transitions/animations for `docs/slides-v1.pptx`, 14 Nov 2026. PowerPoint saved and reopened the deck to verify 8 fade transitions and 37 entrance effects; all 8 slide renders visually reviewed. Original v0 preserved.
 - [tool, what it was used for, by whom; keep this honest and current]
 - Codex: pitch-claim source verification and eight-slide editable PowerPoint v0 (`docs/slides-v0.pptx`, generator `scripts/make-slides.mjs`), including speaker notes and challenge-objective-to-screen mapping, 14 Nov 2026. Arial font; editable text and shapes; terrain image generated with `web/src/shadow.js` from NASA LOLA terrain and explicitly labelled mock scenario lighting. No AI-generated raster imagery. Validation figures transcribed from `web/src/validation.json`; screen feature mapping checked against `web/index.html` and `web/src/main.js`; challenge objectives from the supplied text in `context/02-challenge.md`.
 - PptxGenJS, https://github.com/gitbrent/PptxGenJS, MIT. Used for: generating the editable eight-slide PowerPoint and speaker notes with `scripts/make-slides.mjs`.
@@ -53,3 +52,6 @@ project ineligible. Format: what, who, link, what we used it for.
 - Claude Code (Claude Opus 5.5): docs rewritten for the software-only plan (CLAUDE.md, README, context 03/04/06/07/08/10, the shadow-map, relief-print and twin-rig skills), Sat 14 Nov 10:30. Requested by Davit.
 - Claude Code (Claude Opus 5.5): Sun and Earth bars on the site cards, validation table read from `web/src/validation.json`, GitHub Pages workflow, Sat 14 Nov 10:45. Requested by Davit.
 - Claude Code (Claude Opus 5.5): STARS intro, a zoom from the Sun to the landing region drawn from the landing date and the ephemeris Sun vector (`web/src/intro.js` and its tests), Sat 14 Nov 11:00. Requested by Davit.
+- ChatGPT Codex: hourly lunar ephemeris generator, single-epoch Sun and Earth comparison with JPL Horizons, and app data integration, Sat 14 Nov 2026.
+- Claude Code (Claude Opus 5.5): visual polish of the app (dark projector theme, site 1 | map | site 2 hero row, per-site detail cards, validation pill and table from Nicolas's `validation.json`, phone layout), Sat 14 Nov 11:05. Requested by Davit.
+- Claude Code (Claude Opus 5.5): STARS narrator line built from the app's computed numbers (`web/src/narrator.js` and its tests), `web/public/serve.py` to run the offline build from a USB stick, Sat 14 Nov 11:23. Requested by Davit.
