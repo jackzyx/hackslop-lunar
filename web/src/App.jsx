@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { windowMetrics, verdictDelay, MAX_DELAY_D } from "@/metrics.js";
 import { terrainFrom } from "@/shadow.js";
 import { playIntro } from "@/intro.js";
@@ -19,6 +19,7 @@ export default function App() {
   const [page, setPage] = useState(() => location.hash.startsWith('#about') ? 'about' : 'compare');
   const [date, setDate] = useState("2026-11-20");
   const [delay, setDelay] = useState(0);
+  const [interacting, setInteracting] = useState(false);
   const [picks, setPicks] = useState(["A", "B"]);
   const [zoom, setZoom] = useState(true);
   const [tab, setTab] = useState("skylines");
@@ -44,7 +45,9 @@ export default function App() {
 
   const iPlanned = (Date.parse(`${date}T00:00:00Z`) - t0) / H, i0 = iPlanned + delay * 24;
   const when = fmtDate(t0 + i0 * H, { weekday: "short", year: "numeric" });
-  const stats = picks.map((id) => { const v = vis(id); return { id, m: windowMetrics(v, i0), onTime: windowMetrics(v, iPlanned).sunlit, d: verdictDelay(v, iPlanned) }; });
+  const plannedStats = useMemo(() => picks.map(id => ({ onTime: windowMetrics(vis(id), iPlanned).sunlit, d: verdictDelay(vis(id), iPlanned) })), [picks, iPlanned]);
+  const stats = useMemo(() => picks.map((id, index) => ({ id, m: windowMetrics(vis(id), i0), ...plannedStats[index] })), [picks, i0, plannedStats]);
+  const detailIndex = useDeferredValue(i0);
   const said = narrate(delay, stats.map((s) => ({ name: sites[s.id].name, now: s.m.sunlit, onTime: s.onTime, d: s.d })));
 
   // STARS intro for the current landing; latest state through a ref so the button never plays a stale scene.
@@ -96,7 +99,7 @@ export default function App() {
       <section className="hud panel slipbar">
         <label htmlFor="slip" className="hud-label shrink-0">LAUNCH SLIP</label>
         <div className="flex-1">
-          <Slider id="slip" aria-label="Launch delay in days" min={-MAX_DELAY_D} max={MAX_DELAY_D} step={1} value={[delay]} onValueChange={([x]) => setDelay(x)} />
+          <Slider id="slip" aria-label="Launch delay in days" min={-MAX_DELAY_D} max={MAX_DELAY_D} step={1} value={[delay]} onPointerDown={() => setInteracting(true)} onPointerUp={() => setInteracting(false)} onLostPointerCapture={() => setInteracting(false)} onPointerCancel={() => setInteracting(false)} onValueCommit={() => setInteracting(false)} onValueChange={([x]) => setDelay(x)} />
           <div className="ticks" aria-hidden="true"><span>−60 D</span><span>−30</span><span>0</span><span>+30</span><span>+60 D</span></div>
         </div>
         <output htmlFor="slip" className="slipout glow">{slip} · LANDS {when.toUpperCase()}</output>
@@ -106,11 +109,11 @@ export default function App() {
 
       <main className="console" id="compare-main" tabIndex={-1}>
         <SiteCard n={1} st={stats[0]} i0={i0} onPick={(id) => setPicks([id, picks[1]])} />
-        <ShadowMap picks={picks} i0={i0} when={when} zoom={zoom} onZoom={() => setZoom(!zoom)} terrain={terrain} terrainErr={terrainErr} />
+        <ShadowMap picks={picks} i0={i0} when={when} zoom={zoom} onZoom={() => setZoom(!zoom)} terrain={terrain} terrainErr={terrainErr} interacting={interacting} />
         <SiteCard n={2} st={stats[1]} i0={i0} onPick={(id) => setPicks([picks[0], id])} />
       </main>
 
-      <DetailTabs picks={picks} i0={i0} tab={tab} onTab={setTab} />
+      <DetailTabs picks={picks} i0={detailIndex} tab={tab} onTab={setTab} />
       <p className="foot">Half sunlight = 360 of 720 hours. Verdicts test delays of 0 to {MAX_DELAY_D} days from the planned date. Landing at 00:00 UTC. Mast height 2 m. Hover the charts for detail.</p>
       </div>
     </div>

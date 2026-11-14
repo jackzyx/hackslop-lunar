@@ -1,5 +1,22 @@
 # Long Shadow web app
 
+Shadow-map performance: WebGL2 renders the terrain ray march on the GPU. It draws
+at 256 × 256 while the delay slider is held, then resolves to 512 × 512 on release.
+Requests are coalesced to animation frames. If WebGL2 is unavailable or its context
+is lost, a Web Worker draws a 144 px interaction preview and a 360 px final image,
+keeping the UI thread free. The fallback keeps only the newest queued request.
+The 500 m source terrain and the horizon-based site metrics are unchanged.
+Planned-date verdicts and chart bounds are cached; detailed charts use deferred
+updates so they do not take priority over the slider and shadow map.
+
+Browser regression check: install Playwright locally with
+`npm.cmd install --prefix .slide-tools playwright` from the repository root, start
+the dev server on port 5174, then run `node scripts/check-shadow-browser.cjs`.
+It compares GPU pixels with the CPU reference for flat, dark, wall and real-terrain
+scenes, and checks keyboard updates, pointer release and worker fallback. Chrome
+is used on Windows; `CHROME_PATH` and `TEST_URL` can override the browser and URL.
+`node scripts/bench-slider.cjs` repeats the slider drag benchmark on port 5174.
+
 The shared navigation switches between **Compare sites** (`#compare`) and
 **About** (`#about`) without resetting the selected date or sites. The About page
 uses the same amber HUD theme, real terrain rendering, scroll reveals and a

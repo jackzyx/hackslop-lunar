@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { WINDOW_H, maskAt } from "@/metrics.js";
 import { data, sites, vis, t0, H, fmtTime } from "@/lib/data.js";
 import { TL, P, timeline, panorama, yRange } from "@/lib/charts.js";
@@ -46,8 +46,8 @@ function SiteDetail({ n, id, i0, yr, bind }) {
   );
 }
 
-export default function DetailTabs({ picks, i0, tab, onTab }) {
-  const [bind, tipEl] = useTip(), yr = yRange(picks), v = validation;
+function DetailTabs({ picks, i0, tab, onTab }) {
+  const [bind, tipEl] = useTip(), yr = useMemo(() => yRange(picks), [picks]), v = validation;
   return (
     <Tabs value={tab} onValueChange={onTab} className="details" id="details">
       <TabsList variant="line" className="hud-tabs">
@@ -97,3 +97,5 @@ export default function DetailTabs({ picks, i0, tab, onTab }) {
     </Tabs>
   );
 }
+
+export default memo(DetailTabs);

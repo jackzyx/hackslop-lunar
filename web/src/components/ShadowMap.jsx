@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { shadeView, paint } from "@/shadow.js";
+import { createShadowRenderer } from "@/shadow-renderer.js";
 import { data, sunAt } from "@/lib/data.js";
 import { mapView, mapOverlay } from "@/lib/charts.js";
 import { Card } from "@/components/ui/card";
@@ -9,17 +9,16 @@ const MAP = 360; // canvas pixels; CSS scales it to the panel
 
 // Real terrain with the shadows at the landing instant (shadow.js), lon 0 up, 90 E right.
 // The Sun direction comes from the first chosen site's row of the same table the cards use.
-export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terrainErr }) {
-  const cv = useRef(null), view = mapView(picks, zoom);
+export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terrainErr, interacting = false }) {
+  const surface = useRef(null), renderer = useRef(null), view = mapView(picks, zoom);
   useEffect(() => {
     if (!terrain) return;
-    const raf = requestAnimationFrame(() => { // ~0.1 s per frame: draw at most once per frame while the slider moves
-      const ctx = cv.current.getContext("2d"), img = ctx.createImageData(MAP, MAP);
-      paint(shadeView(terrain, sunAt(picks[0], i0), view, MAP), img.data);
-      ctx.putImageData(img, 0, 0);
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [terrain, i0, picks[0], view.cx, view.cy, view.half]); // eslint-disable-line react-hooks/exhaustive-deps
+    renderer.current = createShadowRenderer(terrain, surface.current);
+    return () => { renderer.current.dispose(); renderer.current = null; };
+  }, [terrain]);
+  useEffect(() => {
+    renderer.current?.request({ sun: sunAt(picks[0], i0), view, size: interacting ? 256 : 512, interacting, id: i0 });
+  }, [terrain, i0, picks[0], view.cx, view.cy, view.half, interacting]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const e = data.ephemeris.sites[picks[0]];
   return (
@@ -29,7 +28,7 @@ export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terr
         <Button variant="outline" size="xs" onClick={onZoom}>{zoom ? "WHOLE REGION" : "CLOSE-UP ON THE TWO SITES"}</Button>
       </div>
       <div className="mapwrap">
-        <canvas ref={cv} width={MAP} height={MAP} />
+        <div className="shadow-surface" ref={surface} />
         <svg viewBox={`0 0 ${MAP} ${MAP}`} role="img" aria-label="Map of the lunar south pole: sunlit ground and shadows at landing, with the chosen sites"
           dangerouslySetInnerHTML={{ __html: mapOverlay(view, picks, i0, MAP) }} />
         <span className="map-hud tl">SUN @ SITE 1 · AZ {e.sun_az[i0].toFixed(1)}° · EL {e.sun_el[i0].toFixed(1)}°</span>
