@@ -2,7 +2,7 @@
 // instant. Seen from the south, like the polar map, so the last frame lines up with it: 0 deg
 // longitude (Earth-facing) up, 90 E right. Positions come from the landing date and the same Sun
 // vector the shadow map uses. Sizes and distances are true at every zoom level.
-import { mapView, mapViewport, toMap, R_KM } from "./terrain/shadow.js";
+import { mapView, mapViewport, toMap, R_KM } from "../terrain/shadow.js";
 import { prepareIntroAssets, stopIntroAssetPreparation } from './intro-assets.js';
 import { spherePixels } from './intro-pixels.js';
 

@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
-import "./index.css";
-import { playIntro } from './intro.js';
+import "./styles/index.css";
+import { playIntro } from './intro/intro.js';
 import { initialTerrain } from './terrain/startup.js';
 import { loadPlannerData } from './lib/data.js';
 

@@ -1,6 +1,6 @@
 import { spherePixels } from './intro-pixels.js';
-import { paint, shadeView } from './terrain/shadow.js';
-import { createGPUShadow } from './terrain/shadow-gpu.js';
+import { paint, shadeView } from '../terrain/shadow.js';
+import { createGPUShadow } from '../terrain/shadow-gpu.js';
 
 self.onmessage = async ({ data: { terrain, sun, quality, textureUrl, closeView } }) => {
   const previewMoon = spherePixels(sun, 256, null);

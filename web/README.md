@@ -77,7 +77,7 @@ Static, no backend, runs offline.
 
 Code: `src/App.jsx` (state and layout), `src/components/` (SiteCard, ShadowMap, DetailTabs, and
 the shadcn components in `ui/`, which we own and restyle), `src/lib/` (data, chart SVG,
-validation formatting), `src/index.css` (theme tokens and HUD styles). The maths stays in plain
+validation formatting), `src/styles/index.css` (theme tokens and HUD styles). The maths stays in plain
 JS with node tests: `metrics.js`, `shadow.js`, `intro.js`, `narrator.js`.
 
 The map's terrain is `public/terrain_500m.bin` (LOLA 80 m DEM averaged to 500 m, ±250 km,
