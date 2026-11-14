@@ -99,9 +99,12 @@ export default function MoonGlobe({ paused }) {
       visible = entry.isIntersecting;
       previousTime = null;
       if (visible) requestFrame();
-      else if (frame !== null) {
-        cancelAnimationFrame(frame);
-        frame = null;
+      else {
+        releaseMouse();
+        if (frame !== null) {
+          cancelAnimationFrame(frame);
+          frame = null;
+        }
       }
     });
     observer?.observe(globe);

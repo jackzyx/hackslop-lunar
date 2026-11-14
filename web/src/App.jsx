@@ -71,7 +71,7 @@ export default function App() {
     <div className="shell">
       <nav className="site-nav" aria-label="Main navigation">
         <a className="nav-wordmark" href={compareHref} onClick={followRoute}>SUN SHADE</a>
-        <div><a href={compareHref} onClick={followRoute} aria-current={page === 'compare' ? 'page' : undefined}>Compare sites</a><a href={routeUrl('about')} onClick={followRoute} aria-current={page === 'about' ? 'page' : undefined}>About</a></div>
+        <div><a href={compareHref} onClick={followRoute} aria-current={page === 'compare' ? 'page' : undefined}>Compare</a><a href={routeUrl('about')} onClick={followRoute} aria-current={page === 'about' ? 'page' : undefined}>About</a></div>
       </nav>
       {page === 'about' && <About compareHref={compareHref} onCompare={() => navigate('compare')} onCompareLink={followRoute} />}
       <div hidden={page === 'about'}>
