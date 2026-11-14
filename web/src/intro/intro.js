@@ -3,7 +3,7 @@ import { mapView, mapViewport, toMap, R_KM } from "../terrain/shadow.js";
 import { prepareIntroAssets, stopIntroAssetPreparation } from './intro-assets.js';
 import { spherePixels } from './intro-pixels.js';
 import { siteLabel } from '../lib/site-label.js';
-import { cameraProgress, reticleState, reticleCorners } from './reticle.js';
+import { LOCK_DELAY, cameraProgress, reticleState, reticleCorners } from './reticle.js';
 import { createStars, drawStars } from '../lib/starfield.js';
 
 const RAD = Math.PI / 180, AU = 149.6e6, MOON_DIST = 384400, R_SUN = 696000, R_EARTH = 6371;
@@ -319,10 +319,10 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
 
   // HUD look (index.css): amber phosphor vectors and mono labels; Earth cyan; the Sun and Moon stay true.
   const MONO = "'Geist Mono Variable', ui-monospace, monospace", AMBER = "#ffb000";
-  const label = (p, r, text) => {
+  const label = (p, r, text, gap = 8) => {
     g.font = `500 13px ${MONO}`;
     g.fillStyle = "rgba(255,191,71,0.95)";
-    g.fillText(text.toUpperCase(), p[0] + r + 8, p[1] + 5);
+    g.fillText(text.toUpperCase(), p[0] + r + gap, p[1] + 5);
   };
 
   function draw(t) {
@@ -368,6 +368,8 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
       g.textAlign = "left";
     }
 
+    const moonFocus = smoothstep(2 + LOCK_DELAY, 2 + LOCK_DELAY + .12, t);
+    const earthLabelAlpha = 1 - smoothstep(2 + LOCK_DELAY - .12, 2 + LOCK_DELAY, t);
     const pe = S(pos.earth), re = Math.max(R_EARTH * k, 18);
     if (on(pe, re)) {
       if (earth) {
@@ -382,7 +384,11 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
       const phi = Math.atan2(pos.earth[1], -pos.earth[0]); // toward the Sun, canvas angle
       g.fillStyle = "rgba(0,0,0,0.78)";
       g.beginPath(); g.arc(pe[0], pe[1], re, phi + Math.PI / 2, phi + 1.5 * Math.PI); g.closePath(); g.fill();
-      if (re < 120) label(pe, re, "Earth");
+      if (re < 120 && earthLabelAlpha > 0) {
+        g.globalAlpha = earthLabelAlpha;
+        label(pe, re, "Earth");
+        g.globalAlpha = 1;
+      }
     }
 
     const pm = S(pos.moon), rm = Math.max(R_KM * k, 2.5);
@@ -412,11 +418,10 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
         }
         g.globalAlpha = 1;
       }
-      const separation = Math.hypot(pm[0] - pe[0], pm[1] - pe[1]);
-      const moonLabelAlpha = Math.min(1, cameraProgress(t, 2, 3.6) * 4) * smoothstep(re + rm + 80, re + rm + 140, separation);
+      const moonLabelAlpha = moonFocus;
       if (rm < 120 && moonLabelAlpha > 0) {
         g.globalAlpha = moonLabelAlpha;
-        label(pm, rm, "Moon");
+        label(pm, rm, "Moon", 28);
         g.globalAlpha = 1;
       }
     }
