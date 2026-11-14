@@ -10,13 +10,16 @@ project ineligible. Format: what, who, link, what we used it for.
 - Lunar polar illumination: Mazarico, E. et al. (2011), Icarus 211, 1066-1081, doi:10.1016/j.icarus.2010.10.030, PGDA product 69, https://pgda.gsfc.nasa.gov/products/69. Used for: V4 benchmark.
 - NAIF SPICE generic kernels (naif0012.tls, pck00011.tpc, de440s.bsp, moon_pa_de440_200625.bpc, moon_de440_250416.tf), NASA/JPL NAIF, https://naif.jpl.nasa.gov/pub/naif/generic_kernels/. Acton, C. H. (1996), PSS 44, 65-70. Used for: Sun and Earth directions.
 - JPL Horizons System, https://ssd.jpl.nasa.gov/horizons/. Used for: independent validation (V1).
-- [add: LROC QuickMap screenshots, NAC frames, Artemis III region coordinates, mission site coordinates]
-- Artemis III candidate landing regions (13 regions, Aug 2022): NASA, "NASA Identifies Candidate Regions for Landing Next Americans on Moon", https://www.nasa.gov/feature/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon. Used for: Connecting Ridge, Shackleton Rim, de Gerlache Rim 2, Haworth, Nobile Rim 1, Malapert Massif region coordinates.
-- PGDA Product 78 site DEMs (5 m/pixel): Barker, M. K. et al. (2021), PSS 203, 105119, https://pgda.gsfc.nasa.gov/products/78. Used for: Connecting Ridge (Site 01) and Shackleton Rim (Site 04) centre coordinates, and Malapert Massif (Site 23).
-- Shackleton crater: Wikipedia, https://en.wikipedia.org/wiki/Shackleton_(crater). Used for: Shackleton Floor PSR control-site coordinates (89.67° S, 129.78° E).
-- Chang'e 7 target site (~88.8° S, ~123.4° E near Shackleton rim): Wikipedia, https://en.wikipedia.org/wiki/Chang%27e_7; The Planetary Society, https://www.planetary.org/space-missions/change-7. Used for: linking Shackleton Rim to Chang'e 7.
-- IM-2 (Athena) landing coordinates (84.79° S, 29.20° E at Mons Mouton): Wikipedia, https://en.wikipedia.org/wiki/IM-2; NASA LROC image, https://www.nasa.gov/image-detail/im2-after-landing/. Used for: Mons Mouton site.
-- USRA/LPI Artemis III region coordinates: Lunar and Planetary Institute, https://www.lpi.usra.edu/lunar/surface/. Used for: Haworth and Nobile Rim 1 centre coordinates.
+- [add: LROC QuickMap screenshots, NAC frames]
+- Site coordinates for the 8 curated sites: see **"Site coordinates"** section below (sources [S1]–[S6]).
+
+## Site coordinates (8 curated sites, see 04-science.md)
+- [S1] PGDA Product 78 site DEMs (5 m/pixel, Barker, M. K. et al. 2021, PSS 203, 105119): https://pgda.gsfc.nasa.gov/products/78. Used for: Connecting Ridge (Site 01, 89.46° S, 222.5° E), Shackleton Rim (Site 04, 89.77° S, 188.1° E), and Malapert Massif (Site 23, 85.99° S, 359.8° E) centre coordinates.
+- [S2] NASA, "NASA Identifies Candidate Regions for Landing Next Americans on Moon" (Aug 2022): https://www.nasa.gov/feature/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon. Used for: Artemis III region centre coordinates for Connecting Ridge, Shackleton Rim, de Gerlache Rim 2 (88.20° S, 295.6° E), Haworth (87.45° S, 355.0° E), Nobile Rim 1 (85.30° S, 37.4° E), and Malapert Massif.
+- [S3] Wikipedia, "Chang'e 7": https://en.wikipedia.org/wiki/Chang%27e_7. Used for: linking Shackleton Rim to Chang'e 7 target site (~88.8° S, ~123.4° E near Shackleton rim).
+- [S4] LPI / USRA, Lunar South Pole surface data: https://www.lpi.usra.edu/lunar/surface/. Used for: Haworth and Nobile Rim 1 centre coordinates cross-check.
+- [S5] Wikipedia, "Shackleton (crater)": https://en.wikipedia.org/wiki/Shackleton_(crater). Used for: Shackleton Floor PSR control-site coordinates (89.67° S, 129.8° E).
+- [S6] Wikipedia, "IM-2": https://en.wikipedia.org/wiki/IM-2. Used for: IM-2 Athena landing coordinates at Mons Mouton (84.79° S, 29.2° E).
 
 ## Facts used in the pitch
 - IM-2 Athena landing, 6 Mar 2025, ~250 m from target, on its side, ended ~13 h later: Spaceflight Now; SpacePolicyOnline. [add exact URLs]

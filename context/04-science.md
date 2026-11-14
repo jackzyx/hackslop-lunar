@@ -118,18 +118,36 @@ table zero mark and the lamp. Sign: check against the shadow direction on day on
   the lamp spreads 1.4 deg in azimuth and 0.04 deg in true elevation across the model.
   The lamp's disc is not the Sun's. It is a teaching instrument and a regional cross-check.
 
-## Candidate sites (to finalise Friday night; Story owns the source links)
+## Finalised site list (8 sites, Sat 14 Nov 10:00)
 
-Pick 8 that show contrast. Candidates from NASA's Artemis III candidate regions,
-PGDA product 78 site DEMs and missions:
+75 km from the pole = 2.47 deg of arc (75 / 1737.4 rad). Sites at latitude
+≥ 87.53 deg S appear on the 150 mm relief print. Never use exactly −90 deg.
 
-- Shackleton rim / connecting ridge (PGDA 78 Site01 connecting ridge, Site04 Shackleton rim) — Chang'e 7 target region
-- Malapert massif (PGDA 78 Site23)
-- Mons Mouton (IM-2 Athena landing, ~84.8 S, 2.6 E: verify exact published coordinates)
-- de Gerlache rim, Haworth, Nobile rim 1/2, Peak near Cabeus B, Leibnitz beta plateau (Artemis III candidate regions)
-- Shackleton floor (permanently shadowed control case)
-- One equatorial reference for V1 only: Apollo 11 (0.674 N, 23.473 E)
+| # | Name | Lat (°S) | Lon (°E) | On print | Mission / programme | Source |
+|---|---|---|---|---|---|---|
+| 1 | Connecting Ridge | 89.46 | 222.5 | ✓ | Artemis III region; PGDA 78 Site 01 | [S1] PGDA 78; [S2] NASA Artemis III regions |
+| 2 | Shackleton Rim | 89.77 | 188.1 | ✓ | Artemis III region; PGDA 78 Site 04; Chang'e 7 target area | [S1] PGDA 78; [S3] Chang'e 7 Wikipedia |
+| 3 | de Gerlache Rim 2 | 88.20 | 295.6 | ✓ | Artemis III region | [S2] NASA Artemis III regions |
+| 4 | Haworth | 87.45 | 355.0 | ✓ | Artemis III region | [S2] NASA Artemis III regions; [S4] LPI surface |
+| 5 | Shackleton Floor (PSR) | 89.67 | 129.8 | ✓ | Control: permanently shadowed | [S5] Shackleton Wikipedia |
+| 6 | Nobile Rim 1 | 85.30 | 37.4 | ✗ | Artemis III region | [S2] NASA Artemis III regions; [S4] LPI surface |
+| 7 | Malapert Massif | 85.99 | 359.8 | ✗ | Artemis III region; PGDA 78 Site 23 | [S1] PGDA 78; [S2] NASA Artemis III regions |
+| 8 | Mons Mouton (IM-2) | 84.79 | 29.2 | ✗ | IM-2 Athena landing (6 Mar 2025) | [S6] IM-2 Wikipedia |
 
-Coordinates: take them from the PGDA 78 README, NASA's Artemis III region
-announcements, and mission press kits. Record each source in `references.md`.
-Never use exactly -90 deg latitude.
+**Source keys** (full citations in `references.md`, section "Site coordinates"):
+- [S1] Barker et al. (2021), PGDA Product 78 site DEMs, https://pgda.gsfc.nasa.gov/products/78
+- [S2] NASA, "NASA Identifies Candidate Regions for Landing Next Americans on Moon" (Aug 2022), https://www.nasa.gov/feature/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon
+- [S3] Wikipedia, "Chang'e 7", https://en.wikipedia.org/wiki/Chang%27e_7
+- [S4] LPI / USRA, Lunar South Pole surface data, https://www.lpi.usra.edu/lunar/surface/
+- [S5] Wikipedia, "Shackleton (crater)", https://en.wikipedia.org/wiki/Shackleton_(crater)
+- [S6] Wikipedia, "IM-2", https://en.wikipedia.org/wiki/IM-2
+
+Print sites (5, within 75 km): 1 Connecting Ridge, 2 Shackleton Rim, 3 de Gerlache Rim 2, 4 Haworth, 5 Shackleton Floor.
+Off-print sites (3): 6 Nobile Rim 1, 7 Malapert Massif, 8 Mons Mouton.
+
+Why these 8: they show contrast (rim vs floor, near vs far pole, landed vs planned)
+and span every major mission and programme targeting the south pole. Haworth at
+87.45 deg S sits right at the print edge (73 km from the pole), included because it
+completes the ring of Artemis III sites around Shackleton/de Gerlache.
+
+V1 equatorial reference (validation only, not a curated site): Apollo 11 at 0.674° N, 23.473° E.
