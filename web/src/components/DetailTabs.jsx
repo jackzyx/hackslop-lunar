@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 // Chart hover text follows the mouse, so it is a positioned box rather than an anchored tooltip.
-function useTip() {
+function useTip(i0) {
   const [tip, setTip] = useState(null);
   const bind = (readHover) => ({
     onMouseMove: (ev) => {
@@ -24,7 +24,7 @@ function useTip() {
     onMouseLeave: () => setTip(null),
   });
   const el = tip && (
-    <div className="tip" style={tip.x > innerWidth - 360 ? { right: innerWidth - tip.x + 14, top: tip.y + 16 } : { left: tip.x + 14, top: tip.y + 16 }}>{tip.s}</div>
+    <div className="tip" style={tip.x > innerWidth - 360 ? { right: innerWidth - tip.x + 14, top: tip.y + 16 } : { left: tip.x + 14, top: tip.y + 16 }}>{tip.timelineText ? tip.timelineText(i0) : tip.s}</div>
   );
   return [bind, el, tip?.guide];
 }
@@ -40,7 +40,7 @@ const SkylinePlot = memo(function SkylinePlot({ horizon, eph, i0, yr }) {
   return <g dangerouslySetInnerHTML={{ __html: panorama(horizon, eph, i0, yr) }} />;
 });
 
-function SiteDetail({ n, id, i0, yr, bind, guide }) {
+function SiteDetail({ n, id, i0, yr, bind, guide, onShiftDate }) {
   const site = sites[id], eph = data.ephemeris.sites[id];
   const v = vis(id);
   const az = eph.sun_az[i0], el = eph.sun_el[i0];
@@ -52,12 +52,14 @@ function SiteDetail({ n, id, i0, yr, bind, guide }) {
       <p className="hud-label">{latLon(site)}</p>
       {site.terrain_modelled === false && <p className="caption">Smooth-sphere horizon · Terrain not modelled</p>}
       <p className="hud-label">SUN AND EARTH · 30 DAYS FROM LANDING</p>
-      <VisibilityTimeline key={id} visibility={v} i0={i0}
+      <VisibilityTimeline key={id} visibility={v} i0={i0} onShiftDate={onShiftDate}
         {...bind(({ x }) => {
           const k = Math.floor(((x - TL.x0) / (TL.x1 - TL.x0)) * WINDOW_H);
           if (k < 0 || k >= WINDOW_H) return null;
-          const i = i0 + k;
-          return { s: `${fmtTime(t0 + i * H)} UTC · Sun ${Math.round(v.sun[i] * 100)} % visible · Earth ${v.earth[i] ? "in view" : "hidden"}` };
+          return { timelineText: (start) => {
+            const i = start + k;
+            return `${fmtTime(t0 + i * H)} UTC · Sun ${Math.round(v.sun[i] * 100)} % visible · Earth ${v.earth[i] ? "in view" : "hidden"}`;
+          } };
         })} />
       <p className="readout">{evName} · {evVal}</p>
       <p className="hud-label">SKYLINE 360° · SUN AND EARTH PATHS</p>
@@ -131,8 +133,8 @@ function MethodCheck({ terrain }) {
   );
 }
 
-function DetailTabs({ picks, i0, tab, onTab, terrain, iPlanned, dateMax, onLand }) {
-  const [bind, tipEl, guide] = useTip(), yr = useMemo(() => yRange(picks), [picks]), v = validation;
+function DetailTabs({ picks, i0, tab, onTab, terrain, iPlanned, dateMax, onLand, onShiftDate }) {
+  const [bind, tipEl, guide] = useTip(i0), yr = useMemo(() => yRange(picks), [picks]), v = validation;
   const illumination = v.checks.find((c) => c.id === "V4");
   return (
     <Tabs value={tab} onValueChange={onTab} className="details" id="details">
@@ -144,7 +146,7 @@ function DetailTabs({ picks, i0, tab, onTab, terrain, iPlanned, dateMax, onLand 
       </TabsList>
 
       <TabsContent value="skylines" className="grid gap-4 md:grid-cols-2">
-        {picks.map((id, c) => <SiteDetail key={c} n={c + 1} id={id} i0={i0} yr={yr} bind={bind} guide={guide} />)}
+        {picks.map((id, c) => <SiteDetail key={c} n={c + 1} id={id} i0={i0} yr={yr} bind={bind} guide={guide} onShiftDate={onShiftDate} />)}
       </TabsContent>
 
       <TabsContent value="best" className="grid gap-4 md:grid-cols-2">
