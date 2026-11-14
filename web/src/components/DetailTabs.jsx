@@ -1,7 +1,7 @@
 import { memo, useMemo, useState } from "react";
 import { WINDOW_H, maskAt, windowMetrics, visibility } from "@/domain/metrics.js";
 import { data, sites, vis, t0, H, DAY, iso, fmtDate, fmtTime, latLon, dur } from "@/lib/data.js";
-import { dailyWindows, bestDays, GOALS } from "@/domain/best-days.js";
+import { hourlyWindows, bestDays, GOALS } from "@/domain/best-days.js";
 import { methodCheck } from "@/domain/custom-site.js";
 import { Button } from "@/components/ui/button";
 import { TL, P, panorama, skylineY, yRange } from "@/lib/charts.js";
@@ -84,23 +84,24 @@ function SiteDetail({ n, id, i0, yr, bind, guide, onShiftDate }) {
   );
 }
 
-// Compare each day at the same UTC hour as the current landing.
-function BestDays({ n, id, iPlanned, landingHour, dateMax, onLand }) {
+// Find the best landing hour across the candidate dates.
+function BestDays({ n, id, iPlanned, dateMax, onLand }) {
   const plannedDay = iso(t0 + iPlanned * H);
   const dayStart = Date.parse(`${plannedDay}T00:00:00Z`);
-  const iFrom = (dayStart - t0) / H + landingHour;
-  const hourLabel = `${String(landingHour).padStart(2, '0')}:00 UTC`;
+  const iFrom = (dayStart - t0) / H;
   const days = Math.min(365, Math.floor((Date.parse(`${dateMax}T00:00:00Z`) - dayStart) / DAY) + 1);
-  const rows = useMemo(() => dailyWindows(vis(id), iFrom, days), [id, iFrom, days]);
+  const rows = useMemo(() => hourlyWindows(vis(id), iFrom, days), [id, iFrom, days]);
   return (
     <Card className="hud detail">
       <h3 className="hud-title">SITE {n} · {sites[id].name.toUpperCase()}</h3>
-      <p className="hud-label">Best landing days · 12 months from {fmtDate(dayStart, { year: "numeric" })} · at {hourLabel} · 30-day windows</p>
+      <p className="hud-label">Best landing days · 12 months from {fmtDate(dayStart, { year: "numeric" })} · all UTC hours · 30-day windows</p>
       <Table className="hud-table">
         <TableHeader><TableRow><TableHead>GOAL</TableHead><TableHead>LAND</TableHead><TableHead>SUN</TableHead><TableHead>EARTH</TableHead><TableHead /></TableRow></TableHeader>
         <TableBody>
           {Object.entries(GOALS).flatMap(([goal, { label }]) => bestDays(rows, goal).map((r, k) => {
             const day = iso(t0 + r.i * H);
+            const landingHour = new Date(t0 + r.i * H).getUTCHours();
+            const hourLabel = `${String(landingHour).padStart(2, '0')}:00 UTC`;
             return <TableRow key={goal + r.d}>
               <TableCell>{k === 0 ? label.toUpperCase() : ""}</TableCell>
               <TableCell>{fmtDate(t0 + r.i * H, { weekday: "short", year: "numeric" })}<br />{hourLabel}</TableCell>
@@ -110,7 +111,7 @@ function BestDays({ n, id, iPlanned, landingHour, dateMax, onLand }) {
           }))}
         </TableBody>
       </Table>
-      <p className="caption">“Best of both” maximises the weaker of sunlight and Earth hours. Each day is scored at {hourLabel}, matching your current landing hour. LAND keeps this time and resets both slip sliders to 0. Earth = line of sight, not a radio link.</p>
+      <p className="caption">“Best of both” maximises the weaker of sunlight and Earth hours. Searches every hour; equal scores favour the earliest time. Options are at least 7 days apart. LAND keeps the recommended time and resets both slip sliders to 0. Earth = line of sight, not a radio link.</p>
     </Card>
   );
 }
@@ -138,7 +139,7 @@ function MethodCheck({ terrain }) {
   );
 }
 
-function DetailTabs({ picks, i0, tab, onTab, terrain, iPlanned, landingHour, dateMax, onLand, onShiftDate }) {
+function DetailTabs({ picks, i0, tab, onTab, terrain, iPlanned, dateMax, onLand, onShiftDate }) {
   const [bind, tipEl, guide] = useTip(i0), yr = useMemo(() => yRange(picks), [picks]), v = validation;
   const illumination = v.checks.find((c) => c.id === "V4");
   return (
@@ -155,7 +156,7 @@ function DetailTabs({ picks, i0, tab, onTab, terrain, iPlanned, landingHour, dat
       </TabsContent>
 
       <TabsContent value="best" className="grid gap-4 md:grid-cols-2">
-        {tab === "best" && picks.map((id, c) => <BestDays key={c} n={c + 1} id={id} iPlanned={iPlanned} landingHour={landingHour} dateMax={dateMax} onLand={onLand} />)}
+        {tab === "best" && picks.map((id, c) => <BestDays key={c} n={c + 1} id={id} iPlanned={iPlanned} dateMax={dateMax} onLand={onLand} />)}
       </TabsContent>
 
       <TabsContent value="validation">

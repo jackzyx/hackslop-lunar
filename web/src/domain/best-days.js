@@ -21,11 +21,20 @@ function sums(vis) {
 
 // One row per landing day d = 0..days-1 starting at hour iFrom + 24 d; days whose window leaves the table are dropped.
 export function dailyWindows(vis, iFrom, days) {
+  return landingWindows(vis, iFrom, days, 24);
+}
+
+// Search every hour, including all 24 hours of the last candidate date.
+export function hourlyWindows(vis, iFrom, days) {
+  return landingWindows(vis, iFrom, days, 1);
+}
+
+function landingWindows(vis, iFrom, days, stride) {
   const { sun, earth } = sums(vis), n = vis.sun.length, rows = [];
-  for (let d = 0; d < days; d++) {
-    const i = iFrom + 24 * d;
+  for (let hour = 0; hour < days * 24; hour += stride) {
+    const i = iFrom + hour;
     if (i < 0 || i + WINDOW_H > n) continue;
-    rows.push({ d, i, sunlit: sun[i + WINDOW_H] - sun[i], earth: earth[i + WINDOW_H] - earth[i] });
+    rows.push({ d: hour / 24, i, sunlit: sun[i + WINDOW_H] - sun[i], earth: earth[i + WINDOW_H] - earth[i] });
   }
   return rows;
 }
