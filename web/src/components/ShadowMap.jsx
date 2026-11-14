@@ -76,6 +76,8 @@ export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terr
     if (bounds.height <= 0 || !event.deltaY || !event.cancelable) return false;
     event.preventDefault();
     const delta = Math.max(-100, Math.min(100, event.deltaY * unit));
+    if (delta > 0 && view.half >= maxHalf) return false;
+    if (delta < 0 && view.half <= MIN_MAP_HALF) return false;
     const anchor = {
       x: (2 * (event.clientX - bounds.left) - bounds.width) / bounds.height,
       y: 1 - 2 * (event.clientY - bounds.top) / bounds.height,
