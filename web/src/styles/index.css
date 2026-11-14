@@ -149,6 +149,7 @@ html body[data-scroll-locked] { margin-right: 0 !important; }
 @media (max-width: 760px) { .landing-calendar { left: 0; right: auto; } }
 .mock { background: var(--primary); color: var(--primary-foreground); font-weight: 800; font-size: 12px; padding: 4px 8px; letter-spacing: 0.1em; }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+#about-main:focus-visible, #compare-main:focus-visible { outline: none; }
 
 /* launch slip: the one control that drives the demo */
 .slipbar { display: grid; grid-template-columns: max-content minmax(0, 1fr) auto; align-items: center; gap: 20px; padding: 12px 18px; }
@@ -337,7 +338,6 @@ body:has(.intro[data-phase="revealing"]) .shell .mapcard > :not(.mapwrap) { anim
     radial-gradient(circle at 87% 94%, #f5e9d133 0.5px, transparent 1px);
   background-size: min(100%, 681px) 479px;
 }
-#about-main:focus-visible { outline:none; }
 .about-page h1, .about-page h2, .about-page h3 { color:var(--foreground); font-weight:550; letter-spacing:-.035em; }
 .about-page h1 { font-size:clamp(42px,5vw,76px); line-height:1.06; margin:0 0 28px; }
 .about-page h1 em { color:var(--sun); font-style:normal; }
