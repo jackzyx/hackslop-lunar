@@ -131,7 +131,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   quality.closeTerrain = Math.max(768, Math.min(1536, Math.ceil(768 * closeView.half / (view.half * 2))));
   pos.landing = [pos.moon[0] + view.cx, pos.moon[1] + view.cy];
   let moon = imageCanvas(spherePixels(sun, 256, null), 256), land, landApproach;
-  let shownMoon, shownLand, shownClose, closeLand, closeApproach, terrainUnavailable = false, elapsed = 0;
+  let shownMoon, shownLand, shownClose, closeLand, terrainUnavailable = false, elapsed = 0;
   const stars = Array.from({ length: 220 }, () => [Math.random(), Math.random(), Math.random() < 0.1 ? 2 : 1, 0.2 + 0.6 * Math.random()]);
   el.hidden = false;
 
@@ -324,12 +324,10 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
       const blend = terrainBlend(radius, p[0], p[1], W, H, w);
       const crop = clippedImage(closeLand.width, closeLand.height, p[0] - radius, p[1] - radius, 2 * radius, 2 * radius, W, H);
       if (crop) {
+        // The detail tile replaces the overview throughout its opaque interior.
+        // Feather only its outer rim; a broad approach mask lets blur show through.
         g.globalAlpha = blend.opacity;
-        g.drawImage(closeApproach, ...crop);
-        if (blend.detail > 0) {
-          g.globalAlpha = blend.opacity * blend.detail;
-          g.drawImage(closeLand, ...crop);
-        }
+        g.drawImage(closeLand, ...crop);
         g.globalAlpha = 1;
       }
     }
@@ -399,7 +397,6 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
     }
     if (assets.complete && !assets.land) terrainUnavailable = true;
     if (assets.close && assets.close !== shownClose) {
-      closeApproach = imageCanvas(assets.close, assets.closeN, 'approach');
       closeLand = imageCanvas(assets.close, assets.closeN, true);
       shownClose = assets.close;
       el.dataset.closeResolution = String(assets.closeN);
