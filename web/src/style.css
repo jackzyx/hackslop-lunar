@@ -63,7 +63,7 @@ svg text.ink { fill: var(--ink-2); font-size: 14px; }
 .behind { opacity: 0.3; }
 .terrain { fill: var(--terrain); }
 .skyline { fill: none; stroke: var(--muted); stroke-width: 1.5; }
-.grid, .grid-ring { stroke: var(--grid); stroke-width: 1; fill: none; }
+.grid { stroke: var(--grid); stroke-width: 1; fill: none; }
 .axis { stroke: var(--axis); stroke-width: 1; }
 circle.sun, circle.earth { stroke: var(--surface); stroke-width: 2; }
 circle.sun.hidden, circle.earth.hidden { fill: var(--surface); stroke-width: 2.5; }
@@ -72,7 +72,14 @@ circle.sun.hidden { stroke: var(--sun); } circle.earth.hidden { stroke: var(--ea
 .pin-on { fill: var(--ink); stroke: var(--surface); stroke-width: 2; }
 
 .lower { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; }
-#map { width: 100%; max-width: 440px; display: block; margin: 0 auto; }
+.mapwrap { position: relative; width: 100%; max-width: 520px; aspect-ratio: 1; margin: 0 auto; }
+.mapwrap canvas, .mapwrap svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mapwrap canvas { border-radius: 4px; }
+#map text { fill: #fff; stroke: #000; stroke-width: 3px; paint-order: stroke; font-size: 13px; }
+#map .pin-lit { fill: var(--sun); stroke: #000; stroke-width: 2; }
+#map .pin-dark { fill: #000; stroke: #fff; stroke-width: 2; }
+#map .scale { stroke: #fff; stroke-width: 2; }
+.zoom { font: inherit; font-size: 15px; margin-top: 8px; padding: 4px 10px; }
 .limits { margin: 0 0 4px; padding-left: 22px; }
 
 #validation { margin-top: 16px; }
