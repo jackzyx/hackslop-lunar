@@ -11,9 +11,6 @@ import DetailTabs from "@/components/DetailTabs";
 import About from "@/components/About";
 import LandingDatePicker from "@/components/LandingDatePicker";
 
-// Planned dates must leave room for the whole slider range plus the 30-day window.
-const DATE_MIN = iso(t0 + MAX_DELAY_D * DAY), DATE_MAX = iso(t0 + data.ephemeris.count * H - (MAX_DELAY_D + 30) * DAY);
-
 export default function App() {
   const [page, setPage] = useState(() => location.hash.startsWith('#about') ? 'about' : 'compare');
   const [date, setDate] = useState("2026-11-20");
@@ -42,6 +39,8 @@ export default function App() {
   }, [page]);
   const showCompare = () => { location.hash = 'compare'; };
 
+  const dateMin = iso(t0 + MAX_DELAY_D * DAY);
+  const dateMax = iso(t0 + data.ephemeris.count * H - (MAX_DELAY_D + 30) * DAY);
   const iPlanned = (Date.parse(`${date}T00:00:00Z`) - t0) / H, i0 = iPlanned + delay * 24;
   const when = fmtDate(t0 + i0 * H, { weekday: "short", year: "numeric" });
   const plannedStats = useMemo(() => picks.map(id => ({ onTime: windowMetrics(vis(id), iPlanned).sunlit, d: verdictDelay(vis(id), iPlanned) })), [picks, iPlanned]);
@@ -71,7 +70,7 @@ export default function App() {
             <p className="tag">Sunlight and Earth contact at the lunar south pole, and what a launch slip does to them</p>
           </div>
           <div className="tools">
-            <LandingDatePicker value={date} min={DATE_MIN} max={DATE_MAX} onChange={setDate} />
+            <LandingDatePicker value={date} min={dateMin} max={dateMax} onChange={setDate} />
             {data.mock && <span className="mock" title="Every number on this screen is a placeholder until real data replaces it">MOCK DATA</span>}
             <Button type="button" variant="link" size="sm" onClick={showValidation}>Validation</Button>
           </div>

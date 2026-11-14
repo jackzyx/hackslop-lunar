@@ -2,15 +2,20 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import { playIntro } from './intro.js';
 import { initialTerrain } from './startup.js';
+import { loadPlannerData } from './lib/data.js';
 
 // No StrictMode: it runs effects twice in dev, which would start two intro animations at once.
 const terrainReady = initialTerrain().catch(() => null);
+const overlay = document.getElementById('intro');
 let appReady;
-const loadApp = () => appReady ??= import('./App.jsx').then(({ default: App }) => {
+const loadApp = () => appReady ??= Promise.all([import('./App.jsx'), loadPlannerData()]).then(([{ default: App }]) => {
   createRoot(document.getElementById('root')).render(<App />);
   return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+}).catch(error => {
+  overlay.hidden = true;
+  document.querySelector('.planner-loading').textContent = 'Could not load the planner. Refresh to try again.';
+  console.error(error);
 });
-const overlay = document.getElementById('intro');
 overlay.querySelector('.skip').addEventListener('click', () => {
   if (overlay.dataset.bootSkipped === 'true') loadApp();
 });
@@ -31,6 +36,7 @@ if (location.hash.startsWith('#about') || matchMedia('(prefers-reduced-motion: r
         document.head.append(preload);
       }
       playIntro({ ...scene, terrainReady, onLanding: loadApp });
+      loadPlannerData().catch(() => {});
     } else loadApp();
   }).catch(() => { loadApp(); overlay.hidden = true; });
 }

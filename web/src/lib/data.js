@@ -1,12 +1,67 @@
-// The precomputed table (Science writes it: science/lunar_ephemeris.py) and small formatters.
-import data from "@/mock-data.json"; // real SPICE data since 2887e67; the name is kept for the pipeline
+import ephemerisUrl from "@/mock-data.json?url&no-inline";
 import { visibility } from "@/metrics.js";
 import { sunVector } from "@/shadow.js";
 
-export { data };
+export let data, t0, sites;
 export const H = 3600e3, DAY = 86400e3;
-export const t0 = Date.parse(data.ephemeris.start_utc);
-export const sites = Object.fromEntries(data.sites.map((s) => [s.id, s]));
+
+let dataReady;
+
+async function readEphemeris(response) {
+  if (!response.ok) throw new Error(`Ephemeris request failed (HTTP ${response.status})`);
+  const dataset = await response.json();
+  const ephemeris = dataset?.ephemeris;
+  if (!Array.isArray(dataset?.sites) || !ephemeris?.sites || !Number.isFinite(Date.parse(ephemeris.start_utc)) ||
+      !Number.isSafeInteger(ephemeris.count) || ephemeris.count < 1 ||
+      !['A', 'B'].every(id => dataset.sites.some(site => site?.id === id)) ||
+      !dataset.sites.every(site => {
+        const angles = ephemeris.sites[site?.id];
+        return site?.horizon?.length === 720 && ['sun_az', 'sun_el', 'earth_az', 'earth_el'].every(
+          key => Array.isArray(angles?.[key]) && angles[key].length === ephemeris.count
+        );
+      })) {
+    throw new Error('Invalid ephemeris data');
+  }
+  return dataset;
+}
+
+async function fetchEphemeris() {
+  const url = new URL(ephemerisUrl, import.meta.url);
+  const cache = import.meta.env.PROD
+    ? await globalThis.caches?.open(`sun-shade-ephemeris:${new URL('.', url).href}`).catch(() => null)
+    : null;
+
+  try {
+    const cachedResponse = await cache?.match(url.href);
+    if (cachedResponse) return await readEphemeris(cachedResponse);
+  } catch {}
+
+  const previous = cache?.keys().catch(() => []);
+  const response = await fetch(url, { cache: import.meta.env.DEV ? 'no-store' : 'default' });
+  const cacheResponse = cache && response.ok ? response.clone() : null;
+  const dataset = await readEphemeris(response);
+
+  if (cacheResponse) {
+    previous.then(async requests => {
+      await cache.put(url.href, cacheResponse);
+      await Promise.all(requests.filter(request => request.url !== url.href).map(request => cache.delete(request)));
+    }).catch(() => {});
+  }
+
+  return dataset;
+}
+
+export function loadPlannerData() {
+  return dataReady ??= fetchEphemeris().then(dataset => {
+    data = dataset;
+    t0 = Date.parse(dataset.ephemeris.start_utc);
+    sites = Object.fromEntries(dataset.sites.map(site => [site.id, site]));
+  }).catch(error => {
+    dataReady = undefined;
+    throw error;
+  });
+}
+
 const visCache = {};
 export const vis = (id) => (visCache[id] ??= visibility(sites[id].horizon, data.ephemeris.sites[id]));
 // Sun unit vector (MOON_ME) at hour i, from one site's row; the same over the whole region.
