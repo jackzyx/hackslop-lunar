@@ -1,7 +1,43 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { dailyWindows, hourlyWindows, bestDays } from './best-days.js';
-import { WINDOW_H, windowMetrics } from './metrics.js';
+import { readFileSync } from 'node:fs';
+import { dailyWindows, hourlyWindows, bestDays, GOALS } from './best-days.js';
+import { WINDOW_H, windowMetrics, visibility } from './metrics.js';
+
+test('shipped sites: hourly recommendations match direct 30-day scoring and preserve UTC time', () => {
+  const data = JSON.parse(readFileSync(new URL('../data/ephemeris.json', import.meta.url)));
+  const start = Date.parse(data.ephemeris.start_utc);
+  const hourMs = 3_600_000;
+  const iFrom = (Date.parse('2026-11-20T00:00:00Z') - start) / hourMs;
+  for (const site of data.sites) {
+    const vis = visibility(site.horizon, data.ephemeris.sites[site.id]);
+    const rows = hourlyWindows(vis, iFrom, 365);
+    assert.equal(rows.length, 365 * 24, site.id);
+    const reference = rows.map(row => ({ ...row, ...windowMetrics(vis, row.i) }));
+    for (let k = 0; k < rows.length; k++) {
+      assert.ok(Math.abs(rows[k].sunlit - reference[k].sunlit) < 1e-6, `${site.id} sunlight at hour ${k}`);
+      assert.equal(rows[k].earth, reference[k].earth);
+    }
+    for (const [goal, { score }] of Object.entries(GOALS)) {
+      const picked = bestDays(rows, goal);
+      assert.equal(picked.length, 3);
+      const accepted = [];
+      for (const row of picked) {
+        const eligible = reference.filter(candidate => accepted.every(previous => Math.abs(candidate.i - previous.i) >= 7 * 24));
+        const maximum = Math.max(...eligible.map(score));
+        assert.ok(Math.abs(score(row) - maximum) < 1e-6, `${site.id} ${goal} optimal score`);
+        const earliest = eligible.find(candidate => Math.abs(score(candidate) - maximum) < 1e-9);
+        assert.equal(row.i, earliest.i, `${site.id} ${goal} earliest tie`);
+        const timestamp = new Date(start + row.i * hourMs);
+        const day = timestamp.toISOString().slice(0, 10);
+        const hour = timestamp.getUTCHours();
+        const restored = (Date.parse(`${day}T00:00:00Z`) - start) / hourMs + hour;
+        assert.equal(restored, row.i, `${site.id} ${goal} LAND preserves date and UTC hour`);
+        accepted.push(row);
+      }
+    }
+  }
+});
 
 test('optimal times search all hours and find an interior hour, with earliest ties', () => {
   const sun = new Float32Array(WINDOW_H + 48);
