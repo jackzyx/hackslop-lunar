@@ -1,4 +1,5 @@
 export const LOCK_DELAY = 0.42;
+export const HOLD = 1.6; // seconds the camera holds on the Moon while the south-pole lock-on plays
 const ease = value => { const x = Math.max(0, Math.min(1, value)); return x * x * (3 - 2 * x); };
 
 export function cameraProgress(time, start, end) {
@@ -14,7 +15,7 @@ export function reticleState(time, points, radii) {
   return {
     center, target, locked: time >= start + 0.24,
     radius: previousRadius + (targetRadius - previousRadius) * acquire,
-    split: ease((time - 4.8) / 0.6),
+    split: ease((time - 4.8 - HOLD) / 0.6),
   };
 }
 

@@ -33,7 +33,7 @@ const pages = {
     summary: [
       'Sun Shade has no accounts, sign-up, forms that send data, cookies, analytics, advertising or tracking.',
       'Everything you do in the planner (sites, dates, launch slip, custom sites) is calculated in your own browser.',
-      'Custom landing sites you add are saved only in your browser’s local storage, on your device, and never sent to us.',
+      'Custom landing sites you add, and whether you have seen the intro, are saved only in your browser’s local storage, on your device, and never sent to us.',
       'The server that hosts a copy of the site sees ordinary web request data, as with any website.',
     ],
     sections: [
@@ -56,14 +56,15 @@ const pages = {
         </ul>
       </>],
       ['storage', 'Storage on your device', <>
-        <p>The planner stores one item in your browser’s local storage, and only after you add a custom landing site:</p>
+        <p>The planner stores at most two small items in your browser’s local storage:</p>
         <div className="policy-table" role="region" aria-label="Browser storage used by Sun Shade" tabIndex={0}>
           <table>
             <thead><tr><th>Name</th><th>Contents</th><th>Purpose</th><th>Kept until</th></tr></thead>
-            <tbody><tr><td><code>sun-shade-custom-sites</code></td><td>For up to six custom sites: the name you gave it and its lunar latitude and longitude</td><td>Restore your custom sites when you come back</td><td>You remove the site in the planner, or clear this site’s data in your browser</td></tr></tbody>
+            <tbody><tr><td><code>sun-shade-intro-seen</code></td><td>The value “1”</td><td>Show the opening animation on your first visit only</td><td>You clear this site’s data in your browser</td></tr>
+            <tr><td><code>sun-shade-custom-sites</code></td><td>For up to six custom sites: the name you gave it and its lunar latitude and longitude</td><td>Restore your custom sites when you come back</td><td>You remove the site in the planner, or clear this site’s data in your browser</td></tr></tbody>
           </table>
         </div>
-        <p>This item stays on your device. We cannot see it, and it is not sent with any request. Because it exists only to provide a feature you asked for, it is treated as strictly necessary storage and needs no consent banner. Do not put personal information in custom site names; they are not shared, but anyone using the same browser profile can see them.</p>
+        <p>These items stay on your device. We cannot see them, and they are not sent with any request. Neither identifies you or tracks you across sites, so they need no consent banner. Do not put personal information in custom site names; they are not shared, but anyone using the same browser profile can see them.</p>
         <p>Your browser may also keep ordinary cached copies of the site’s files (the page, scripts, terrain and lunar position data) so later visits load faster. These are standard browser caches, not tracking. You can delete both by clearing this site’s data in your browser settings or using a private window.</p>
       </>],
       ['requests', 'Network requests the site makes', <>
@@ -80,7 +81,7 @@ const pages = {
         <p>If you choose to open an issue or contribute on GitHub, what you post is public and handled by GitHub under its terms.</p>
       </>],
       ['basis', 'Legal basis', <>
-        <p>Because the planner does not collect personal data, there is almost nothing for us to justify. Where data protection law applies, the hosting provider’s handling of request data is normally based on legitimate interests (Article 6(1)(f) GDPR): delivering the site securely and reliably. Saving custom sites in local storage is done at your request to provide a feature you use, under the “strictly necessary” exemption in the Irish ePrivacy Regulations (S.I. No. 336 of 2011).</p>
+        <p>Because the planner does not collect personal data, there is almost nothing for us to justify. Where data protection law applies, the hosting provider’s handling of request data is normally based on legitimate interests (Article 6(1)(f) GDPR): delivering the site securely and reliably. The two local-storage items exist only to provide features of the site you are using (your custom sites, and not replaying the intro), under the “strictly necessary” exemption in the Irish ePrivacy Regulations (S.I. No. 336 of 2011).</p>
       </>],
       ['children', 'Children', <>
         <p>Sun Shade is suitable for classroom use and does not knowingly collect personal data from anyone, including children. There is nothing to sign up for and no way to submit personal information through the planner.</p>

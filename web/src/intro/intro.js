@@ -3,7 +3,7 @@ import { mapView, mapViewport, toMap, R_KM } from "../terrain/shadow.js";
 import { prepareIntroAssets, stopIntroAssetPreparation } from './intro-assets.js';
 import { spherePixels } from './intro-pixels.js';
 import { siteLabel } from '../lib/site-label.js';
-import { LOCK_DELAY, cameraProgress, reticleState, reticleCorners } from './reticle.js';
+import { LOCK_DELAY, HOLD, cameraProgress, reticleState, reticleCorners } from './reticle.js';
 import { createStars, drawStars } from '../lib/starfield.js';
 
 const RAD = Math.PI / 180, AU = 149.6e6, MOON_DIST = 384400, R_SUN = 696000, R_EARTH = 6371;
@@ -24,12 +24,95 @@ export function scene(ms, sun) {
 }
 
 // Camera keyframes: [seconds, body to centre on, half the view in km].
-const KEYS = [[0, "sun", 1.35 * AU], [2, "earth", 6.5e5], [3.6, "moon", 2600], [5.4, "landing", 170]];
-const END = 6.2;
+// The camera holds on the Moon for HOLD seconds while the south-pole lock-on plays (drawLock).
+const LOCK_T = 3.6, LAND_T = 5.4 + HOLD;
+const KEYS = [[0, "sun", 1.35 * AU], [2, "earth", 6.5e5], [LOCK_T, "moon", 2600], [LOCK_T + HOLD, "moon", 2600], [LAND_T, "landing", 170]];
+const END = LAND_T + 0.8;
 const LINES = [
   [0, (w) => `Plotting your landing: ${w}.`],
-  [5.4, () => "Compare two sites. Shift the landing date."],
+  [LOCK_T, () => "Locking on to the lunar south pole."],
+  [LAND_T, () => "Compare two sites. Shift the landing date."],
 ];
+const MONO_FONT = "'Geist Mono Variable', ui-monospace, monospace";
+
+// Targeting HUD over the Moon's south pole (the disc centre: the scene is viewed from the south).
+// A spinning crosshair decelerates onto the pole, rings counter-rotate, latitude circles sweep in, then a lock pulse.
+function drawLock(g, t, P, R, k) {
+  const fadeIn = smoothstep(LOCK_T - 0.3, LOCK_T + 0.1, t), fadeOut = 1 - smoothstep(LOCK_T + HOLD + 0.1, LOCK_T + HOLD + 0.6, t);
+  const a = fadeIn * fadeOut;
+  if (a <= 0) return;
+  const lt = Math.min(1, Math.max(0, (t - LOCK_T) / HOLD)), lock = smoothstep(0.62, 0.78, lt);
+  const amber = (al) => `rgba(255,176,0,${al * a})`;
+  g.save();
+  g.lineCap = "round";
+
+  // Latitude circles on the polar disc, drawn on as a sweep.
+  g.setLineDash([3, 5]);
+  g.lineWidth = 1;
+  g.font = `500 12px ${MONO_FONT}`;
+  for (const [lat, i] of [[60, 0], [70, 1], [80, 2]]) {
+    const r = Math.hypot(...toMap(-lat, 0)) * k, sweep = smoothstep(0.05 + i * 0.08, 0.4 + i * 0.08, lt) * 2 * Math.PI;
+    if (r < 6 || sweep <= 0) continue;
+    g.strokeStyle = amber(0.45);
+    g.beginPath(); g.arc(P[0], P[1], r, -Math.PI / 2, -Math.PI / 2 + sweep); g.stroke();
+    g.fillStyle = amber(0.8 * Math.min(1, sweep / Math.PI));
+    g.fillText(`${lat}°S`, P[0] + 4, P[1] - r - 4);
+  }
+  g.setLineDash([]);
+
+  // Two tick rings around the disc, rotating in opposite directions.
+  const outer = R * 1.16, inner = R * 1.06, spinA = t * 0.7, spinB = -t * 1.6;
+  g.strokeStyle = amber(0.55);
+  g.lineWidth = 1;
+  g.beginPath();
+  for (let i = 0; i < 120; i++) {
+    const th = spinA + i * Math.PI / 60, long = i % 10 === 0 ? 14 : i % 5 === 0 ? 8 : 4;
+    g.moveTo(P[0] + Math.cos(th) * outer, P[1] + Math.sin(th) * outer);
+    g.lineTo(P[0] + Math.cos(th) * (outer + long), P[1] + Math.sin(th) * (outer + long));
+  }
+  g.stroke();
+  g.lineWidth = 2;
+  g.strokeStyle = amber(0.85);
+  for (let q = 0; q < 4; q++) {
+    const th = spinB + q * Math.PI / 2;
+    g.beginPath(); g.arc(P[0], P[1], inner, th + 0.12, th + Math.PI / 2 - 0.12); g.stroke();
+  }
+
+  // The crosshair: starts wide, spins 540 deg and decelerates as it closes onto the pole.
+  const close = smoothstep(0, 0.7, lt), size = R * 0.85 + (34 - R * 0.85) * close, rot = (1 - close) * 3 * Math.PI;
+  const flash = lock * (1 - smoothstep(0.78, 0.95, lt));
+  g.strokeStyle = flash > 0.05 ? `rgba(255,${Math.round(176 + 79 * flash)},${Math.round(255 * flash)},${a})` : amber(1);
+  g.lineWidth = 2;
+  g.shadowColor = "rgba(255,176,0,0.8)"; g.shadowBlur = 10;
+  g.beginPath();
+  for (let q = 0; q < 4; q++) {
+    const th = rot + q * Math.PI / 2, c = Math.cos(th), s = Math.sin(th);
+    g.moveTo(P[0] + c * size * 0.3, P[1] + s * size * 0.3); g.lineTo(P[0] + c * size, P[1] + s * size);
+  }
+  g.stroke();
+  g.beginPath(); g.arc(P[0], P[1], size * 0.3, rot, rot + 1.5 * Math.PI); g.stroke();
+  g.beginPath(); g.arc(P[0], P[1], 2.5, 0, 2 * Math.PI); g.fillStyle = amber(1); g.fill();
+  g.shadowBlur = 0;
+
+  // Lock pulse: two rings expanding from the pole.
+  for (const delay of [0, 0.08]) {
+    const p = Math.min(1, Math.max(0, (lt - 0.72 - delay) / 0.28));
+    if (p <= 0 || p >= 1) continue;
+    g.strokeStyle = amber(1 - p);
+    g.lineWidth = 2;
+    g.beginPath(); g.arc(P[0], P[1], 20 + p * R * 0.9, 0, 2 * Math.PI); g.stroke();
+  }
+
+  // Readout beside the crosshair.
+  g.font = `600 16px ${MONO_FONT}`;
+  g.fillStyle = amber(1);
+  const x = P[0] + Math.max(size, 34) + 16, y = P[1] - 10;
+  g.fillText(lock > 0.5 ? "LOCKED · LUNAR SOUTH POLE" : `ACQUIRING${".".repeat(1 + Math.floor(t * 6) % 3)}`, x, y);
+  g.font = `500 13px ${MONO_FONT}`;
+  g.fillStyle = amber(0.8);
+  g.fillText(`LAT ${(90 * smoothstep(0, 0.7, lt)).toFixed(2)}°S`, x, y + 20);
+  g.restore();
+}
 
 let earthImageReady;
 function loadEarthImage() {
@@ -62,7 +145,7 @@ function camera(t, pos, finalHalf = 170) {
   while (t >= keys[k + 1][0]) k++;
   const [t0, a, w0] = keys[k], [t1, b, w1] = keys[k + 1];
   const e = cameraProgress(t, t0, t1);
-  const w = w0 * Math.pow(w1 / w0, e), f = (w - w1) / (w0 - w1); // log zoom; the target stays on screen
+  const w = w0 * Math.pow(w1 / w0, e), f = w0 === w1 ? 1 - e : (w - w1) / (w0 - w1); // log zoom; the target stays on screen
   const A = pos[a], B = pos[b];
   return [[B[0] + (A[0] - B[0]) * f, B[1] + (A[1] - B[1]) * f], w];
 }
@@ -439,7 +522,9 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
       }
     }
 
-    if (t > 4.8) {
+    drawLock(g, t, pm, rm, k);
+
+    if (t > 4.8 + HOLD) {
       const pins = picks.map(site => { const [x, y] = toMap(site.lat, site.lon); return S([pos.moon[0] + x, pos.moon[1] + y]); });
       pins.forEach((p, index) => {
         if (!markers[index]) {
@@ -450,7 +535,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
           el.append(marker); markers[index] = marker;
         }
         const marker = markers[index];
-        Object.assign(marker.style, { left: `${p[0]}px`, top: `${p[1]}px`, opacity: Math.min(1, (t - 4.8) / 0.6) });
+        Object.assign(marker.style, { left: `${p[0]}px`, top: `${p[1]}px`, opacity: Math.min(1, (t - 4.8 - HOLD) / 0.6) });
         marker.querySelector('span').style.transform = `translate(-50%, ${p[1] <= pins[1 - index][1] ? '-34px' : '18px'})`;
       });
     }
@@ -473,19 +558,19 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   const tick = (now) => {
     // If an unusually slow connection has not delivered even preview terrain,
     // hold the lunar approach instead of revealing an empty surface or skipping it.
-    const t = clock(now, document.hidden || (elapsed >= 3.4 && !land && !terrainUnavailable && Boolean(terrain || terrainReady)));
+    const t = clock(now, document.hidden || (elapsed >= LOCK_T + HOLD - 0.2 && !land && !terrainUnavailable && Boolean(terrain || terrainReady)));
     elapsed = t;
     // Evaluate the large planner module only after the moving camera has landed.
-    if (t >= 5.4 && !landing) loadLanding();
+    if (t >= LAND_T && !landing) loadLanding();
     const frame = Math.min(t, END);
     el.dataset.time = frame.toFixed(3);
-    if (frame < 5.4 || !settled || drawnVersion !== assetVersion || (wideLand && now - wideReadyAt < 700) || drawnWidth !== el.clientWidth || drawnHeight !== el.clientHeight) {
+    if (frame < LAND_T || !settled || drawnVersion !== assetVersion || (wideLand && now - wideReadyAt < 700) || drawnWidth !== el.clientWidth || drawnHeight !== el.clientHeight) {
       drawnSize = draw(frame);
-      settled = frame >= 5.4;
+      settled = frame >= LAND_T;
       drawnVersion = assetVersion;
       drawnWidth = el.clientWidth; drawnHeight = el.clientHeight;
     }
-    if (frame >= 5.4 && land) {
+    if (frame >= LAND_T && land) {
       const liveCanvas = document.querySelector('#landing-terrain canvas[data-frame]');
       if (liveCanvas) placeTerrain(liveCanvas, el.clientWidth, el.clientHeight, drawnSize);
     }

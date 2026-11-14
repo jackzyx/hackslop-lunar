@@ -66,20 +66,11 @@ export default function App() {
     event.preventDefault();
     navigate(nextPage, hash);
   };
-  const compareHref = routeUrl('compare');
-  const aboutHref = routeUrl('about');
 
   return (
     <>
       <AmbientStars />
-      <div className="shell">
-        <nav className="site-nav" aria-label="Main navigation">
-          <a id="site-top" className="nav-wordmark" href={compareHref} onClick={followRoute}>SUN SHADE</a>
-          <div>
-            <a href={compareHref} onClick={followRoute} aria-current={page === 'compare' ? 'page' : undefined}>Compare</a>
-            <a href={aboutHref} onClick={followRoute} aria-current={page === 'about' ? 'page' : undefined}>About</a>
-          </div>
-        </nav>
+      <div className="shell" id="site-top">
         {policyPage && <PolicyPage page={page} onRoute={followRoute} />}
         {plannerReady && page === 'about' && <About onCompare={() => navigate('compare')} paused={paused} />}
         {plannerReady && <Planner hidden={page !== 'compare'} />}

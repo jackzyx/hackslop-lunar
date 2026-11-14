@@ -32,6 +32,7 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
   const [placeMsg, setPlaceMsg] = useState(null);
   const [ask, setAsk] = useState(null); // right-click dialog: the ground under the click
   const pointers = useRef(new Map());
+  const hold = useRef(null); // the view to keep when a placed site changes the picks
   const [aspect, setAspect] = useState(null);
   const [px, setPx] = useState(512); // map height in device pixels: render sharp on any screen
   const [dragging, setDragging] = useState(false);
@@ -43,7 +44,7 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
   const sunSite = mapPicks[0] ?? "A";
   const viewKey = zoom ? mapPicks.join(":") : "";
   const [viewport, setViewport] = useState({ key: viewKey, view: null });
-  if (viewport.key !== viewKey) setViewport({ key: viewKey, view: null });
+  if (viewport.key !== viewKey) { setViewport({ key: viewKey, view: hold.current }); hold.current = null; }
 
   const base = mapView(mapPicks.map(id => sites[id]), zoom);
   const view = mapViewport(viewport.view ?? base, aspect ?? 1, zoom, terrain ?? undefined);
@@ -144,6 +145,13 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
     const { lat, lon } = fromMap(overlay.cx + (sx - mapWidth / 2) / kmPx, overlay.cy - (sy - MAP / 2) / kmPx);
     return { sx, sy, lat, lon, km: poleKm(lat, lon) };
   }
+  // Adding a site must not move the map under the user's pointer.
+  function placeHere(lat, lon, name) {
+    hold.current = { cx: view.cx, cy: view.cy, half: view.half };
+    const err = onPlace(lat, lon, name);
+    if (err) hold.current = null;
+    return err;
+  }
   function place(event) {
     const start = down.current;
     down.current = null;
@@ -152,7 +160,7 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
     const g = groundAt(event);
     if (!g) return;
     if (g.km > MAX_POLE_KM) { setPlaceMsg(`Too far from the pole (${Math.round(g.km)} km). Custom sites must be within ${MAX_POLE_KM} km.`); return; }
-    setPlaceMsg(onPlace(g.lat, g.lon));
+    setPlaceMsg(placeHere(g.lat, g.lon));
   }
   function openAsk(event) {
     if (!onPlace || !terrain) return;
@@ -162,7 +170,7 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
   }
   function submitAsk(event) {
     event.preventDefault();
-    const err = onPlace(ask.lat, ask.lon, new FormData(event.currentTarget).get("name").trim().slice(0, 60) || undefined);
+    const err = placeHere(ask.lat, ask.lon, new FormData(event.currentTarget).get("name").trim().slice(0, 60) || undefined);
     setPlaceMsg(err);
     if (!err) setAsk(null);
   }

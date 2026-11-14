@@ -39,6 +39,7 @@ if (page !== 'compare' || matchMedia('(prefers-reduced-motion: reduce)').matches
         preload.href = new URL(scene.appModule, document.baseURI).href;
         document.head.append(preload);
       }
+      try { localStorage.setItem('sun-shade-intro-seen', '1'); } catch {}
       playIntro({ ...scene, terrainReady, onLanding: loadApp });
       loadPlannerData().catch(() => {});
     } else loadApp();

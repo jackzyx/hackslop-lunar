@@ -48,7 +48,7 @@ export default function About({ onCompare, paused }) {
 
     <section className="about-boundaries about-reveal" aria-labelledby="about-limits">
       <div><h2 id="about-limits">A first look for planners.<br />An explanation for everyone.</h2><p>Mission analysts and students can explore a shortlist before detailed engineering analysis. In a classroom, the same screen connects a ridge on the map to a gap on the timeline.</p><p>The static app can be served locally for offline use. Its source is available under the MIT licence.</p></div>
-      <div className="hud about-limit-panel"><h3>What the comparison means</h3><p>Sunlight is geometric visibility, not available electrical power. Earth contact is line of sight, not a radio-link budget.</p><ul><li>No power or thermal model.</li><li>No landing-hazard or slope assessment.</li><li>Custom sites use coarser 500 m terrain and are screening estimates.</li><li>Landing dates at 00:00 UTC.</li></ul><p>Measured validation results are shown in the planner’s Validation tab, with unfinished checks labelled.</p></div>
+      <div className="hud about-limit-panel"><h3>What the comparison means</h3><p>Sunlight is geometric visibility, not available electrical power. Earth contact is line of sight, not a radio-link budget.</p><ul><li>No power or thermal model.</li><li>No landing-hazard or slope assessment.</li><li>Landing dates at 00:00 UTC.</li></ul><p>Measured validation results are shown in the planner’s Validation tab, with unfinished checks labelled.</p></div>
     </section>
 
     <section className="about-faq about-reveal" aria-labelledby="about-faq">

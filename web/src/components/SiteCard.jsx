@@ -10,7 +10,8 @@ export default function SiteCard({ n, st, onPick, onRemove }) {
   const s = sites[st.id], { m, d } = st;
   const g = grade(m.sunlit), shown = useCountUp(m.sunlit);
   const kind = s.kind && s.kind.toLowerCase() !== s.name.toLowerCase() ? s.kind : null; // the site type, unless the name says it
-  const mission = [kind, s.mission ?? "Mission: pending Story's site list"].filter(Boolean).join(" · ");
+  const mission = s.custom ? `Custom site · ${Math.abs(s.lat).toFixed(3)}°S ${s.lon.toFixed(2)}°E · ground ${s.ground_m} m`
+    : [kind, s.mission ?? "Mission: pending Story's site list"].filter(Boolean).join(" · ");
   const verdict = d === null ? `Holds through a ${MAX_DELAY_D}-day delay` : d === 0 ? "Under half sunlight even on time" : `Falls below half sunlight with a ${d}-day delay`;
   const bar = (label, cls, h) => (
     <div className={`hbar ${cls}`}>
@@ -32,9 +33,14 @@ export default function SiteCard({ n, st, onPick, onRemove }) {
           {data.sites.map((x) => <SelectItem key={x.id} value={x.id}>{x.name}</SelectItem>)}
         </SelectContent>
       </Select>
-      <p className="mission">{mission}</p>
-      {s.custom && <p className="caption">{Math.abs(s.lat).toFixed(3)}°S {s.lon.toFixed(2)}°E · ground {s.ground_m} m · lower-fidelity horizon, see Validation · <button type="button" className="link-btn" onClick={() => onRemove(s.id)}>Remove</button></p>}
-      {s.terrain_modelled === false && <p className="caption">Smooth-sphere horizon · Terrain not modelled</p>}
+      {/* fixed-height block so cards keep their size whichever site is picked */}
+      <div className="site-meta">
+        <p className="mission" title={mission}>{mission}</p>
+        <p className="caption">
+          {s.custom ? <>500 m terrain horizon, lower fidelity · <button type="button" className="link-btn" onClick={() => onRemove(s.id)}>Remove</button></>
+            : s.terrain_modelled === false ? "Smooth-sphere horizon · Terrain not modelled" : null}
+        </p>
+      </div>
 
       <div className={`big ${g}`}>
         <span className="glow" aria-hidden="true">{Math.round(shown)}</span>

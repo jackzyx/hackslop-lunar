@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cameraProgress, reticleState, reticleCorners } from './reticle.js';
+import { cameraProgress, reticleState, reticleCorners, HOLD } from './reticle.js';
 
 const points = { sun: [300, 200], earth: [500, 280], moon: [650, 300], landing: [670, 310] };
 const radii = { earth: 18, moon: 30, landing: 12 };
@@ -19,7 +19,7 @@ test('each target locks before its camera movement begins', () => {
 
 test('reticle separates into diagonal brackets for both landing sites', () => {
   const sites = [[620, 330], [730, 260]];
-  const state = reticleState(5.4, points, radii);
+  const state = reticleState(5.4 + HOLD, points, radii);
   assert.equal(state.split, 1);
   const corners = reticleCorners(state, sites);
   assert.deepEqual(corners[0], { x: 598, y: 308 });
