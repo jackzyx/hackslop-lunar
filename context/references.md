@@ -31,3 +31,4 @@ project ineligible. Format: what, who, link, what we used it for.
 - Claude Code: environment setup, data-fetch scripts, context documents (13 Nov, before the event).
 - Claude Code (Claude Opus 5.5): web app mockup in `web/` (screen layout, SVG charts, metrics functions and tests, mock-data generator), Fri 13 Nov 22:40-23:30. All data in it is invented placeholder data.
 - Claude Code (Claude Opus 5.5): cross-platform setup and data download (`scripts/setup.py`, `scripts/fetch_data.py`) so Windows laptops work, Sat 14 Nov 09:00-09:30.
+- Claude Code (Claude Opus 5.5): relief STL script `hardware/make_relief.py` (LOLA 80 m DEM to 150 mm print on its spherical cap), added the PGDA 69 PSR and 75 S maps to the download, hackspace parts request, Sat 14 Nov 09:40-10:05. Requested by Davit.
