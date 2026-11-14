@@ -2,16 +2,85 @@
   "queried": "2026-11-14",
   "pass_deg": 0.01,
   "rows": [
+<<<<<<< HEAD
     { "site": "Near the pole (0° E, 89.9° S)", "body": "Sun", "max_del_deg": 0.000000076, "max_daz_cos_deg": 0.000000199, "hours": 1, "start": "2026-11-14T12:00Z", "stop": "2026-11-14T12:00Z" },
     { "site": "Near the pole (0° E, 89.9° S)", "body": "Earth", "max_del_deg": 0.000020552, "max_daz_cos_deg": 0.000000186, "hours": 1, "start": "2026-11-14T12:00Z", "stop": "2026-11-14T12:00Z" },
     { "site": "Mons Mouton region", "body": "Sun", "max_del_deg": null, "max_daz_cos_deg": null, "hours": null, "start": null, "stop": null },
     { "site": "Mons Mouton region", "body": "Earth", "max_del_deg": null, "max_daz_cos_deg": null, "hours": null, "start": null, "stop": null },
     { "site": "Apollo 11 (control)", "body": "Sun", "max_del_deg": null, "max_daz_cos_deg": null, "hours": null, "start": null, "stop": null },
     { "site": "Apollo 11 (control)", "body": "Earth", "max_del_deg": null, "max_daz_cos_deg": null, "hours": null, "start": null, "stop": null }
+=======
+    {
+      "site": "Near the pole (0\u00b0 E, 89.9\u00b0 S)",
+      "body": "Sun",
+      "max_del_deg": 1e-06,
+      "max_daz_cos_deg": 1e-06,
+      "hours": 721,
+      "start": "2026-Nov-14",
+      "stop": "2026-Dec-14"
+    },
+    {
+      "site": "Near the pole (0\u00b0 E, 89.9\u00b0 S)",
+      "body": "Earth",
+      "max_del_deg": 2.7e-05,
+      "max_daz_cos_deg": 1e-06,
+      "hours": 721,
+      "start": "2026-Nov-14",
+      "stop": "2026-Dec-14"
+    },
+    {
+      "site": "Mons Mouton region",
+      "body": "Sun",
+      "max_del_deg": 0.0,
+      "max_daz_cos_deg": 1e-06,
+      "hours": 721,
+      "start": "2026-Nov-14",
+      "stop": "2026-Dec-14"
+    },
+    {
+      "site": "Mons Mouton region",
+      "body": "Earth",
+      "max_del_deg": 2.7e-05,
+      "max_daz_cos_deg": 1e-06,
+      "hours": 721,
+      "start": "2026-Nov-14",
+      "stop": "2026-Dec-14"
+    },
+    {
+      "site": "Apollo 11 (control)",
+      "body": "Sun",
+      "max_del_deg": 1e-06,
+      "max_daz_cos_deg": 1e-06,
+      "hours": 721,
+      "start": "2026-Nov-14",
+      "stop": "2026-Dec-14"
+    },
+    {
+      "site": "Apollo 11 (control)",
+      "body": "Earth",
+      "max_del_deg": 1.5e-05,
+      "max_daz_cos_deg": 1e-06,
+      "hours": 721,
+      "start": "2026-Nov-14",
+      "stop": "2026-Dec-14"
+    }
+>>>>>>> 96fe2bc89aa341d861a09ad7e4202516f489eabb
   ],
   "checks": [
-    { "id": "V2", "label": "Flat-terrain horizon dip test", "result": null },
-    { "id": "V3", "label": "Horizon from 80 m vs 240 m terrain, RMS", "result": null },
-    { "id": "V4", "label": "Published illumination result reproduced, Mazarico et al. 2011", "result": null }
+    {
+      "id": "V2",
+      "label": "Flat-terrain horizon dip test",
+      "result": "-0.087\u00b0 (expected -0.087\u00b0, PASS)"
+    },
+    {
+      "id": "V3",
+      "label": "Horizon from 80 m vs 240 m terrain, RMS",
+      "result": null
+    },
+    {
+      "id": "V4",
+      "label": "Published illumination result reproduced, Mazarico et al. 2011",
+      "result": null
+    }
   ]
 }

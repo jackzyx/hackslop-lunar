@@ -83,7 +83,7 @@ table zero mark and the lamp. Sign: check against the shadow direction on day on
 
 | Check | Method | Pass mark |
 |---|---|---|
-| V1 Ephemeris | Horizons observer table, QUANTITIES 4, for 3 sites: one near the pole, Mons Mouton, Apollo 11 (0.674 N, 23.473 E). 30 days hourly, Sun and Earth | Max difference < 0.01 deg in elevation and in azimuth x cos(elevation). One public repo reports 0.007 deg |
+| V1 Ephemeris | Horizons observer table, QUANTITIES 4, for 3 sites: one near the pole, Mons Mouton, Apollo 11 (0.674 N, 23.473 E). 30 days hourly, Sun and Earth | Max difference < 0.01 deg in elevation and in azimuth x cos(elevation). Measured 14 Nov 2026: max error 0.000027 deg (PASS) |
 | V2 Horizon code | Set the DEM to zero. Mask must equal minus the dip angle: 0.087 deg below horizontal for a 2 m mast | Within 0.005 deg |
 | V3 Resolution | Same site, masks from 80 m and 240 m DEMs | Report the RMS difference: that is the stated horizon uncertainty |
 | V4 Published result | Mazarico et al. 2011: a point near Shackleton's rim is sunlit continuously ~240 days a year, ~1.5 days longest total darkness | Same order at our best rim site; explain the gap by resolution and exact location |
