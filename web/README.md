@@ -69,7 +69,7 @@ Updated browser captures are in `docs/intro-approach-updated.png` and
 
 React + Tailwind + shadcn/ui, styled as a retro amber HUD (dark only, for the projector).
 The console fits one 1280x720 screen: a launch-slip slider (-60 to +60 days), the STARS line
-(`src/narrator.js`, one sentence built from the computed numbers), and site 1 | shadow map |
+(`src/domain/narrator.js`, one sentence built from the computed numbers), and site 1 | shadow map |
 site 2. Per site: sunlit hours in the 30 days after landing, a status (NOMINAL / MARGINAL /
 CRITICAL), Sun and Earth bars, a verdict, longest dark gap, next sunset or Earthset. Under the
 console, tabs: the skylines and 30-day strips, the JPL Horizons validation, what we do not model.
@@ -125,4 +125,4 @@ inside the table.
 Definitions used on screen: sunlit hours = sum of the visible fraction of the 0.53° disc;
 dark = no part of the disc visible; Earth in view = Earth centre above the skyline (line of
 sight only); verdict = first delay of 0 to 60 days whose 30-day window gets less than half
-sunlight (360 of 720 h). Thresholds live at the top of `src/metrics.js`.
+sunlight (360 of 720 h). Thresholds live at the top of `src/domain/metrics.js`.

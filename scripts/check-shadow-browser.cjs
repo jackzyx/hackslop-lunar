@@ -5,8 +5,8 @@ const base=process.env.TEST_URL||'http://127.0.0.1:5174/';
  const p=await b.newPage({viewport:{width:1440,height:1000}}),errors=[];p.on('pageerror',e=>errors.push(e.message));
  await p.goto(base+'#about');
  const cases=await p.evaluate(async()=>{
-  const {createGPUShadow}=await import('/src/shadow-gpu.js');
-  const {terrainFrom,shadeView,paint,sunVector,TERRAIN}=await import('/src/shadow.js');
+  const {createGPUShadow}=await import('/src/terrain/shadow-gpu.js');
+  const {terrainFrom,shadeView,paint,sunVector,TERRAIN}=await import('/src/terrain/shadow.js');
   const real=terrainFrom(await(await fetch('/terrain_500m.bin')).arrayBuffer());
   const flat={...TERRAIN,h:new Int16Array(1000000),hmax:0};
   const wall={...TERRAIN,h:new Int16Array(1000000),hmax:2};for(let r=0;r<1000;r++)for(let c=520;c<524;c++)wall.h[r*1000+c]=2000;

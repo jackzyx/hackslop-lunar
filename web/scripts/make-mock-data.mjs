@@ -5,7 +5,7 @@
 // Run: npm run mock   (from web/). Fails if the fake data stops telling the story.
 import { writeFileSync } from "node:fs";
 import assert from "node:assert/strict";
-import { visibility, windowMetrics, verdictDelay, grade } from "../src/metrics.js";
+import { visibility, windowMetrics, verdictDelay, grade } from "../src/domain/metrics.js";
 
 const R = 1737.4; // km
 const START = Date.parse("2026-09-01T00:00:00Z");

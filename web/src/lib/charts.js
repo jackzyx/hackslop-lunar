@@ -1,7 +1,7 @@
 // SVG markup for the charts and the map overlay, built from the table's numbers only (no user text).
 // Ported from the pre-React main.js; the class names are styled in index.css.
-import { WINDOW_H, maskAt } from "@/metrics.js";
-import { toMap } from "@/shadow.js";
+import { WINDOW_H, maskAt } from "@/domain/metrics.js";
+import { toMap } from "@/terrain/shadow.js";
 import { data, sites, vis, t0, H, fmtDate } from "@/lib/data.js";
 
 const RAD = Math.PI / 180;

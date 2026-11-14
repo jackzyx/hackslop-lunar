@@ -47,7 +47,7 @@ relevant, or ask for one by name):
 | `horizons-validation` | JPL Horizons API for lunar sites, V1-V8, in-app validation table |
 | `lola-dem` | PGDA 90 DEMs, projection, crops, map layers |
 | `horizon-mask` | 720-azimuth masks, Sun disc fraction, Earth visibility, site metrics |
-| `shadow-map` | Browser shadow map of the real terrain (built: `web/src/shadow.js`) |
+| `shadow-map` | Browser shadow map of the real terrain (built: `web/src/terrain/shadow.js`) |
 | `relief-print` | Spherical-cap STL, slicing, coupon, finishing (dropped Sat 14 Nov) |
 | `twin-rig` | Firmware line protocol, AccelStepper, WebSerial client (dropped Sat 14 Nov) |
 | `pitch-video` | 29 s video with ffmpeg, pitch, slides, rehearsal |

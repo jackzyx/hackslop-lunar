@@ -1,6 +1,6 @@
 import path from "node:path";
 import fs from 'node:fs';
-import { sunVector } from './src/shadow.js';
+import { sunVector } from './src/terrain/shadow.js';
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 

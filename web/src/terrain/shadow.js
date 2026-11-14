@@ -2,7 +2,7 @@
 // Terrain grid (scripts/export_terrain.py): heights in metres on a polar stereographic map
 // (R = 1737.4 km) centred on the pole, row 0 at +y (lon 0 up), +x = 90 E. Map units are km.
 // Sun: unit vector in MOON_ME (x toward lon 0, z north).
-import { sunFraction } from "./metrics.js";
+import { sunFraction } from "../domain/metrics.js";
 
 export const R_KM = 1737.4;
 export const TERRAIN = { n: 1000, px: 0.5, half: 250 }; // keep in step with scripts/export_terrain.py

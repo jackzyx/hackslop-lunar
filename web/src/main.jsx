@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import { playIntro } from './intro.js';
-import { initialTerrain } from './startup.js';
+import { initialTerrain } from './terrain/startup.js';
 import { loadPlannerData } from './lib/data.js';
 
 // No StrictMode: it runs effects twice in dev, which would start two intro animations at once.

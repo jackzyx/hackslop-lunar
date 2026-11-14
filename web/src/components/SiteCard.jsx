@@ -1,4 +1,4 @@
-import { grade, MAX_DELAY_D, WINDOW_H } from "@/metrics.js";
+import { grade, MAX_DELAY_D, WINDOW_H } from "@/domain/metrics.js";
 import { data, sites, dur } from "@/lib/data.js";
 import { useCountUp } from "@/lib/useCountUp.js";
 import { Card } from "@/components/ui/card";

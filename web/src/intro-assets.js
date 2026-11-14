@@ -1,4 +1,4 @@
-import { paint, shadeView } from './shadow.js';
+import { paint, shadeView } from './terrain/shadow.js';
 import { spherePixels } from './intro-pixels.js';
 
 // Only one scene is retained. Replaying the same landing reuses the prepared

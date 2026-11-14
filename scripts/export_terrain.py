@@ -18,7 +18,7 @@ from rasterio.windows import from_bounds
 ROOT = Path(__file__).resolve().parent.parent
 DEM = ROOT / "data" / "dem" / "LDEM_80S_80MPP_ADJ.TIF"
 OUT = ROOT / "web" / "public" / "terrain_500m.bin"
-N, HALF_M = 1000, 250_000  # keep in step with web/src/shadow.js
+N, HALF_M = 1000, 250_000  # keep in step with web/src/terrain/shadow.js
 
 
 def main():

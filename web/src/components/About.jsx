@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { shadeView, paint } from '@/shadow.js';
+import { shadeView, paint } from '@/terrain/shadow.js';
 import { data, sunAt } from '@/lib/data.js';
 import { sourceGroups } from '@/lib/sources.js';
 import { Button } from '@/components/ui/button';

@@ -1,7 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import { windowMetrics, verdictDelay, MAX_DELAY_D } from "@/metrics.js";
-import { initialTerrain } from '@/startup.js';
-import { narrate } from "@/narrator.js";
+import { windowMetrics, verdictDelay, MAX_DELAY_D } from "@/domain/metrics.js";
+import { initialTerrain } from '@/terrain/startup.js';
+import { narrate } from "@/domain/narrator.js";
 import { data, sites, vis, t0, H, DAY, iso, fmtDate, reducedMotion } from "@/lib/data.js";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";

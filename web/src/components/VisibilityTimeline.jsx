@@ -1,5 +1,5 @@
 import { useId, useMemo } from 'react';
-import { WINDOW_H } from '@/metrics.js';
+import { WINDOW_H } from '@/domain/metrics.js';
 import { TL } from '@/lib/charts.js';
 import { t0, H, fmtDate } from '@/lib/data.js';
 

@@ -1,8 +1,8 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { MinusIcon, PlusIcon } from "lucide-react";
-import { createShadowRenderer } from "@/shadow-renderer.js";
+import { createShadowRenderer } from "@/terrain/shadow-renderer.js";
 import { sites, sunAt } from "@/lib/data.js";
-import { mapView, mapViewport, MIN_MAP_HALF, transformMapViewport } from "@/shadow.js";
+import { mapView, mapViewport, MIN_MAP_HALF, transformMapViewport } from "@/terrain/shadow.js";
 import { mapOverlay } from "@/lib/charts.js";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

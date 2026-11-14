@@ -1,6 +1,6 @@
 import ephemerisUrl from "@/mock-data.json?url&no-inline";
-import { visibility } from "@/metrics.js";
-import { sunVector } from "@/shadow.js";
+import { visibility } from "@/domain/metrics.js";
+import { sunVector } from "@/terrain/shadow.js";
 
 export let data, t0, sites;
 export const H = 3600e3, DAY = 86400e3;

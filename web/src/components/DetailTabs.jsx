@@ -1,5 +1,5 @@
 import { memo, useMemo, useState } from "react";
-import { WINDOW_H, maskAt, windowMetrics } from "@/metrics.js";
+import { WINDOW_H, maskAt, windowMetrics } from "@/domain/metrics.js";
 import { data, sites, vis, t0, H, fmtTime, latLon, dur } from "@/lib/data.js";
 import { TL, P, panorama, yRange } from "@/lib/charts.js";
 import VisibilityTimeline from '@/components/VisibilityTimeline';
