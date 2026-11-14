@@ -1,5 +1,15 @@
 # Long Shadow web app
 
+Intro visuals use a bundled 4096 × 2048 NASA lunar albedo texture, a
+viewport-sized globe raster (768–1536 px), and an 800–1280 px terrain render.
+The final camera fits the detailed terrain to every screen corner, including wide
+and portrait displays. The surface-data resolution remains 500 m; rendering at
+more pixels does not add new scientific terrain detail. Visual source and credit:
+NASA's Scientific Visualization Studio, [CGI Moon Kit](https://svs.gsfc.nasa.gov/4720/).
+The texture is served locally, so no external imagery connection is needed at runtime.
+Updated browser captures are in `docs/intro-approach-updated.png` and
+`docs/intro-terrain-updated.png`.
+
 React + Tailwind + shadcn/ui, styled as a retro amber HUD (dark only, for the projector).
 The console fits one 1280x720 screen: a launch-slip slider (-60 to +60 days), the STARS line
 (`src/narrator.js`, one sentence built from the computed numbers), and site 1 | shadow map |

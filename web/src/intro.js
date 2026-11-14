@@ -34,12 +34,20 @@ const LINES = [
   [5.6, () => "Real NASA terrain, shadows at landing. Now pick two sites and slip the date."],
 ];
 
-function camera(t, pos) {
-  const last = KEYS[KEYS.length - 1];
+export function introResolution(width, height, dpr = 1) {
+  const short = Math.min(width, height), long = Math.max(width, height);
+  return { sphere: Math.min(1536, Math.max(768, Math.ceil(short * dpr))),
+    terrain: Math.min(1280, Math.max(800, Math.ceil(long * dpr))),
+    half: Math.min(170, 230 / Math.hypot(1, long / short)) };
+}
+
+function camera(t, pos, finalHalf = 170) {
+  const keys = KEYS.map((key, i) => i === KEYS.length - 1 ? [key[0], key[1], finalHalf] : key);
+  const last = keys[keys.length - 1];
   if (t >= last[0]) return [pos[last[1]], last[2]];
   let k = 0;
-  while (t >= KEYS[k + 1][0]) k++;
-  const [t0, a, w0] = KEYS[k], [t1, b, w1] = KEYS[k + 1];
+  while (t >= keys[k + 1][0]) k++;
+  const [t0, a, w0] = keys[k], [t1, b, w1] = keys[k + 1];
   const x = (t - t0) / (t1 - t0), e = x * x * (3 - 2 * x);
   const w = w0 * Math.pow(w1 / w0, e), f = (w - w1) / (w0 - w1); // log zoom; the target stays on screen
   const A = pos[a], B = pos[b];
@@ -47,7 +55,23 @@ function camera(t, pos) {
 }
 
 // The Moon as a lit sphere seen from below its south pole (screen up = lon 0, right = 90 E).
-function sphere(sun, n = 512) {
+let texturePromise;
+function loadMoonTexture() {
+  return texturePromise ??= new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(image, 0, 0);
+      resolve(ctx.getImageData(0, 0, canvas.width, canvas.height));
+    };
+    image.onerror = () => resolve(null); // The intro still works if the optional visual asset is missing.
+    image.src = new URL('moon-albedo-4k.jpg', document.baseURI).href;
+  });
+}
+
+function sphere(sun, n, texture) {
   const cv = Object.assign(document.createElement("canvas"), { width: n, height: n });
   const c = cv.getContext("2d"), im = c.createImageData(n, n), b = new Float32Array(n * n).fill(NaN);
   for (let j = 0; j < n; j++) {
@@ -57,6 +81,16 @@ function sphere(sun, n = 512) {
     }
   }
   paint(b, im.data);
+  if (texture) for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+    const u = (2 * i + 1) / n - 1, v = 1 - (2 * j + 1) / n, rr = u * u + v * v;
+    if (rr > 1) continue;
+    // Orthographic view from south: longitude 0 up, 90 E right, matching the map.
+    const lon = Math.atan2(u, v), lat = -Math.acos(Math.sqrt(rr));
+    const tx = Math.min(texture.width - 1, Math.floor((lon / (2 * Math.PI) + 0.5) * texture.width));
+    const ty = Math.min(texture.height - 1, Math.floor((0.5 - lat / Math.PI) * texture.height));
+    const a = 4 * (ty * texture.width + tx), o = 4 * (j * n + i);
+    for (let channel = 0; channel < 3; channel++) im.data[o + channel] = texture.data[a + channel] * (0.12 + 1.25 * b[j * n + i]);
+  }
   c.putImageData(im, 0, 0);
   return cv;
 }
@@ -68,18 +102,26 @@ function terrainImage(terrain, sun, half, n) {
   paint(shadeView(terrain, sun, { cx: 0, cy: 0, half }, n), im.data);
   c.putImageData(im, 0, 0);
   const fade = c.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
-  fade.addColorStop(0.75, "#000"); fade.addColorStop(1, "rgba(0,0,0,0)");
+  // Only soften the outer edge, outside the final camera view. The old circular
+  // fade erased most of the visible terrain on wide screens.
+  fade.addColorStop(0.94, "#000"); fade.addColorStop(1, "rgba(0,0,0,0)");
   c.globalCompositeOperation = "destination-in";
   c.fillStyle = fade;
   c.fillRect(0, 0, n, n);
   return cv;
 }
 
-let hideTimer = 0;
-export function playIntro({ ms, sun, terrain, picks, when }) {
+let hideTimer = 0, run = 0, stopIntro;
+export async function playIntro({ ms, sun, terrain, picks, when }) {
+  const thisRun = ++run;
+  stopIntro?.();
   const el = document.querySelector("#intro"), cv = el.querySelector("canvas"), g = cv.getContext("2d");
   const line = el.querySelector(".stars-line span"), skip = el.querySelector(".skip");
-  const pos = scene(ms, sun), moon = sphere(sun), T = 200, land = terrain && terrainImage(terrain, sun, T, 640);
+  const quality = introResolution(innerWidth, innerHeight, devicePixelRatio || 1);
+  const texture = await loadMoonTexture();
+  if (thisRun !== run) return;
+  const pos = scene(ms, sun), moon = sphere(sun, quality.sphere, texture), T = 250;
+  const land = terrain && terrainImage(terrain, sun, T, quality.terrain);
   const stars = Array.from({ length: 220 }, () => [Math.random(), Math.random(), Math.random() < 0.1 ? 2 : 1, 0.2 + 0.6 * Math.random()]);
   clearTimeout(hideTimer);
   el.hidden = false;
@@ -97,6 +139,7 @@ export function playIntro({ ms, sun, terrain, picks, when }) {
   };
   addEventListener("keydown", key);
   skip.onclick = finish;
+  stopIntro = finish;
 
   // HUD look (index.css): amber phosphor vectors and mono labels; Earth cyan; the Sun and Moon stay true.
   const MONO = "'Geist Mono Variable', ui-monospace, monospace", AMBER = "#ffb000";
@@ -114,7 +157,7 @@ export function playIntro({ ms, sun, terrain, picks, when }) {
     g.fillRect(0, 0, W, H);
     for (const [x, y, s, a] of stars) { g.fillStyle = `rgba(255,226,180,${a})`; g.fillRect(x * W, y * H, s, s); }
 
-    const [[cx, cy], w] = camera(t, pos), k = Math.min(W, H) / 2 / w;
+    const [[cx, cy], w] = camera(t, pos, introResolution(W, H).half), k = Math.min(W, H) / 2 / w;
     const S = ([x, y]) => [W / 2 + (x - cx) * k, H / 2 - (y - cy) * k];
     const on = ([x, y], m) => x > -m && x < W + m && y > -m && y < H + m;
 
@@ -158,6 +201,7 @@ export function playIntro({ ms, sun, terrain, picks, when }) {
     const pm = S(pos.moon), rm = Math.max(R_KM * k, 2.5);
     if (on(pm, rm)) {
       g.drawImage(moon, pm[0] - rm, pm[1] - rm, 2 * rm, 2 * rm);
+      g.imageSmoothingQuality = 'high';
       const a = Math.min(1, Math.max(0, (1800 - w) / 1200));
       if (land && a > 0) {
         g.globalAlpha = a;

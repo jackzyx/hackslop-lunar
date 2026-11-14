@@ -1,10 +1,20 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { sunLongitude, scene } from "./intro.js";
+import { sunLongitude, scene, introResolution } from "./intro.js";
 
 const RAD = Math.PI / 180;
 const near = (a, b, tol) => assert.ok(Math.abs(a - b) < tol, `${a} vs ${b}`);
 const angDiff = (a, b) => Math.abs(((a - b + 540) % 360) - 180);
+
+test('intro final camera keeps every screen corner inside the detailed terrain', () => {
+  for (const [w, h, dpr] of [[1920,1080,1], [3840,2160,2], [2560,1080,1], [390,844,3]]) {
+    const q = introResolution(w,h,dpr);
+    const longHalf = q.half * Math.max(w,h) / Math.min(w,h);
+    assert.ok(Math.hypot(q.half, longHalf) < 250 * 0.94, 'corners must avoid the fading rim');
+    assert.ok(q.terrain >= 800 && q.terrain <= 1280);
+    assert.ok(q.sphere >= 768 && q.sphere <= 1536);
+  }
+});
 
 test("Sun longitude: 0 deg at the March 2026 equinox, 90 at the June solstice", () => {
   near(angDiff(sunLongitude(Date.UTC(2026, 2, 20, 14, 46)), 0), 0, 0.1);
