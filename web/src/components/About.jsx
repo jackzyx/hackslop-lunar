@@ -73,7 +73,7 @@ export default function About({ terrain, i0, site, onCompare }) {
         <ul>{group.entries.map(([title, text, url]) => <li key={url}><a href={url} target="_blank" rel="noreferrer">{title} <span aria-hidden="true">↗</span></a><p>{text}</p></li>)}</ul>
       </details>)}
       {count === 0 && <p>No sources match that search. <button onClick={() => setQuery('')}>Show all sources</button></p>}
-      <div className="about-disclosure"><h3>Built with real data, credited openly.</h3><p>Lunar imagery and relief geometry come from NASA data, not image generation. Bibliography links require an internet connection; the bundled app assets do not.</p><p>The 80 mm STEP/STL relief is an appearance prototype. A motorized turntable is exploratory hardware, not a completed browser feature.</p></div>
+      <div className="about-disclosure"><h3>Built with real data, credited openly.</h3><p>Earth and lunar imagery and relief geometry come from NASA data, not image generation. The intro’s Earth uses NASA’s Blue Marble composite, credited to NASA/GSFC, Reto Stöckli and Robert Simmon. Bibliography links require an internet connection; the bundled app assets do not.</p><p>The 80 mm STEP/STL relief is an appearance prototype. A motorized turntable is exploratory hardware, not a completed browser feature.</p></div>
     </section>
     <footer className="about-footer"><span>Sun Shade · NASA Space Apps / HackAthlone 2026</span><button onClick={() => setPaused(!paused)} aria-pressed={paused}>{paused ? 'Resume animations' : 'Pause animations'}</button><a href="#compare" onClick={onCompare}>Back to the comparison ↑</a></footer>
   </main>;

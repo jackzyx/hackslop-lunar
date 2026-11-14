@@ -26,6 +26,8 @@ export const sourceGroups = [
     ['Canadian lunar rover project', 'Canadian Space Agency. Historical south-pole objective; the agency now marks this project ended. Not presented as an upcoming mission.', 'https://www.asc-csa.gc.ca/eng/astronomy/moon-exploration/first-canadian-rover-to-explore-the-moon.asp'],
   ]},
   { title: 'Imagery, typography and interface', entries: [
+    ['NASA Blue Marble Earth', 'NASA/GSFC, Reto Stöckli and Robert Simmon (2002). Earth imagery in the intro, bundled locally. A static satellite composite, not live weather or a date-specific Earth orientation.', 'https://science.nasa.gov/earth/earth-observatory/the-blue-marble-true-color-global-imagery-at-1km-resolution/'],
+    ['Original Blue Marble image', 'Western Hemisphere, 2048 × 2048 TIFF. Converted to a small WebP for the intro Earth marker; land, oceans, sea ice and clouds from NASA’s Blue Marble composite.', 'https://assets.science.nasa.gov/content/dam/science/esd/eo/content-feature/bluemarble/images/globe_west_2048.tif'],
     ['NASA CGI Moon Kit', 'NASA’s Scientific Visualization Studio / Ernie Wright. LROC mosaic with LOLA polar albedo fill. Globe texture is visual context, not scientific terrain input.', 'https://svs.gsfc.nasa.gov/4720/'],
     ['Original lunar texture', '4096 × 2048 TIFF, converted locally to JPEG. Credit NASA SVS; source LROC data from NASA / GSFC / Arizona State University.', 'https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/lroc_color_poles_4k.tif'],
     ['Geist and Geist Mono', 'Vercel / Basement.studio. SIL Open Font License; bundled locally through Fontsource.', 'https://vercel.com/font'],
