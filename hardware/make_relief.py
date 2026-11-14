@@ -92,6 +92,9 @@ def main(diameter=150.0):
     print(f"terrain  {h.min():+.3f} to {h.max():+.3f} km (DEM height above 1737.4 km sphere)")
     print(f"pole height {h[N // 2, N // 2]:+.3f} km; cap drop at the rim {K * R * (1 - np.cos(c.max())):.2f} mm")
     print(f"zero flat on the +y rim (0 deg lon): chord {2 * rd * np.sqrt(1 - FLAT**2):.1f} mm. +x = 90 E.")
+    # Lamp datum (h = 0 in 06-hardware.md): measure lamp height from this level, not from the table.
+    print(f"LAMP DATUM: reference level at the pole (z = 0, 1737.4 km sphere) is {-zb:.2f} mm above the "
+          f"print's underside; the pole's surface is {Z[N // 2, N // 2] - zb:.2f} mm above it. Add the platter height.")
 
 
 if __name__ == "__main__":
