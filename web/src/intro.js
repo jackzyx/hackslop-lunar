@@ -38,7 +38,7 @@ export function introResolution(width, height, dpr = 1) {
   const short = Math.min(width, height), long = Math.max(width, height);
   return { sphere: Math.min(1536, Math.max(768, Math.ceil(short * dpr))),
     terrain: Math.min(1280, Math.max(800, Math.ceil(long * dpr))),
-    half: Math.min(170, 230 * short / long) };
+    half: Math.min(170, 230 / Math.hypot(1, long / short)) };
 }
 
 function camera(t, pos, finalHalf = 170) {
