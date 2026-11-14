@@ -26,7 +26,7 @@ function gesture(pointers, bounds) {
 export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terrainErr, interacting = false }) {
   const wrapper = useRef(null), surface = useRef(null), renderer = useRef(null);
   const pointers = useRef(new Map());
-  const [aspect, setAspect] = useState(1);
+  const [aspect, setAspect] = useState(null);
   const [dragging, setDragging] = useState(false);
   const [wheeling, setWheeling] = useState(false);
   const [painted, setPainted] = useState(null);
@@ -35,8 +35,8 @@ export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terr
   if (viewport.key !== viewKey) setViewport({ key: viewKey, view: null });
 
   const base = mapView(picks.map(id => sites[id]), zoom);
-  const view = mapViewport(viewport.view ?? base, aspect, zoom, terrain ?? undefined);
-  const maxHalf = mapViewport({ ...base, half: Infinity }, aspect, zoom, terrain ?? undefined).half;
+  const view = mapViewport(viewport.view ?? base, aspect ?? 1, zoom, terrain ?? undefined);
+  const maxHalf = mapViewport({ ...base, half: Infinity }, aspect ?? 1, zoom, terrain ?? undefined).half;
   const preview = interacting || dragging || wheeling;
   const overlay = painted?.view ?? view;
   const mapWidth = MAP * overlay.aspect;
@@ -54,6 +54,7 @@ export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terr
     return () => { renderer.current.dispose(); renderer.current = null; };
   }, [terrain]);
   useEffect(() => {
+    if (aspect === null) return;
     renderer.current?.request({ sun: sunAt(picks[0], i0), view, size: preview ? 256 : 512, interacting: preview, id: i0 });
   }, [terrain, i0, picks[0], view.cx, view.cy, view.half, aspect, preview]);
 

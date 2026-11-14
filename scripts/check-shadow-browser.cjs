@@ -40,13 +40,16 @@ const base=process.env.TEST_URL||'http://127.0.0.1:5174/';
  assert.ok(Math.abs(layout.ringWidth-layout.ringHeight)<1,'distance rings must remain circular');
  await p.screenshot({path:'docs/map-full-width-preview.png'});
  // Force context loss and verify the worker eventually finishes the newest date at full resolution.
- await p.locator('.shadow-surface canvas').evaluate(c=>c.getContext('webgl2').getExtension('WEBGL_lose_context').loseContext());
+ await p.locator('.shadow-surface canvas').evaluate(c=>{
+  if(c.dataset.offscreen)c.dispatchEvent(new Event('webglcontextlost',{cancelable:true}));
+  else c.getContext('webgl2').getExtension('WEBGL_lose_context').loseContext();
+ });
  await p.getByRole('slider',{name:'Launch delay in days'}).focus();await p.keyboard.press('ArrowRight');await p.waitForFunction(()=>document.querySelector('.shadow-surface canvas')?.dataset.renderer==='worker'&&document.querySelector('.shadow-surface canvas')?.height===360);
  await p.setViewportSize({width:390,height:844});
  await p.waitForFunction(()=>{const r=document.querySelector('.mapwrap').getBoundingClientRect();return Math.abs(r.width-r.height)<2});
  assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'mobile horizontal overflow');
  const fallback=await b.newPage();fallback.on('pageerror',e=>errors.push(e.message));
- await fallback.addInitScript(()=>{const get=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type==='webgl2'?null:get.call(this,type,...args)}});
+ await fallback.addInitScript(()=>{globalThis.OffscreenCanvas=undefined;const get=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type==='webgl2'?null:get.call(this,type,...args)}});
  await fallback.goto(base+'#compare');await fallback.locator('#intro .skip').evaluate(b=>b.click());
  await fallback.waitForFunction(()=>document.querySelector('.shadow-surface canvas')?.dataset.renderer==='worker'&&document.querySelector('.shadow-surface canvas')?.height===360);
  assert.deepEqual(errors,[]);console.log(JSON.stringify({parity:cases,keyboard:'passed',thumbRelease:'passed',contextLossFallback:'passed',noGPUFallback:'passed',pageErrors:errors}));
