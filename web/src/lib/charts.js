@@ -2,6 +2,7 @@
 import { WINDOW_H, maskAt } from "@/domain/metrics.js";
 import { toMap } from "@/terrain/shadow.js";
 import { data, sites, vis } from "@/lib/data.js";
+import { siteLabel } from './site-label.js';
 
 const RAD = Math.PI / 180;
 
@@ -93,8 +94,8 @@ export function mapOverlay(view, picks, i0, size, height = size) {
     if (k < 0) { g += `<circle class="pin-other" cx="${x}" cy="${y}" r="3"/><text class="grid-label" x="${x + 6}" y="${y + 4}">${site.id}</text>`; continue; }
     const lit = vis(site.id).sun[i0] > 0, above = pickY[k] <= pickY[1 - k]; // upper pick labelled above, lower below
     g += `<path class="bracket" d="M${x - 13},${y - 7}v-6h6M${x + 7},${y - 13}h6v6M${x + 13},${y + 7}v6h-6M${x - 7},${y + 13}h-6v-6"/>` +
-      `<circle class="${lit ? "pin-lit" : "pin-dark"}" cx="${x}" cy="${y}" r="5.5"/>` +
-      `<text class="pin-label" x="${Math.min(size - 80, Math.max(80, x))}" y="${y + (above ? -20 : 30)}" text-anchor="middle">${k + 1} · ${site.name.toUpperCase()}${lit ? "" : " · SUN HIDDEN"}</text>`;
+      `<circle data-site-index="${k}" class="${lit ? "pin-lit" : "pin-dark"}" cx="${x}" cy="${y}" r="5.5"/>` +
+      `<text data-site-index="${k}" class="pin-label" aria-label="${siteLabel(site.name, k)}${lit ? "" : " · SUN HIDDEN"}" x="${Math.min(size - 80, Math.max(80, x))}" y="${y + (above ? -20 : 30)}" text-anchor="middle">${siteLabel(site.name, k)}</text>`;
   }
   const len = km * kmPx;
   g += `<path class="scale" d="M14,${height - 14}h${len.toFixed(1)}M14,${height - 18}v8M${(14 + len).toFixed(1)},${height - 18}v8"/><text x="14" y="${height - 24}">${km} KM</text>`;

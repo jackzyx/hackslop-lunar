@@ -273,7 +273,14 @@ code { font-size: 0.9em; color: var(--accent-foreground); }
 .intro[data-phase="revealing"] .intro-scene > canvas:not(.intro-terrain-copy),
 .intro[data-phase="revealing"] .stars-line,
 .intro[data-phase="revealing"] .skip { visibility: hidden; }
-body:has(.intro[data-phase="revealing"]) .mapwrap > * { visibility: hidden; }
+body:has(.intro[data-phase="revealing"]) .shell .mapwrap > * { visibility: hidden; }
+.intro-site-marker { position: absolute; z-index: 3; pointer-events: none; }
+.intro-site-marker i { position: absolute; width: 12px; height: 12px; transform: translate(-50%, -50%); border: 2px solid #000; border-radius: 50%; background: #ffb000; }
+.intro-site-marker span { position: absolute; white-space: nowrap; font: 600 14px var(--font-mono); color: #ffd98a; line-height: 1; text-shadow: -1px -1px #000, 1px -1px #000, -1px 1px #000, 1px 1px #000; }
+.intro .intro-map-decorations { position: absolute; z-index: 2; margin: 0; border: 0; background: transparent; pointer-events: none; }
+body:has(.intro[data-phase="revealing"]) .shell :is(.site-nav, .top, .slipbar, .stars-say, .site, .details, .foot),
+body:has(.intro[data-phase="revealing"]) .shell .mapcard > :not(.mapwrap) { animation: intro-ui-reveal 950ms ease-out both; }
+@keyframes intro-ui-reveal { from { opacity: 0; } to { opacity: 1; } }
 .stars-line {
   position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); width: min(780px, calc(100% - 32px)); min-height: 3.6em;
   padding: 12px 18px; background: rgb(0 0 0 / 0.72); border: 1px solid var(--border); font-family: var(--font-sans); font-size: 22px; color: #ffd98a;

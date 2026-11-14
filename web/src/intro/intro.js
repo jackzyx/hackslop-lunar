@@ -2,6 +2,7 @@
 import { mapView, mapViewport, toMap, R_KM } from "../terrain/shadow.js";
 import { prepareIntroAssets, stopIntroAssetPreparation } from './intro-assets.js';
 import { spherePixels } from './intro-pixels.js';
+import { siteLabel } from '../lib/site-label.js';
 
 const RAD = Math.PI / 180, AU = 149.6e6, MOON_DIST = 384400, R_SUN = 696000, R_EARTH = 6371;
 
@@ -132,7 +133,8 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   const stars = Array.from({ length: 220 }, () => [Math.random(), Math.random(), Math.random() < 0.1 ? 2 : 1, 0.2 + 0.6 * Math.random()]);
   el.hidden = false;
 
-  let raf = 0, over = false, landing, sceneAnimation, snapshot, snapshotSource, layoutChanged, targetObserver;
+  let raf = 0, over = false, landing, sceneAnimation, snapshot, snapshotSource, layoutChanged, targetObserver, decorations;
+  const markers = [], handoffAnimations = [];
   const clock = createIntroClock();
   const key = (ev) => {
     if (el.hidden || (ev.key !== "Escape" && (sceneAnimation || !["Enter", " "].includes(ev.key)))) return;
@@ -150,6 +152,9 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
     el.dataset.phase = 'done';
     stopIntroAssetPreparation();
     sceneAnimation?.cancel();
+    handoffAnimations.forEach(animation => animation.cancel());
+    markers.forEach(marker => marker.remove());
+    decorations?.remove();
     snapshot?.remove();
     targetObserver?.disconnect();
     if (layoutChanged) {
@@ -213,6 +218,41 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
     }
     const size = draw(END);
     const shownHeight = placeTerrain(liveCanvas, W, H, size);
+    const map = surface.parentElement.querySelector('svg');
+    const labels = [...(map?.querySelectorAll('.pin-label') ?? [])];
+    const pins = [...(map?.querySelectorAll('.pin-lit, .pin-dark') ?? [])];
+    const timing = { duration: 850, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' };
+    markers.forEach((marker, index) => {
+      const label = labels.find(node => Number(node.dataset.siteIndex) === index);
+      const pin = pins.find(node => Number(node.dataset.siteIndex) === index);
+      if (!label || !pin) return;
+      const bounds = pin.getBoundingClientRect(), textBounds = label.getBoundingClientRect();
+      const x = bounds.x + bounds.width / 2, y = bounds.y + bounds.height / 2;
+      const scale = map.getBoundingClientRect().height / map.viewBox.baseVal.height;
+      const style = getComputedStyle(label), text = marker.querySelector('span');
+      handoffAnimations.push(marker.animate([
+        { left: marker.style.left, top: marker.style.top }, { left: `${x}px`, top: `${y}px` },
+      ], timing));
+      handoffAnimations.push(text.animate([
+        { transform: text.style.transform, fontSize: '14px', letterSpacing: '0px' },
+        { transform: `translate(${textBounds.left - x}px, ${textBounds.top - y}px)`, fontSize: `${parseFloat(style.fontSize) * scale}px`, letterSpacing: `${parseFloat(style.letterSpacing || 0) * scale || 0}px` },
+      ], timing));
+      const dot = marker.querySelector('i'), pinStyle = getComputedStyle(pin);
+      handoffAnimations.push(dot.animate([
+        { width: '12px', height: '12px', backgroundColor: AMBER, borderColor: '#000' },
+        { width: `${11 * scale}px`, height: `${11 * scale}px`, backgroundColor: pinStyle.fill, borderColor: pinStyle.stroke },
+      ], timing));
+    });
+    if (map) {
+      decorations = document.createElement('div');
+      decorations.className = 'mapwrap intro-map-decorations';
+      Object.assign(decorations.style, { left: `${target.left}px`, top: `${target.top}px`, width: `${target.width}px`, height: `${target.height}px` });
+      const overlay = map.cloneNode(true);
+      overlay.querySelectorAll('.pin-label, .pin-lit, .pin-dark').forEach(node => node.remove());
+      decorations.append(overlay);
+      el.append(decorations);
+      handoffAnimations.push(decorations.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, delay: 650, fill: 'both' }));
+    }
     const transformTo = (rect) => {
       const { scaleX, scaleY, tx, ty } = terrainHandoff(W, H, shownHeight, rect, liveCanvas.width / liveCanvas.height);
       return { transform: ['translate(0px, 0px) scale(1, 1)', `translate(${tx}px, ${ty}px) scale(${scaleX}, ${scaleY})`] };
@@ -222,9 +262,8 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
       if (current.width && current.height) sceneAnimation.effect.setKeyframes(transformTo(current));
     };
     el.dataset.phase = 'revealing';
-    const timing = { duration: 850, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' };
     sceneAnimation = snapshot.animate(transformTo(target), timing);
-    sceneAnimation.onfinish = finish;
+    Promise.all([sceneAnimation.finished, ...handoffAnimations.map(animation => animation.finished)]).then(finish).catch(() => {});
     addEventListener("scroll", layoutChanged);
     addEventListener("resize", layoutChanged);
     targetObserver = new ResizeObserver(layoutChanged);
@@ -330,19 +369,19 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
     }
 
     if (t > 4.8) {
-      g.globalAlpha = Math.min(1, (t - 4.8) / 0.6);
-      const pins = picks.map((s) => { const [mx, my] = toMap(s.lat, s.lon); return [s.name, S([pos.moon[0] + mx, pos.moon[1] + my])]; });
-      pins.sort((a, b) => a[1][0] - b[1][0]); // left pin labelled on its left, right pin on its right
-      pins.forEach(([name, p], i) => {
-        g.fillStyle = AMBER; g.strokeStyle = "#000"; g.lineWidth = 2;
-        g.beginPath(); g.arc(p[0], p[1], 6, 0, 2 * Math.PI); g.fill(); g.stroke();
-        g.lineWidth = 4; g.font = `600 14px ${MONO}`; g.textAlign = i ? "left" : "right";
-        const x = p[0] + (i ? 14 : -14);
-        g.fillStyle = "#ffd98a";
-        g.strokeText(name.toUpperCase(), x, p[1] + 5); g.fillText(name.toUpperCase(), x, p[1] + 5);
+      const pins = picks.map(site => { const [x, y] = toMap(site.lat, site.lon); return S([pos.moon[0] + x, pos.moon[1] + y]); });
+      pins.forEach((p, index) => {
+        if (!markers[index]) {
+          const marker = document.createElement('div');
+          marker.className = 'intro-site-marker';
+          marker.append(document.createElement('i'), document.createElement('span'));
+          marker.querySelector('span').textContent = siteLabel(picks[index].name, index);
+          el.append(marker); markers[index] = marker;
+        }
+        const marker = markers[index];
+        Object.assign(marker.style, { left: `${p[0]}px`, top: `${p[1]}px`, opacity: Math.min(1, (t - 4.8) / 0.6) });
+        marker.querySelector('span').style.transform = `translate(-50%, ${p[1] <= pins[1 - index][1] ? '-34px' : '18px'})`;
       });
-      g.textAlign = "left";
-      g.globalAlpha = 1;
     }
 
     // Target reticle on the camera's aim point.
