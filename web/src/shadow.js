@@ -40,6 +40,19 @@ export function mapView(picks, zoom) {
   return { cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, half };
 }
 
+export function mapViewport(view, aspect, zoom, terrain = TERRAIN) {
+  const edge = terrain.half - terrain.px;
+  const half = Math.min(view.half, (zoom ? edge : edge * 0.9) / Math.max(1, aspect));
+  const xLimit = Math.max(0, edge - half * aspect);
+  const yLimit = edge - half;
+  return {
+    cx: Math.min(xLimit, Math.max(-xLimit, view.cx)),
+    cy: Math.min(yLimit, Math.max(-yLimit, view.cy)),
+    half,
+    aspect,
+  };
+}
+
 // The Sun seen from map point (x, y): sine of its elevation, cosine of it, and the unit map
 // direction toward it. Each point gets its own elevation because the surface curves.
 export function localSun(sun, x, y) {

@@ -15,6 +15,12 @@ export const sunAt = (id, i) => { const e = data.ephemeris.sites[id]; return sun
 export const iso = (ms) => new Date(ms).toISOString().slice(0, 10);
 export const fmtDate = (ms, o) => new Date(ms).toLocaleDateString("en-IE", { timeZone: "UTC", day: "numeric", month: "short", ...o });
 export const fmtTime = (ms) => new Date(ms).toLocaleString("en-IE", { timeZone: "UTC", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-export const dur = (h) => (h < 48 ? `${Math.round(h)} h` : `${Math.floor(h / 24)} d ${Math.round(h % 24)} h`);
+export const dur = (h) => {
+  if (h < 48) return `${Math.round(h)} h`;
+
+  const days = Math.floor(h / 24);
+  const hours = Math.round(h % 24);
+  return hours === 0 ? `${days} d` : `${days} d ${hours} h`;
+};
 export const latLon = (s) => `${Math.abs(s.lat).toFixed(2)}°${s.lat < 0 ? "S" : "N"} ${s.lon.toFixed(1)}°E`;
 export const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;

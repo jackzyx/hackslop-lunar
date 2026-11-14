@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { sunVector, toMap, localSun, shadeView, TERRAIN } from "./shadow.js";
+import { sunVector, toMap, localSun, mapViewport, shadeView, TERRAIN } from "./shadow.js";
 
 const near = (a, b, tol) => assert.ok(Math.abs(a - b) < tol, `${a} vs ${b}`);
 const flat = (fill = 0) => ({ ...TERRAIN, h: new Int16Array(TERRAIN.n ** 2).fill(fill), hmax: fill / 1000 });
@@ -37,6 +37,20 @@ test('wide terrain renders extend the view without stretching its centre', () =>
   const wide = shadeView(terrain, sun, view, 16, 8);
   assert.equal(wide.length, 128);
   for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) near(wide[y * 16 + x + 4], square[y * 8 + x], 1e-6);
+});
+
+test("panning clamps both map axes to the available terrain", () => {
+  const edge = TERRAIN.half - TERRAIN.px;
+  const view = mapViewport({ cx: 300, cy: -300, half: 40 }, 1.6, true);
+  near(view.cx + view.half * view.aspect, edge, 1e-9);
+  near(view.cy - view.half, -edge, 1e-9);
+});
+
+test("the wide whole-region map leaves room to pan on both axes", () => {
+  const view = mapViewport({ cx: 20, cy: -25, half: 170 }, 1.6, false);
+  assert.equal(view.cx, 20);
+  assert.equal(view.cy, -25);
+  assert.ok(view.cx + view.half * view.aspect < TERRAIN.half - TERRAIN.px);
 });
 
 test("a 2 km wall shadows the ground behind it, not in front", () => {

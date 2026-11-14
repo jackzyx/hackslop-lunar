@@ -2,7 +2,7 @@
 // instant. Seen from the south, like the polar map, so the last frame lines up with it: 0 deg
 // longitude (Earth-facing) up, 90 E right. Positions come from the landing date and the same Sun
 // vector the shadow map uses. Sizes and distances are true at every zoom level.
-import { mapView, toMap, R_KM } from "./shadow.js";
+import { mapView, mapViewport, toMap, R_KM } from "./shadow.js";
 import { prepareIntroAssets } from './intro-assets.js';
 import { spherePixels } from './intro-pixels.js';
 
@@ -119,15 +119,19 @@ export function terrainHandoff(width, height, size, target, aspect = 1) {
 }
 
 let stopIntro;
-export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, picks, when, zoom = true }) {
+export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, picks, when, zoom = true, center }) {
   stopIntro?.();
   const el = document.querySelector("#intro"), layer = el.querySelector(".intro-scene");
   const cv = layer.querySelector("canvas"), g = cv.getContext("2d");
   const line = el.querySelector(".stars-line span"), skip = el.querySelector(".skip");
   const quality = introResolution(innerWidth, innerHeight, devicePixelRatio || 1);
   const pos = scene(ms, sun), T = 250;
+<<<<<<< Updated upstream
   const view = mapView(picks, zoom);
   const closeView = { cx: view.cx, cy: view.cy, half: view.half * 2 };
+=======
+  const view = { ...mapView(picks, zoom), ...center };
+>>>>>>> Stashed changes
   pos.landing = [pos.moon[0] + view.cx, pos.moon[1] + view.cy];
   let moon = imageCanvas(spherePixels(sun, 256, null), 256), land, landApproach;
   let shownMoon, shownLand, shownClose, closeLand, closeApproach, terrainUnavailable = false, elapsed = 0;
@@ -170,7 +174,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   };
   const placeTerrain = (source, width, height, size) => {
     const aspect = source.width / source.height;
-    const actualHalf = zoom ? view.half : Math.min(view.half, 248 / Math.max(1, aspect));
+    const actualHalf = mapViewport(view, aspect, zoom).half;
     const shownHeight = size * actualHalf / view.half, shownWidth = shownHeight * aspect;
     if (!snapshot) {
       snapshot = document.createElement('canvas');

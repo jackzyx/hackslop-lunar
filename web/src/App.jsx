@@ -24,6 +24,7 @@ export default function App() {
   const [tab, setTab] = useState("skylines");
   const [terrain, setTerrain] = useState(null);
   const [terrainErr, setTerrainErr] = useState(null);
+  const mapCenter = useRef(null);
 
   useEffect(() => {
     const onHash = () => setPage(location.hash.startsWith('#about') ? 'about' : 'compare');
@@ -54,7 +55,7 @@ export default function App() {
   live.current = { i0, picks, terrain };
   const intro = () => {
     const { i0: i, picks: p, terrain: t } = live.current, ms = t0 + i * H;
-    playIntro({ ms, sun: sunAt(p[0], i), terrain: t, terrainReady: t ? undefined : initialTerrain().catch(() => null), zoom, picks: p.map((id) => sites[id]), when: fmtDate(ms, { year: "numeric" }) });
+    playIntro({ ms, sun: sunAt(p[0], i), terrain: t, terrainReady: t ? undefined : initialTerrain().catch(() => null), zoom, center: mapCenter.current, picks: p.map((id) => sites[id]), when: fmtDate(ms, { year: "numeric" }) });
   };
   useEffect(() => {
     initialTerrain().then(setTerrain).catch(err => setTerrainErr(err.message));
@@ -114,7 +115,7 @@ export default function App() {
 
         <main className="console" id="compare-main" tabIndex={-1}>
           <SiteCard n={1} st={stats[0]} onPick={(id) => setPicks([id, picks[1]])} />
-          <ShadowMap picks={picks} i0={i0} when={when} zoom={zoom} onZoom={() => setZoom(!zoom)} terrain={terrain} terrainErr={terrainErr} interacting={interacting} />
+          <ShadowMap picks={picks} i0={i0} when={when} zoom={zoom} onZoom={() => setZoom(!zoom)} terrain={terrain} terrainErr={terrainErr} mapCenter={mapCenter} interacting={interacting} />
           <SiteCard n={2} st={stats[1]} onPick={(id) => setPicks([picks[0], id])} />
         </main>
 

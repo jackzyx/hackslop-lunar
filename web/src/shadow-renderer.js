@@ -1,7 +1,7 @@
 import { createGPUShadow } from './shadow-gpu.js';
 
-export function createShadowRenderer(terrain, mount) {
-  let renderer = createGPUShadow(terrain), latest, frame = 0, worker, pending, busy = false, disposed = false;
+export function createShadowRenderer(terrain, mount, onPaint) {
+  let renderer = createGPUShadow(terrain), latest, frame = 0, worker, pending, active, disposed = false;
   function fallback() {
     renderer?.dispose();
     const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
@@ -17,15 +17,17 @@ export function createShadowRenderer(terrain, mount) {
       if (disposed) return;
       canvas.width = width; canvas.height = size;
       ctx.putImageData(new ImageData(pixels,width,size),0,0); canvas.dataset.frame = String(id);
-      busy = false;
+      onPaint(active);
+      active = null;
       if (pending) { const request = pending; pending = null; renderer.render(request); }
     };
     renderer = { canvas,
       render(request) {
         // One active job plus the newest request. Never build up a queue of old dates.
         if (canvas.dataset.renderError) return;
-        if (busy) { pending = request; return; }
-        busy = true; worker.postMessage({ ...request, size: request.interacting ? 144 : 360 });
+        if (active) { pending = request; return; }
+        active = request;
+        worker.postMessage({ ...request, size: request.interacting ? 144 : 360 });
       },
       dispose() { worker?.terminate(); },
     };
@@ -34,7 +36,10 @@ export function createShadowRenderer(terrain, mount) {
   if (renderer) mount.replaceChildren(renderer.canvas); else fallback();
   function draw() {
     frame = 0;
-    try { renderer.render(latest); }
+    try {
+      renderer.render(latest);
+      if (!worker) onPaint(latest);
+    }
     catch { fallback(); renderer.render(latest); }
   }
   return {
