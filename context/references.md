@@ -34,11 +34,17 @@ project ineligible. Format: what, who, link, what we used it for.
 - Microsoft PowerPoint automation documentation: https://learn.microsoft.com/en-us/office/vba/api/powerpoint.sequence.addeffect and https://learn.microsoft.com/en-us/office/vba/api/powerpoint.ppentryeffect. Used for: native entrance effects and slide transitions in `scripts/animate-slides.ps1`.
 - SpiceyPy (Annex, A. et al., JOSS 2020, doi:10.21105/joss.02050), MIT.
 - NumPy, SciPy, rasterio, pyproj, trimesh, matplotlib, astroquery, geopandas.
-- Vite 8.3.5 (Evan You and contributors), MIT, https://vite.dev. Used for: web app dev server and static build. No other front-end libraries (charts are hand-written SVG).
+- Vite 8.3.5 (Evan You and contributors), MIT, https://vite.dev. Used for: web app dev server and static build (charts are hand-written SVG).
+- React 19.3 and React DOM (Meta and contributors), MIT, https://react.dev. Used for: the web app UI (since the retro HUD rebuild, 14 Nov).
+- Tailwind CSS 4.3 (Tailwind Labs), MIT, https://tailwindcss.com, with @tailwindcss/vite and @vitejs/plugin-react (MIT). Used for: styling.
+- shadcn/ui (shadcn and contributors), MIT, https://github.com/shadcn-ui/ui: Button, Card, Badge, Select, Slider, Tabs, Table and Separator copied into `web/src/components/ui` and restyled; with its `cn` and `shadcn` (tailwind.css) packages, MIT.
+- Radix UI primitives (radix-ui 1.8), MIT, https://www.radix-ui.com. Used for: the accessible Select, Slider and Tabs under the shadcn components.
+- class-variance-authority (Apache-2.0), lucide-react icons (ISC, https://lucide.dev), tw-animate-css (MIT). Used for: shadcn component variants, the select chevrons, animation utilities.
 - Arduino AccelStepper (Mike McCauley), GPL.
 
 ## Media
 - [fonts, icons, music]
+- Geist and Geist Mono typefaces (Vercel, with Basement.studio), SIL Open Font License 1.1, https://vercel.com/font, bundled through @fontsource-variable/geist and @fontsource-variable/geist-mono 5.3 so the offline build needs no network. Used for: all app text.
 
 ## AI tools
 - [tool, what it was used for, by whom; keep this honest and current]
@@ -55,3 +61,4 @@ project ineligible. Format: what, who, link, what we used it for.
 - ChatGPT Codex: hourly lunar ephemeris generator, single-epoch Sun and Earth comparison with JPL Horizons, and app data integration, Sat 14 Nov 2026.
 - Claude Code (Claude Opus 5.5): visual polish of the app (dark projector theme, site 1 | map | site 2 hero row, per-site detail cards, validation pill and table from Nicolas's `validation.json`, phone layout), Sat 14 Nov 11:05. Requested by Davit.
 - Claude Code (Claude Opus 5.5): STARS narrator line built from the app's computed numbers (`web/src/narrator.js` and its tests), `web/public/serve.py` to run the offline build from a USB stick, Sat 14 Nov 11:23. Requested by Davit.
+- Claude Code (Claude Opus 5.5): rebuilt the web app in React + Tailwind + shadcn/ui with a retro amber HUD look (console layout, HUD map overlay, tabs, restyled STARS intro), after Davit chose each design option, Sat 14 Nov 11:47. Requested by Davit.

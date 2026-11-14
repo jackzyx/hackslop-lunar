@@ -98,10 +98,12 @@ export function playIntro({ ms, sun, terrain, picks, when }) {
   addEventListener("keydown", key);
   skip.onclick = finish;
 
+  // HUD look (index.css): amber phosphor vectors and mono labels; Earth cyan; the Sun and Moon stay true.
+  const MONO = "'Geist Mono Variable', ui-monospace, monospace", AMBER = "#ffb000";
   const label = (p, r, text) => {
-    g.font = "15px system-ui, sans-serif";
-    g.fillStyle = "rgba(240,239,236,0.9)";
-    g.fillText(text, p[0] + r + 8, p[1] + 5);
+    g.font = `500 13px ${MONO}`;
+    g.fillStyle = "rgba(255,191,71,0.95)";
+    g.fillText(text.toUpperCase(), p[0] + r + 8, p[1] + 5);
   };
 
   function draw(t) {
@@ -110,7 +112,7 @@ export function playIntro({ ms, sun, terrain, picks, when }) {
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.fillStyle = "#000";
     g.fillRect(0, 0, W, H);
-    for (const [x, y, s, a] of stars) { g.fillStyle = `rgba(255,255,255,${a})`; g.fillRect(x * W, y * H, s, s); }
+    for (const [x, y, s, a] of stars) { g.fillStyle = `rgba(255,226,180,${a})`; g.fillRect(x * W, y * H, s, s); }
 
     const [[cx, cy], w] = camera(t, pos), k = Math.min(W, H) / 2 / w;
     const S = ([x, y]) => [W / 2 + (x - cx) * k, H / 2 - (y - cy) * k];
@@ -118,9 +120,9 @@ export function playIntro({ ms, sun, terrain, picks, when }) {
 
     g.lineWidth = 1;
     for (const [c, r] of [[pos.sun, AU], [pos.earth, MOON_DIST]]) {
-      const R = r * k, p = S(c), a = 0.18 * Math.min(1, Math.max(0, (4 * Math.min(W, H) - R) / (3 * Math.min(W, H))));
+      const R = r * k, p = S(c), a = 0.5 * Math.min(1, Math.max(0, (4 * Math.min(W, H) - R) / (3 * Math.min(W, H))));
       if (R < 12 || a <= 0) continue; // fade an orbit out before it turns into a straight line
-      g.strokeStyle = `rgba(255,255,255,${a})`;
+      g.strokeStyle = `rgba(255,176,0,${a})`;
       g.beginPath(); g.arc(p[0], p[1], R, 0, 2 * Math.PI); g.stroke();
     }
 
@@ -135,17 +137,17 @@ export function playIntro({ ms, sun, terrain, picks, when }) {
       // Sun off screen: mark its direction on the edge, so the lit side always has a reason.
       const dx = ps[0] - W / 2, dy = ps[1] - H / 2, f = Math.min((W / 2 - 50) / Math.abs(dx), (H / 2 - 40) / Math.abs(dy));
       const q = [W / 2 + dx * f, H / 2 + dy * f];
-      g.fillStyle = "#c98500";
+      g.fillStyle = AMBER;
       g.beginPath(); g.arc(q[0], q[1], 6, 0, 2 * Math.PI); g.fill();
-      g.font = "15px system-ui, sans-serif";
+      g.font = `500 13px ${MONO}`;
       g.textAlign = dx > 0 ? "right" : "left";
-      g.fillText("Sun", q[0] + (dx > 0 ? -12 : 12), q[1] + 5);
+      g.fillText("SUN", q[0] + (dx > 0 ? -12 : 12), q[1] + 5);
       g.textAlign = "left";
     }
 
     const pe = S(pos.earth), re = Math.max(R_EARTH * k, 3.5);
     if (on(pe, re)) {
-      g.fillStyle = "#3987e5";
+      g.fillStyle = "#38d4ff";
       g.beginPath(); g.arc(pe[0], pe[1], re, 0, 2 * Math.PI); g.fill();
       const phi = Math.atan2(pos.earth[1], -pos.earth[0]); // toward the Sun, canvas angle
       g.fillStyle = "rgba(0,0,0,0.78)";
@@ -170,15 +172,25 @@ export function playIntro({ ms, sun, terrain, picks, when }) {
       const pins = picks.map((s) => { const [mx, my] = toMap(s.lat, s.lon); return [s.name, S([pos.moon[0] + mx, pos.moon[1] + my])]; });
       pins.sort((a, b) => a[1][0] - b[1][0]); // left pin labelled on its left, right pin on its right
       pins.forEach(([name, p], i) => {
-        g.fillStyle = "#fff"; g.strokeStyle = "#000"; g.lineWidth = 2;
-        g.beginPath(); g.arc(p[0], p[1], 7, 0, 2 * Math.PI); g.fill(); g.stroke();
-        g.lineWidth = 4; g.font = "600 16px system-ui, sans-serif"; g.textAlign = i ? "left" : "right";
-        const x = p[0] + (i ? 12 : -12);
-        g.strokeText(name, x, p[1] + 5); g.fillText(name, x, p[1] + 5);
+        g.fillStyle = AMBER; g.strokeStyle = "#000"; g.lineWidth = 2;
+        g.beginPath(); g.arc(p[0], p[1], 6, 0, 2 * Math.PI); g.fill(); g.stroke();
+        g.lineWidth = 4; g.font = `600 14px ${MONO}`; g.textAlign = i ? "left" : "right";
+        const x = p[0] + (i ? 14 : -14);
+        g.fillStyle = "#ffd98a";
+        g.strokeText(name.toUpperCase(), x, p[1] + 5); g.fillText(name.toUpperCase(), x, p[1] + 5);
       });
       g.textAlign = "left";
       g.globalAlpha = 1;
     }
+
+    // Target reticle on the camera's aim point.
+    g.strokeStyle = "rgba(255,176,0,0.55)"; g.lineWidth = 1.5;
+    const c = [W / 2, H / 2], q = 46, l = 12;
+    g.beginPath();
+    for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+      g.moveTo(c[0] + sx * q, c[1] + sy * (q - l)); g.lineTo(c[0] + sx * q, c[1] + sy * q); g.lineTo(c[0] + sx * (q - l), c[1] + sy * q);
+    }
+    g.stroke();
 
     let cur = LINES[0];
     for (const l of LINES) if (t >= l[0]) cur = l;
