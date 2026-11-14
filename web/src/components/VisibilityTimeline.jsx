@@ -50,11 +50,20 @@ export default function VisibilityTimeline({ visibility, i0, onShiftDate, ...eve
     { label: 'SUN', cls: 'sun', y: 4, runs: intervals(visibility.sun) },
     { label: 'EARTH', cls: 'earth', y: 32, runs: intervals(visibility.earth) },
   ], [visibility]);
-  return <svg ref={timelineRef} viewBox="0 0 600 84" role="img" aria-label="Sun and Earth over the 30 days" {...events}>
+  return <svg ref={timelineRef} viewBox="0 0 600 84" role="group" aria-label="Sun and Earth over the 30 days" {...events}>
     <defs><clipPath id={clip}><rect x={TL.x0} y="0" width={TL.x1 - TL.x0} height="56" /></clipPath></defs>
     {rows.map(row => <g key={row.cls}>
       <text className="ink" x="0" y={row.y + 15}>{row.label}</text>
-      <g className="timeline-bar">
+      <g className="timeline-bar" role="group" tabIndex={0}
+        aria-label={`${row.label === 'SUN' ? 'Sun' : 'Earth'} visibility timeline. Use arrow keys to adjust launch slip by one day.`}
+        onPointerDown={event => event.currentTarget.focus({ preventScroll: true })}
+        onKeyDown={event => {
+          if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+          const days = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[event.key];
+          if (!days) return;
+          event.preventDefault();
+          onShiftDate(days);
+        }}>
         <rect className="track" x={TL.x0} y={row.y} width={TL.x1 - TL.x0} height="20" />
         <g clipPath={`url(#${clip})`}>
           <g transform={`translate(${-i0 * scale} 0)`}>

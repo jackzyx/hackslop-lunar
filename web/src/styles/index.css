@@ -184,6 +184,8 @@ html:has(#intro:not([hidden])) { --scrollbar-opacity: 0; transition: none; }
 @media (max-width: 760px) { .landing-calendar { left: 0; right: auto; } }
 .mock { background: var(--primary); color: var(--primary-foreground); font-weight: 800; font-size: 12px; padding: 4px 8px; letter-spacing: 0.1em; }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.timeline-bar:focus { outline: none; }
+.timeline-bar:focus-visible .track { stroke: var(--primary); stroke-width: 2; }
 #about-main:focus-visible, #compare-main:focus-visible, #about-sources:focus-visible, .policy-page:focus-visible { outline: none; }
 
 /* launch slip: the one control that drives the demo */
