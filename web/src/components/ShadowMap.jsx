@@ -28,7 +28,7 @@ function gesture(pointers, bounds) {
 // The Sun direction comes from the first chosen site's row of the same table the cards use.
 export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terrain, terrainErr, interacting = false, onPlace }) {
   const wrapper = useRef(null), surface = useRef(null), renderer = useRef(null), down = useRef(null);
-  const [hover, setHover] = useState(null); // live crosshair: svg position and the ground under it
+  const [pointer, setPointer] = useState(null);
   const [placeMsg, setPlaceMsg] = useState(null);
   const [ask, setAsk] = useState(null); // right-click dialog: the ground under the click
   const pointers = useRef(new Map());
@@ -52,6 +52,7 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
   const preview = interacting || dragging || wheeling;
   const overlay = painted?.view ?? view;
   const mapWidth = MAP * overlay.aspect;
+  const hover = pointer && projectToMap(pointer);
   useEffect(() => {
     const observer = new ResizeObserver(entries => {
       const { width, height } = entries[0].contentRect;
@@ -137,13 +138,22 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
     if (pointers.current.delete(event.pointerId) && !pointers.current.size) setDragging(false);
   }
 
-  // Pointer -> svg units and map km, using the same view the overlay is drawn with.
-  function groundAt(event) {
-    const b = event.currentTarget.getBoundingClientRect();
-    if (b.width <= 0 || b.height <= 0) return null;
-    const sx = (event.clientX - b.left) / b.width * mapWidth, sy = (event.clientY - b.top) / b.height * MAP, kmPx = MAP / (2 * overlay.half);
+  function pointerPosition({ clientX, clientY }) {
+    const b = surface.current?.getBoundingClientRect();
+    if (!b || b.width <= 0 || b.height <= 0 || clientX < b.left || clientX >= b.right || clientY < b.top || clientY >= b.bottom) return null;
+    return { x: (clientX - b.left) / b.width, y: (clientY - b.top) / b.height };
+  }
+  function projectToMap({ x, y }) {
+    const sx = x * mapWidth, sy = y * MAP, kmPx = MAP / (2 * overlay.half);
     const { lat, lon } = fromMap(overlay.cx + (sx - mapWidth / 2) / kmPx, overlay.cy - (sy - MAP / 2) / kmPx);
     return { sx, sy, lat, lon, km: poleKm(lat, lon) };
+  }
+  function groundAt(event) {
+    const position = pointerPosition(event);
+    return position && projectToMap(position);
+  }
+  function trackPointer(event) {
+    setPointer(event.pointerType === "touch" ? null : pointerPosition(event));
   }
   // Adding a site must not move the map under the user's pointer.
   function placeHere(lat, lon, name) {
@@ -192,10 +202,11 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
       </div>
       {is3d && terrain && <Terrain3D terrain={terrain} picks={picks} i0={i0} zoom={zoom} interacting={interacting} />}
       <div ref={wrapper} className="mapwrap" hidden={is3d} data-pan={terrain ? (dragging ? "dragging" : "ready") : undefined}
-        onPointerDown={(e) => { down.current = e.button === 0 ? { x: e.clientX, y: e.clientY } : null; startPan(e); }}
-        onPointerMove={(e) => { movePan(e); if (e.pointerType !== "touch") setHover(groundAt(e)); }}
-        onPointerUp={(e) => { endPan(e); place(e); }} onPointerLeave={() => setHover(null)}
-        onPointerCancel={endPan} onLostPointerCapture={endPan} onContextMenu={openAsk}>
+        onPointerEnter={trackPointer}
+        onPointerDown={(e) => { down.current = e.button === 0 ? { x: e.clientX, y: e.clientY } : null; trackPointer(e); startPan(e); }}
+        onPointerMove={(e) => { movePan(e); trackPointer(e); }}
+        onPointerUp={(e) => { trackPointer(e); endPan(e); place(e); }} onPointerLeave={() => setPointer(null)}
+        onPointerCancel={(e) => { endPan(e); setPointer(null); }} onLostPointerCapture={endPan} onContextMenu={openAsk}>
         <div className="shadow-surface" id="landing-terrain" data-terrain-error={terrainErr ? true : undefined} ref={surface} />
         <svg viewBox={`0 0 ${mapWidth} ${MAP}`} role="img" aria-label="Map of the lunar south pole: sunlit ground and shadows at landing, with the chosen sites"
           dangerouslySetInnerHTML={{ __html: mapOverlay(overlay, picks, painted?.id ?? i0, mapWidth, MAP) }} />

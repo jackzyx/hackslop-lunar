@@ -258,7 +258,7 @@ html:has(#intro:not([hidden])) { --scrollbar-opacity: 0; transition: none; }
 .map-ask-name input { padding: 6px 8px; font: 14px var(--font-sans); letter-spacing: 0; text-transform: none; color: var(--foreground); background: #000; border: 1px solid var(--input); }
 .map-ask-name input:focus-visible { outline: 1px solid var(--primary); outline-offset: 1px; }
 .map-ask-actions { display: flex; justify-content: flex-end; gap: 6px; }
-.mapwrap[data-pan="ready"]:hover { cursor: none; }
+.mapwrap[data-pan]:has(> svg.crosshair) { cursor: none; }
 .mapwrap svg.crosshair { pointer-events: none; z-index: 2; }
 .crosshair .ch-line { stroke: rgb(255 176 0 / 0.45); stroke-width: 0.7; stroke-dasharray: 3 3; fill: none; }
 .crosshair .ch-mark { stroke: var(--primary); stroke-width: 1.4; fill: none; }
