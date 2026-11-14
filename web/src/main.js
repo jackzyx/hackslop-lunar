@@ -1,4 +1,5 @@
 import data from "./mock-data.json";
+import validation from "./validation.json";
 import { visibility, windowMetrics, verdictDelay, grade, maskAt, WINDOW_H, MAX_DELAY_D } from "./metrics.js";
 import { terrainFrom, shadeView, sunVector, toMap } from "./shadow.js";
 
@@ -172,7 +173,10 @@ const cols = [...document.querySelectorAll(".site")].map((el, c) => {
   el.innerHTML = `<select aria-label="Site ${c + 1}">${data.sites.map((s) => `<option value="${s.id}">${s.name} · ${s.kind}</option>`).join("")}</select>
     <p class="mission"></p>
     <div class="head"><span class="big"></span><span class="status"></span></div>
-    <p class="sub"></p><p class="sunline"></p><p class="verdict"></p><dl class="nums"></dl>
+    <p class="sub"></p>
+    <div class="hbar sun"><span>Sunlight</span><i class="track"><i class="fill"></i></i><b></b></div>
+    <div class="hbar earth"><span>Earth in view</span><i class="track"><i class="fill"></i></i><b></b></div>
+    <p class="sunline"></p><p class="verdict"></p><dl class="nums"></dl>
     <svg class="timeline" viewBox="0 0 600 84" role="img" aria-label="Sun and Earth over the 30 days"></svg>
     <svg class="pano" viewBox="0 0 600 186" role="img" aria-label="Skyline all around the site with the Sun and Earth paths"></svg>`;
   const col = { q: (s) => el.querySelector(s) };
@@ -208,6 +212,11 @@ function renderCol(col, id, i0, iPlanned, yr) {
   big.innerHTML = `${Math.round(m.sunlit)}<small> of ${WINDOW_H} h</small>`;
   col.q(".status").textContent = STATUS[g];
   col.q(".sub").textContent = `sunlight in the 30 days after landing (${Math.round((m.sunlit / WINDOW_H) * 100)} %)`;
+  // Sun and Earth bars: same 720 h scale, updated in place so the width change animates on a slip.
+  for (const [cls, h] of [["sun", m.sunlit], ["earth", m.earth]]) {
+    col.q(`.hbar.${cls} .fill`).style.width = `${((h / WINDOW_H) * 100).toFixed(1)}%`;
+    col.q(`.hbar.${cls} b`).textContent = `${Math.round(h)} h`;
+  }
   col.q(".mission").textContent = sites[id].mission ?? "Mission: pending Story's site list";
   // Solar elevation and its margin over the skyline in the Sun's direction, at the landing instant.
   const e = data.ephemeris.sites[id], el = e.sun_el[i0], margin = el - maskAt(sites[id].horizon, e.sun_az[i0]);
@@ -216,7 +225,7 @@ function renderCol(col, id, i0, iPlanned, yr) {
   const d = verdictDelay(v, iPlanned);
   col.q(".verdict").textContent =
     d === null ? `Holds through a ${MAX_DELAY_D}-day delay` : d === 0 ? "Under half sunlight even on time" : `Falls below half sunlight with a ${d}-day delay`;
-  const nums = [["Longest dark gap", dur(m.darkGap)], ["Earth in view", `${m.earth} h`], nextEvent(m)];
+  const nums = [["Longest dark gap", dur(m.darkGap)], nextEvent(m)];
   col.q(".nums").innerHTML = nums.map(([k, val]) => `<div><dt>${k}</dt><dd>${val}</dd></div>`).join("");
   col.q(".timeline").innerHTML = timeline(v, i0);
   col.q(".pano").innerHTML = panorama(sites[id].horizon, data.ephemeris.sites[id], i0, yr);
@@ -232,6 +241,21 @@ function render() {
   cancelAnimationFrame(mapFrame); // the map takes ~0.1 s: draw once per frame while the slider moves
   mapFrame = requestAnimationFrame(() => drawMap(i0, when));
 }
+
+// --- validation table: Science writes src/validation.json; null = not measured yet
+function renderValidation() {
+  const v = validation, done = v.rows.filter((r) => r.max_del_deg != null && r.max_daz_cos_deg != null);
+  const f = (x) => (x == null ? "–" : `${x.toFixed(4)}°`);
+  $("#val-rows").innerHTML = v.rows.map((r) =>
+    `<tr><td>${r.site}</td><td>${r.body}</td><td>${f(r.max_del_deg)}</td><td>${f(r.max_daz_cos_deg)}</td><td>${r.hours ?? "–"}</td><td>${r.start ? `${r.start} to ${r.stop}` : "–"}</td></tr>`).join("");
+  const worst = Math.max(...done.flatMap((r) => [r.max_del_deg, r.max_daz_cos_deg]));
+  $("#val-link").textContent = !done.length ? "Sun and Earth angles vs JPL Horizons: not yet measured"
+    : `Sun and Earth angles within ${worst.toFixed(4)}° of JPL Horizons (pass mark ${v.pass_deg}°)${done.length < v.rows.length ? `, ${done.length} of ${v.rows.length} rows so far` : ""}`;
+  $("#val-ref").textContent = `Reference: JPL Horizons, topocentric site on the Moon, airless, frame MOON_ME, correction LT+S. ${v.queried ? `Queried ${v.queried}.` : "Not yet queried."}`;
+  $("#val-note").hidden = !!v.queried;
+  $("#val-checks").innerHTML = v.checks.map((c) => `<li>${c.label} (${c.id}): ${c.result ?? "not yet run"}</li>`).join("");
+}
+renderValidation();
 
 $("#foot").textContent = `Half sunlight = 360 of 720 hours. Verdicts test delays of 0 to ${MAX_DELAY_D} days from the planned date. Landing at 00:00 UTC. Mast height 2 m. Hover the charts for detail.`;
 render();
