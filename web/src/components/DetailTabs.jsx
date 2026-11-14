@@ -1,5 +1,5 @@
 import { memo, useMemo, useState } from "react";
-import { WINDOW_H, maskAt } from "@/metrics.js";
+import { WINDOW_H, maskAt, windowMetrics } from "@/metrics.js";
 import { data, sites, vis, t0, H, fmtTime, latLon, dur } from "@/lib/data.js";
 import { TL, P, timeline, panorama, yRange } from "@/lib/charts.js";
 import { validation, fmtDeg, worst } from "@/lib/validation.js";
@@ -30,13 +30,12 @@ function nextEvent(m) {
   return h === Infinity ? ["NEXT SET", "NONE IN FIRST 30 DAYS"] : [name, dur(h).toUpperCase()];
 }
 
-function SiteDetail({ n, st, i0, yr, bind }) {
-  const { id, m } = st;
+function SiteDetail({ n, id, i0, yr, bind }) {
   const site = sites[id], eph = data.ephemeris.sites[id];
   const v = vis(id);
   const az = eph.sun_az[i0], el = eph.sun_el[i0];
   const margin = el - maskAt(site.horizon, az);
-  const [evName, evVal] = nextEvent(m);
+  const [evName, evVal] = nextEvent(windowMetrics(v, i0));
   return (
     <Card className="hud detail">
       <h3 className="hud-title">SITE {n} · {site.name.toUpperCase()}</h3>
@@ -61,14 +60,9 @@ function SiteDetail({ n, st, i0, yr, bind }) {
   );
 }
 
-<<<<<<< HEAD
 function DetailTabs({ picks, i0, tab, onTab }) {
   const [bind, tipEl] = useTip(), yr = useMemo(() => yRange(picks), [picks]), v = validation;
-=======
-export default function DetailTabs({ stats, i0, tab, onTab }) {
-  const [bind, tipEl] = useTip(), yr = yRange(stats.map((s) => s.id)), v = validation;
   const illumination = v.checks.find((c) => c.id === "V4");
->>>>>>> e798bc60cddaa004f89bc5cca98a574e5b0c19f8
   return (
     <Tabs value={tab} onValueChange={onTab} className="details" id="details">
       <TabsList variant="line" className="hud-tabs">
@@ -78,7 +72,7 @@ export default function DetailTabs({ stats, i0, tab, onTab }) {
       </TabsList>
 
       <TabsContent value="skylines" className="grid gap-4 md:grid-cols-2">
-        {stats.map((st, c) => <SiteDetail key={c} n={c + 1} st={st} i0={i0} yr={yr} bind={bind} />)}
+        {picks.map((id, c) => <SiteDetail key={c} n={c + 1} id={id} i0={i0} yr={yr} bind={bind} />)}
       </TabsContent>
 
       <TabsContent value="validation">

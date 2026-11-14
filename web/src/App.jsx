@@ -92,47 +92,38 @@ export default function App() {
           </div>
         </header>
 
-<<<<<<< HEAD
-      <section className="hud panel slipbar">
-        <label htmlFor="slip" className="hud-label shrink-0">LAUNCH SLIP</label>
-        <div className="flex-1">
-          <Slider id="slip" aria-label="Launch delay in days" min={-MAX_DELAY_D} max={MAX_DELAY_D} step={1} value={[delay]} onPointerDown={() => setInteracting(true)} onPointerUp={() => setInteracting(false)} onLostPointerCapture={() => setInteracting(false)} onPointerCancel={() => setInteracting(false)} onValueCommit={() => setInteracting(false)} onValueChange={([x]) => setDelay(x)} />
-          <div className="ticks" aria-hidden="true"><span>−60 D</span><span>−30</span><span>0</span><span>+30</span><span>+60 D</span></div>
-        </div>
-        <output htmlFor="slip" className="slipout glow">{slip} · LANDS {when.toUpperCase()}</output>
-      </section>
-=======
         <section className="hud panel slipbar">
           <label htmlFor="slip" className="hud-label shrink-0">LAUNCH SLIP</label>
           <div className="flex-1">
-            <Slider id="slip" aria-label="Launch delay in days" min={-MAX_DELAY_D} max={MAX_DELAY_D} step={1} value={[delay]} onValueChange={([x]) => setDelay(x)} />
+            <Slider
+              id="slip"
+              aria-label="Launch delay in days"
+              min={-MAX_DELAY_D}
+              max={MAX_DELAY_D}
+              step={1}
+              value={[delay]}
+              onPointerDown={() => setInteracting(true)}
+              onPointerUp={() => setInteracting(false)}
+              onLostPointerCapture={() => setInteracting(false)}
+              onPointerCancel={() => setInteracting(false)}
+              onValueCommit={() => setInteracting(false)}
+              onValueChange={([x]) => setDelay(x)}
+            />
             <div className="ticks" aria-hidden="true"><span>−60 D</span><span>−30</span><span>0</span><span>+30</span><span>+60 D</span></div>
           </div>
           <output htmlFor="slip" className="slipout glow">{slip} · LANDS {when.toUpperCase()}</output>
         </section>
->>>>>>> e798bc60cddaa004f89bc5cca98a574e5b0c19f8
 
         <p className="stars-say" aria-live="off"><b>✦ STARS //</b><span>{said}<i className="cursor" aria-hidden="true" /></span></p>
 
-<<<<<<< HEAD
-      <main className="console" id="compare-main" tabIndex={-1}>
-        <SiteCard n={1} st={stats[0]} i0={i0} onPick={(id) => setPicks([id, picks[1]])} />
-        <ShadowMap picks={picks} i0={i0} when={when} zoom={zoom} onZoom={() => setZoom(!zoom)} terrain={terrain} terrainErr={terrainErr} interacting={interacting} />
-        <SiteCard n={2} st={stats[1]} i0={i0} onPick={(id) => setPicks([picks[0], id])} />
-      </main>
-
-      <DetailTabs picks={picks} i0={detailIndex} tab={tab} onTab={setTab} />
-      <p className="foot">Half sunlight = 360 of 720 hours. Verdicts test delays of 0 to {MAX_DELAY_D} days from the planned date. Landing at 00:00 UTC. Mast height 2 m. Hover the charts for detail.</p>
-=======
         <main className="console" id="compare-main" tabIndex={-1}>
           <SiteCard n={1} st={stats[0]} onPick={(id) => setPicks([id, picks[1]])} />
-          <ShadowMap picks={picks} i0={i0} when={when} zoom={zoom} onZoom={() => setZoom(!zoom)} terrain={terrain} terrainErr={terrainErr} />
+          <ShadowMap picks={picks} i0={i0} when={when} zoom={zoom} onZoom={() => setZoom(!zoom)} terrain={terrain} terrainErr={terrainErr} interacting={interacting} />
           <SiteCard n={2} st={stats[1]} onPick={(id) => setPicks([picks[0], id])} />
         </main>
 
-        <DetailTabs stats={stats} i0={i0} tab={tab} onTab={setTab} />
+        <DetailTabs picks={picks} i0={detailIndex} tab={tab} onTab={setTab} />
         <p className="foot">Half sunlight = 360 of 720 hours. Verdicts test delays of 0 to {MAX_DELAY_D} days from the planned date. Landing at 00:00 UTC. Hover the charts for detail.</p>
->>>>>>> e798bc60cddaa004f89bc5cca98a574e5b0c19f8
       </div>
     </div>
   );

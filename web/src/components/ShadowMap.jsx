@@ -1,11 +1,6 @@
 import { useEffect, useRef } from "react";
-<<<<<<< HEAD
 import { createShadowRenderer } from "@/shadow-renderer.js";
-import { data, sunAt } from "@/lib/data.js";
-=======
-import { shadeView, paint } from "@/shadow.js";
 import { sunAt } from "@/lib/data.js";
->>>>>>> e798bc60cddaa004f89bc5cca98a574e5b0c19f8
 import { mapView, mapOverlay } from "@/lib/charts.js";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
