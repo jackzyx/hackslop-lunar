@@ -49,8 +49,5 @@ project ineligible. Format: what, who, link, what we used it for.
 - Claude Code (Claude Opus 5.5): docs rewritten for the software-only plan (CLAUDE.md, README, context 03/04/06/07/08/10, the shadow-map, relief-print and twin-rig skills), Sat 14 Nov 10:30. Requested by Davit.
 - Claude Code (Claude Opus 5.5): Sun and Earth bars on the site cards, validation table read from `web/src/validation.json`, GitHub Pages workflow, Sat 14 Nov 10:45. Requested by Davit.
 - Claude Code (Claude Opus 5.5): STARS intro, a zoom from the Sun to the landing region drawn from the landing date and the ephemeris Sun vector (`web/src/intro.js` and its tests), Sat 14 Nov 11:00. Requested by Davit.
-<<<<<<< HEAD
 - ChatGPT Codex: hourly lunar ephemeris generator, single-epoch Sun and Earth comparison with JPL Horizons, and app data integration, Sat 14 Nov 2026.
-=======
 - Claude Code (Claude Opus 5.5): visual polish of the app (dark projector theme, site 1 | map | site 2 hero row, per-site detail cards, validation pill and table from Nicolas's `validation.json`, phone layout), Sat 14 Nov 11:05. Requested by Davit.
->>>>>>> 96fe2bc89aa341d861a09ad7e4202516f489eabb
