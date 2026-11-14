@@ -8,11 +8,16 @@
   </head>
   <body>
     <header class="bar">
-      <h1>Long Shadow</h1>
-      <button type="button" class="intro-btn" id="intro-btn">✦ STARS intro</button>
-      <label class="date">Planned landing <input type="date" id="date" required /></label>
-      <span class="badge" title="Every number on this screen is a placeholder until real data replaces it">MOCK DATA</span>
-      <a class="valid" href="#validation" id="val-link"></a>
+      <div class="brand">
+        <h1>Long Shadow</h1>
+        <p class="tag">Sunlight and Earth contact at the lunar south pole, and what a launch slip does to them</p>
+      </div>
+      <div class="tools">
+        <label class="date">Planned landing <input type="date" id="date" required /></label>
+        <button type="button" class="intro-btn" id="intro-btn">✦ STARS intro</button>
+        <span class="badge" title="Every number on this screen is a placeholder until real data replaces it">MOCK DATA</span>
+        <a class="valid" href="#validation" id="val-link"></a>
+      </div>
     </header>
 
     <section class="delay">
@@ -21,14 +26,9 @@
       <output id="delay-out" for="delay"></output>
     </section>
 
-    <main class="cols">
+    <main class="stage">
       <article class="site" data-col="0"></article>
-      <article class="site" data-col="1"></article>
-    </main>
-    <p class="foot" id="foot"></p>
-
-    <section class="lower">
-      <figure class="card">
+      <figure class="card mapcard">
         <h2>Sunlight at landing</h2>
         <div class="mapwrap">
           <canvas id="shade" width="360" height="360"></canvas>
@@ -37,6 +37,16 @@
         <button type="button" class="zoom" id="zoom"></button>
         <figcaption id="map-cap"></figcaption>
       </figure>
+      <article class="site" data-col="1"></article>
+    </main>
+
+    <section class="details">
+      <article class="card detail" data-col="0"></article>
+      <article class="card detail" data-col="1"></article>
+    </section>
+    <p class="foot" id="foot"></p>
+
+    <section class="lower">
       <div class="card">
         <h2>What we do not model</h2>
         <ul class="limits">
@@ -46,19 +56,18 @@
           <li>Curated sites only, no custom coordinates</li>
         </ul>
       </div>
-    </section>
-
     <section class="card" id="validation">
       <h2>Validation</h2>
       <p class="note" id="val-note">Filled from <code>src/validation.json</code>, written by the Science pipeline (checks V1 to V8 in <code>context/04-science.md</code>).</p>
-      <table>
+      <div class="scroll"><table>
         <thead>
           <tr><th>Site</th><th>Body</th><th>Max |ΔEl|</th><th>Max |ΔAz|·cos El</th><th>Hours compared</th><th>Dates</th></tr>
         </thead>
         <tbody id="val-rows"></tbody>
-      </table>
+      </table></div>
       <p class="note" id="val-ref"></p>
       <ul class="note" id="val-checks"></ul>
+    </section>
     </section>
 
     <div class="tip" id="tip" hidden></div>
