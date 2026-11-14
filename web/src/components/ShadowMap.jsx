@@ -7,6 +7,8 @@ import { mapOverlay } from "@/lib/charts.js";
 import { fromMap, poleKm, MAX_POLE_KM } from "@/domain/custom-site.js";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Terrain3D from "@/components/Terrain3D";
+import { EXAG } from "@/terrain/terrain-3d.js";
 
 const MAP = 360; // canvas pixels; CSS scales it to the panel
 const CENTER = { x: 0, y: 0 };
@@ -35,6 +37,7 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
   const [dragging, setDragging] = useState(false);
   const [wheeling, setWheeling] = useState(false);
   const [painted, setPainted] = useState(null);
+  const [is3d, setIs3d] = useState(false);
   const mapPicks = picks.filter(id => sites[id].terrain_modelled !== false);
   const zoom = closeUp && mapPicks.length > 0;
   const sunSite = mapPicks[0] ?? "A";
@@ -62,9 +65,9 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
     return () => { renderer.current.dispose(); renderer.current = null; };
   }, [terrain]);
   useEffect(() => {
-    if (aspect === null) return;
+    if (aspect === null || is3d) return; // hidden behind the 3D view: skip the work
     renderer.current?.request({ sun: sunAt(sunSite, i0), view, size: preview ? Math.min(512, px) : px, interacting: preview, id: i0 });
-  }, [terrain, i0, sunSite, view.cx, view.cy, view.half, aspect, preview, px]);
+  }, [terrain, i0, sunSite, view.cx, view.cy, view.half, aspect, preview, px, is3d]);
 
   function changeView(scale, from = CENTER, to = from) {
     setViewport(current => {
@@ -169,16 +172,18 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="hud-title">SUNLIGHT AT LANDING</h2>
         <div className="flex flex-wrap items-center gap-1">
-          <Button type="button" variant="outline" size="icon-xs" aria-label="Zoom out" disabled={!terrain || view.half >= maxHalf} onClick={() => changeView(1.25)}>
+          <Button type="button" variant="outline" size="xs" aria-pressed={is3d} disabled={!terrain} onClick={() => setIs3d(!is3d)}>{is3d ? "2D MAP" : "3D VIEW"}</Button>
+          {!is3d && <><Button type="button" variant="outline" size="icon-xs" aria-label="Zoom out" disabled={!terrain || view.half >= maxHalf} onClick={() => changeView(1.25)}>
             <MinusIcon aria-hidden="true" className="size-3" />
           </Button>
           <Button type="button" variant="outline" size="icon-xs" aria-label="Zoom in" disabled={!terrain || view.half <= MIN_MAP_HALF} onClick={() => changeView(0.8)}>
             <PlusIcon aria-hidden="true" className="size-3" />
-          </Button>
+          </Button></>}
           <Button type="button" variant="outline" size="xs" disabled={!mapPicks.length} onClick={onZoom}>{zoom ? "WHOLE REGION" : "CLOSE-UP"}</Button>
         </div>
       </div>
-      <div ref={wrapper} className="mapwrap" data-pan={terrain ? (dragging ? "dragging" : "ready") : undefined}
+      {is3d && terrain && <Terrain3D terrain={terrain} picks={picks} i0={i0} zoom={zoom} interacting={interacting} />}
+      <div ref={wrapper} className="mapwrap" hidden={is3d} data-pan={terrain ? (dragging ? "dragging" : "ready") : undefined}
         onPointerDown={(e) => { down.current = e.button === 0 ? { x: e.clientX, y: e.clientY } : null; startPan(e); }}
         onPointerMove={(e) => { movePan(e); if (e.pointerType !== "touch") setHover(groundAt(e)); }}
         onPointerUp={(e) => { endPan(e); place(e); }} onPointerLeave={() => setHover(null)}
@@ -219,11 +224,12 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
       </div>
       <p className="caption">
         {terrainErr ? `Terrain did not load (${terrainErr}).` : terrain
-          ? `Real NASA terrain at landing, ${when}, 00:00 UTC. Light = sunlit, black = shadow. Earth-facing side (0°) up.`
+          ? (is3d ? `Real NASA terrain at landing, ${when}, 00:00 UTC, heights ×${EXAG}. Bright = sunlit, dark = shadow, contours every 500 m. Drag to orbit, scroll or pinch to zoom.`
+            : `Real NASA terrain at landing, ${when}, 00:00 UTC. Light = sunlit, black = shadow. Earth-facing side (0°) up.`)
           : "Loading terrain…"}
       </p>
       {mapPicks.length < picks.length && <p className="caption">Apollo 11 is outside the south-pole map coverage.</p>}
-      {onPlace && terrain && <p className="caption" role="status">{placeMsg ?? `Click any spot within ${MAX_POLE_KM} km of the pole to drop a custom site as site 2, or right-click to name it first. Drag to pan, scroll to zoom.`}</p>}
+      {onPlace && terrain && !is3d && <p className="caption" role="status">{placeMsg ?? `Click any spot within ${MAX_POLE_KM} km of the pole to drop a custom site as site 2, or right-click to name it first. Drag to pan, scroll to zoom.`}</p>}
     </Card>
   );
 }
