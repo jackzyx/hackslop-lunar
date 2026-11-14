@@ -1,4 +1,4 @@
-# Long Shadow web app
+# Sun Shade web app
 
 The navigation map fills the full width of its panel. A ResizeObserver shares the
 panel aspect ratio with the terrain renderer and SVG overlay, so the wide desktop

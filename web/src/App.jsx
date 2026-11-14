@@ -32,7 +32,7 @@ export default function App() {
     return () => removeEventListener('hashchange', onHash);
   }, []);
   useEffect(() => {
-    document.title = page === 'about' ? 'About Long Shadow' : 'Long Shadow';
+    document.title = page === 'about' ? 'About Sun Shade' : 'Sun Shade';
     if (page === 'about') document.getElementById('intro').hidden = true;
     const raf = requestAnimationFrame(() => {
       document.getElementById(page === 'about' ? 'about-main' : 'compare-main')?.focus({ preventScroll: true });
@@ -68,14 +68,14 @@ export default function App() {
   return (
     <div className="shell">
       <nav className="site-nav" aria-label="Main navigation">
-        <a className="nav-wordmark" href="#compare">LONG SHADOW</a>
+        <a className="nav-wordmark" href="#compare">SUN SHADE</a>
         <div><a href="#compare" aria-current={page === 'compare' ? 'page' : undefined}>Compare sites</a><a href="#about" aria-current={page === 'about' ? 'page' : undefined}>About</a></div>
       </nav>
       {page === 'about' && <About terrain={terrain} i0={i0} site={picks[0]} onCompare={showCompare} />}
       <div hidden={page === 'about'}>
         <header className="top">
           <div className="min-w-0 flex-1 basis-80">
-            <h1 className="brand glow">▓▒░ LONG SHADOW ░▒▓</h1>
+            <h1 className="brand glow">▓▒░ SUN SHADE ░▒▓</h1>
             <p className="tag">Sunlight and Earth contact at the lunar south pole, and what a launch slip does to them</p>
           </div>
           <div className="tools">

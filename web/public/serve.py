@@ -1,4 +1,4 @@
-"""Run Long Shadow from this folder (USB stick, no internet): python serve.py
+"""Run Sun Shade from this folder (USB stick, no internet): python serve.py
 
 Browsers refuse the app's module script and its terrain fetch on file:// pages, so it needs a
 local server. Python standard library only; works on Windows and macOS.
@@ -20,6 +20,6 @@ if __name__ == "__main__":
     here = str(pathlib.Path(__file__).resolve().parent)
     with http.server.ThreadingHTTPServer(("127.0.0.1", PORT), functools.partial(Handler, directory=here)) as httpd:
         url = f"http://127.0.0.1:{PORT}/"
-        print(f"Long Shadow at {url}  (Ctrl+C to stop)")
+        print(f"Sun Shade at {url}  (Ctrl+C to stop)")
         webbrowser.open(url)
         httpd.serve_forever()
