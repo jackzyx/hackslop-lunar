@@ -1,7 +1,8 @@
 import data from "./mock-data.json";
 import validation from "./validation.json";
 import { visibility, windowMetrics, verdictDelay, grade, maskAt, WINDOW_H, MAX_DELAY_D } from "./metrics.js";
-import { terrainFrom, shadeView, sunVector, toMap } from "./shadow.js";
+import { terrainFrom, shadeView, sunVector, toMap, paint } from "./shadow.js";
+import { playIntro } from "./intro.js";
 
 const H = 3600e3, DAY = 86400e3;
 const t0 = Date.parse(data.ephemeris.start_utc);
@@ -119,10 +120,19 @@ function yRange(ids) {
 // The Sun direction comes from the first chosen site's row of the same table the cards use.
 const MAP = 360, ctx = $("#shade").getContext("2d"), img = ctx.createImageData(MAP, MAP);
 let terrain = null, mapFrame = 0;
+const sunAt = (id, i) => { const e = data.ephemeris.sites[id]; return sunVector(sites[id].lat, sites[id].lon, e.sun_az[i], e.sun_el[i]); };
 fetch("terrain_500m.bin")
   .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(`HTTP ${r.status}`))))
   .then((b) => { terrain = terrainFrom(b); render(); })
-  .catch((err) => ($("#map-cap").textContent = `Terrain did not load (${err.message}).`));
+  .catch((err) => ($("#map-cap").textContent = `Terrain did not load (${err.message}).`))
+  .finally(() => (matchMedia("(prefers-reduced-motion: reduce)").matches ? ($("#intro").hidden = true) : intro()));
+$("#intro-btn").onclick = () => intro();
+
+// STARS intro: zoom from the Sun to the landing region for the current landing instant.
+function intro() {
+  const i0 = landingIndex(), ms = t0 + i0 * H;
+  playIntro({ ms, sun: sunAt(state.picks[0], i0), terrain, picks: state.picks.map((id) => sites[id]), when: fmtDate(ms, { year: "numeric" }) });
+}
 $("#zoom").onclick = () => { state.zoom = !state.zoom; render(); };
 
 function mapView() {
@@ -133,15 +143,10 @@ function mapView() {
 }
 
 function drawMap(i0, when) {
-  const view = mapView(), id = state.picks[0], e = data.ephemeris.sites[id];
+  const view = mapView(), id = state.picks[0];
   const toPx = ([x, y]) => [((x - view.cx + view.half) / (2 * view.half)) * MAP, ((view.cy + view.half - y) / (2 * view.half)) * MAP];
   if (terrain) {
-    const b = shadeView(terrain, sunVector(sites[id].lat, sites[id].lon, e.sun_az[i0], e.sun_el[i0]), view, MAP), px = img.data;
-    for (let k = 0; k < b.length; k++) {
-      const v = b[k], o = 4 * k;
-      if (Number.isNaN(v)) { px[o + 3] = 0; continue; }
-      px[o] = 14 + 226 * v; px[o + 1] = 14 + 220 * v; px[o + 2] = 18 + 205 * v; px[o + 3] = 255;
-    }
+    paint(shadeView(terrain, sunAt(id, i0), view, MAP), img.data);
     ctx.putImageData(img, 0, 0);
   }
   const inView = ([x, y]) => x > -10 && x < MAP + 10 && y > -10 && y < MAP + 10;
@@ -231,8 +236,11 @@ function renderCol(col, id, i0, iPlanned, yr) {
   col.q(".pano").innerHTML = panorama(sites[id].horizon, data.ephemeris.sites[id], i0, yr);
 }
 
+const plannedIndex = () => (Date.parse(state.date + "T00:00:00Z") - t0) / H;
+const landingIndex = () => plannedIndex() + state.delay * 24;
+
 function render() {
-  const iPlanned = (Date.parse(state.date + "T00:00:00Z") - t0) / H, i0 = iPlanned + state.delay * 24;
+  const iPlanned = plannedIndex(), i0 = landingIndex();
   const when = fmtDate(t0 + i0 * H, { weekday: "short", year: "numeric" });
   const n = Math.abs(state.delay), days = `${n} day${n === 1 ? "" : "s"}`;
   $("#delay-out").textContent = state.delay === 0 ? `On time · lands ${when}` : `${state.delay > 0 ? "+" : "−"}${days} · lands ${when}`;
