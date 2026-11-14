@@ -4,6 +4,7 @@ import { prepareIntroAssets, stopIntroAssetPreparation } from './intro-assets.js
 import { spherePixels } from './intro-pixels.js';
 import { siteLabel } from '../lib/site-label.js';
 import { cameraProgress, reticleState, reticleCorners } from './reticle.js';
+import { createStars, drawStars } from '../lib/starfield.js';
 
 const RAD = Math.PI / 180, AU = 149.6e6, MOON_DIST = 384400, R_SUN = 696000, R_EARTH = 6371;
 
@@ -143,7 +144,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   let moon = imageCanvas(spherePixels(sun, 256, null), 256), earth, land, landApproach;
   let shownMoon, shownLand, shownClose, closeLand, shownWide, wideLand, wideHalf, wideReadyAt, terrainUnavailable = false, elapsed = 0;
   let assetVersion = 0, drawnVersion = -1, settled = false, drawnWidth = 0, drawnHeight = 0, drawnSize;
-  const stars = Array.from({ length: 220 }, () => [Math.random(), Math.random(), Math.random() < 0.1 ? 2 : 1, 0.2 + 0.6 * Math.random()]);
+  const stars = createStars(220);
   el.hidden = false;
 
   let raf = 0, over = false, landing, sceneAnimation, snapshot, snapshotSource, layoutChanged, targetObserver, decorations;
@@ -332,7 +333,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
     g.imageSmoothingQuality = 'medium';
     g.fillStyle = "#000";
     g.fillRect(0, 0, W, H);
-    for (const [x, y, s, a] of stars) { g.fillStyle = `rgba(255,226,180,${a})`; g.fillRect(x * W, y * H, s, s); }
+    drawStars(g, stars, W, H, t * 2);
 
     const short = Math.min(W, H);
     const finalHalf = Math.min(introResolution(W, H).half, view.half * short / Math.max(W, H));
