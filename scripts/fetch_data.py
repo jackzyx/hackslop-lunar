@@ -10,16 +10,23 @@ downloads up to 4 files at once.
   python scripts/fetch_data.py extra      # LOLA polar illumination (PGDA 69) + LRO NAC pair (stretch)
   python scripts/fetch_data.py big        # 20 m COG (2.6 GB) -- normally read over HTTP instead
 
-Windows: py scripts\\fetch_data.py core
+Windows: .venv\\Scripts\\python scripts\\fetch_data.py core   (the venv has certifi)
 Sources: NAIF generic kernels (naif.jpl.nasa.gov), PGDA product 90
 (Barker et al. 2023, doi:10.60903/gsfcpgda-lola-spole), PGDA 69 (Mazarico et al. 2011).
 """
 import shutil
+import ssl
 import sys
 import time
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+
+try:  # Windows Python trusts only roots already in the Windows store, and NAIF's root
+    import certifi  # (Sectigo R46) is often missing there. certifi comes with requests.
+    TLS = ssl.create_default_context(cafile=certifi.where())
+except ImportError:
+    TLS = ssl.create_default_context()
 
 DATA = Path(__file__).resolve().parent.parent / "data"
 NAIF = "https://naif.jpl.nasa.gov/pub/naif/generic_kernels"
@@ -56,7 +63,7 @@ OPTIONAL = {"earth_latest_high_prec.bpc"}  # not in the meta-kernel; a failure i
 
 
 def remote_size(url):
-    with urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=30) as r:
+    with urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=30, context=TLS) as r:
         return int(r.headers.get("Content-Length") or 0)
 
 
@@ -78,7 +85,7 @@ def get(url, sub):
             have = 0
         headers = {"Range": f"bytes={have}-"} if have else {}
         try:
-            with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=60) as r:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=60, context=TLS) as r:
                 with open(part, "ab" if r.status == 206 else "wb") as f:
                     shutil.copyfileobj(r, f, 1 << 20)
             if not want:
