@@ -95,6 +95,15 @@ th { color: var(--muted); font-weight: 600; }
 
 .tip { position: fixed; pointer-events: none; background: #0b0b0b; color: var(--ink); border: 1px solid var(--axis); border-radius: 6px; padding: 6px 10px; font-size: 15px; z-index: 10; white-space: nowrap; }
 
+/* STARS intro overlay (intro.js); visible from first paint so the app never flashes before it */
+.intro { position: fixed; inset: 0; z-index: 20; background: #000; transition: opacity 0.5s; }
+.intro.done { opacity: 0; pointer-events: none; }
+.intro canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.stars-line { position: absolute; left: 50%; bottom: 48px; transform: translateX(-50%); width: min(760px, calc(100% - 32px)); min-height: 3.2em; font-size: 24px; text-align: center; color: var(--ink); text-shadow: 0 0 6px #000, 0 0 2px #000; }
+.stars-line b { display: block; margin-bottom: 6px; font-size: 14px; letter-spacing: 0.3em; color: var(--sun); }
+.intro .skip { position: absolute; top: 16px; right: 16px; font-size: 15px; }
+.intro-btn { font-size: 15px; padding: 3px 10px; color: var(--ink-2); }
+
 @media (max-width: 900px) {
   .cols, .lower { grid-template-columns: 1fr; }
   .valid { margin-left: 0; }
