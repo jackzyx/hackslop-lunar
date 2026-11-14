@@ -29,6 +29,17 @@ const LINES = [
   [5.4, () => "Compare two sites. Shift the landing date."],
 ];
 
+let earthImageReady;
+function loadEarthImage() {
+  return earthImageReady ??= (async () => {
+    const image = new Image();
+    image.decoding = 'async';
+    image.src = new URL('earth-blue-marble.webp', document.baseURI).href;
+    try { await image.decode(); return image; }
+    catch { return null; }
+  })();
+}
+
 export function introResolution(width, height, dpr = 1) {
   const short = Math.min(width, height), long = Math.max(width, height);
   return { sphere: Math.min(1536, Math.max(768, Math.ceil(short * dpr))),
@@ -128,7 +139,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   const closeView = introTerrainView(view);
   quality.closeTerrain = Math.max(768, Math.min(1536, Math.ceil(768 * closeView.half / (view.half * 2))));
   pos.landing = [pos.moon[0] + view.cx, pos.moon[1] + view.cy];
-  let moon = imageCanvas(spherePixels(sun, 256, null), 256), land, landApproach;
+  let moon = imageCanvas(spherePixels(sun, 256, null), 256), earth, land, landApproach;
   let shownMoon, shownLand, shownClose, closeLand, shownWide, wideLand, wideHalf, wideReadyAt, terrainUnavailable = false, elapsed = 0;
   let assetVersion = 0, drawnVersion = -1, settled = false, drawnWidth = 0, drawnHeight = 0, drawnSize;
   const stars = Array.from({ length: 220 }, () => [Math.random(), Math.random(), Math.random() < 0.1 ? 2 : 1, 0.2 + 0.6 * Math.random()]);
@@ -279,6 +290,12 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   addEventListener("keydown", key);
   skip.onclick = dismiss;
   stopIntro = finish;
+  loadEarthImage().then(image => {
+    if (over || !image) return;
+    earth = image;
+    el.dataset.earth = 'nasa-blue-marble';
+    assetVersion++;
+  });
 
   // HUD look (index.css): amber phosphor vectors and mono labels; Earth cyan; the Sun and Moon stay true.
   const MONO = "'Geist Mono Variable', ui-monospace, monospace", AMBER = "#ffb000";
@@ -331,10 +348,17 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
       g.textAlign = "left";
     }
 
-    const pe = S(pos.earth), re = Math.max(R_EARTH * k, 3.5);
+    const pe = S(pos.earth), re = Math.max(R_EARTH * k, 18);
     if (on(pe, re)) {
-      g.fillStyle = "#38d4ff";
-      g.beginPath(); g.arc(pe[0], pe[1], re, 0, 2 * Math.PI); g.fill();
+      if (earth) {
+        g.save();
+        g.beginPath(); g.arc(pe[0], pe[1], re, 0, 2 * Math.PI); g.clip();
+        g.drawImage(earth, pe[0] - re, pe[1] - re, 2 * re, 2 * re);
+        g.restore();
+      } else {
+        g.fillStyle = "#38d4ff";
+        g.beginPath(); g.arc(pe[0], pe[1], re, 0, 2 * Math.PI); g.fill();
+      }
       const phi = Math.atan2(pos.earth[1], -pos.earth[0]); // toward the Sun, canvas angle
       g.fillStyle = "rgba(0,0,0,0.78)";
       g.beginPath(); g.arc(pe[0], pe[1], re, phi + Math.PI / 2, phi + 1.5 * Math.PI); g.closePath(); g.fill();

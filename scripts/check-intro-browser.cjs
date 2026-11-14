@@ -17,6 +17,7 @@ const replay = page => page.evaluate(async () => {
     const errors = []; page.on('pageerror', error => errors.push(error.message));
     await page.goto(base + '#compare');
     await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'playing');
+    await page.waitForFunction(() => document.querySelector('#intro').dataset.earth === 'nasa-blue-marble');
     await page.evaluate(() => {
       window.preparationTasks = [];
       window.preparationObserver = new PerformanceObserver(list => window.preparationTasks.push(...list.getEntries().map(e => e.duration)));
