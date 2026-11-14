@@ -2,7 +2,8 @@
 // instant. Seen from the south, like the polar map, so the last frame lines up with it: 0 deg
 // longitude (Earth-facing) up, 90 E right. Positions come from the landing date and the same Sun
 // vector the shadow map uses. Sizes and distances are true at every zoom level.
-import { shadeView, paint, toMap, R_KM } from "./shadow.js";
+import { toMap, R_KM } from "./shadow.js";
+import { prepareIntroAssets } from './intro-assets.js';
 
 const RAD = Math.PI / 180, AU = 149.6e6, MOON_DIST = 384400, R_SUN = 696000, R_EARTH = 6371;
 
@@ -54,53 +55,13 @@ function camera(t, pos, finalHalf = 170) {
   return [[B[0] + (A[0] - B[0]) * f, B[1] + (A[1] - B[1]) * f], w];
 }
 
-// The Moon as a lit sphere seen from below its south pole (screen up = lon 0, right = 90 E).
-let texturePromise;
-function loadMoonTexture() {
-  return texturePromise ??= new Promise((resolve) => {
-    const image = new Image();
-    image.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      ctx.drawImage(image, 0, 0);
-      resolve(ctx.getImageData(0, 0, canvas.width, canvas.height));
-    };
-    image.onerror = () => resolve(null); // The intro still works if the optional visual asset is missing.
-    image.src = new URL('moon-albedo-4k.jpg', document.baseURI).href;
-  });
-}
-
-function sphere(sun, n, texture) {
-  const cv = Object.assign(document.createElement("canvas"), { width: n, height: n });
-  const c = cv.getContext("2d"), im = c.createImageData(n, n), b = new Float32Array(n * n).fill(NaN);
-  for (let j = 0; j < n; j++) {
-    for (let i = 0; i < n; i++) {
-      const u = (2 * i + 1) / n - 1, v = 1 - (2 * j + 1) / n, rr = u * u + v * v;
-      if (rr <= 1) b[j * n + i] = 0.04 + 0.96 * Math.max(0, v * sun[0] + u * sun[1] - Math.sqrt(1 - rr) * sun[2]) ** 0.7;
-    }
-  }
-  paint(b, im.data);
-  if (texture) for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
-    const u = (2 * i + 1) / n - 1, v = 1 - (2 * j + 1) / n, rr = u * u + v * v;
-    if (rr > 1) continue;
-    // Orthographic view from south: longitude 0 up, 90 E right, matching the map.
-    const lon = Math.atan2(u, v), lat = -Math.acos(Math.sqrt(rr));
-    const tx = Math.min(texture.width - 1, Math.floor((lon / (2 * Math.PI) + 0.5) * texture.width));
-    const ty = Math.min(texture.height - 1, Math.floor((0.5 - lat / Math.PI) * texture.height));
-    const a = 4 * (ty * texture.width + tx), o = 4 * (j * n + i);
-    for (let channel = 0; channel < 3; channel++) im.data[o + channel] = texture.data[a + channel] * (0.12 + 1.25 * b[j * n + i]);
-  }
-  c.putImageData(im, 0, 0);
-  return cv;
-}
-
 // Real terrain around the pole (same shading as the map), faded out toward its rim.
-function terrainImage(terrain, sun, half, n) {
+function imageCanvas(pixels, n, fadeRim = false) {
   const cv = Object.assign(document.createElement("canvas"), { width: n, height: n });
   const c = cv.getContext("2d"), im = c.createImageData(n, n);
-  paint(shadeView(terrain, sun, { cx: 0, cy: 0, half }, n), im.data);
+  im.data.set(pixels);
   c.putImageData(im, 0, 0);
+  if (!fadeRim) return cv;
   const fade = c.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
   // Only soften the outer edge, outside the final camera view. The old circular
   // fade erased most of the visible terrain on wide screens.
@@ -111,29 +72,50 @@ function terrainImage(terrain, sun, half, n) {
   return cv;
 }
 
+// Advance by rendered time, not a wall-clock jump after a long task or tab switch.
+export function createIntroClock() {
+  let previous, time = 0;
+  return (now, paused = false) => {
+    if (previous !== undefined && !paused) time += Math.max(0, Math.min(50, now - previous)) / 1000;
+    previous = now;
+    return time;
+  };
+}
+
+// During the close-up the projected sphere can be tens of thousands of pixels
+// wide. Crop the source before drawing so resampling only covers the viewport.
+export function clippedImage(imageWidth, imageHeight, x, y, width, height, viewportWidth, viewportHeight) {
+  const left = Math.max(0, x), top = Math.max(0, y), right = Math.min(viewportWidth, x + width), bottom = Math.min(viewportHeight, y + height);
+  if (right <= left || bottom <= top) return null;
+  return [(left - x) * imageWidth / width, (top - y) * imageHeight / height,
+    (right - left) * imageWidth / width, (bottom - top) * imageHeight / height,
+    left, top, right - left, bottom - top];
+}
+
 let hideTimer = 0, run = 0, stopIntro;
 export async function playIntro({ ms, sun, terrain, picks, when }) {
-  const thisRun = ++run;
   stopIntro?.();
+  const thisRun = ++run;
   const el = document.querySelector("#intro"), cv = el.querySelector("canvas"), g = cv.getContext("2d");
   const line = el.querySelector(".stars-line span"), skip = el.querySelector(".skip");
   const quality = introResolution(innerWidth, innerHeight, devicePixelRatio || 1);
-  const texture = await loadMoonTexture();
-  if (thisRun !== run) return;
-  const pos = scene(ms, sun), moon = sphere(sun, quality.sphere, texture), T = 250;
-  const land = terrain && terrainImage(terrain, sun, T, quality.terrain);
+  const pos = scene(ms, sun), T = 250;
+  let moon, land;
   const stars = Array.from({ length: 220 }, () => [Math.random(), Math.random(), Math.random() < 0.1 ? 2 : 1, 0.2 + 0.6 * Math.random()]);
   clearTimeout(hideTimer);
   el.hidden = false;
   el.classList.remove("done");
 
-  let start = 0, raf = 0, over = false;
+  let raf = 0, over = false;
+  const clock = createIntroClock();
   const key = (ev) => { if (["Escape", "Enter", " "].includes(ev.key)) { ev.preventDefault(); finish(); } };
   const finish = () => {
     if (over) return;
     over = true;
     cancelAnimationFrame(raf);
     removeEventListener("keydown", key);
+    ++run;
+    el.dataset.phase = 'done';
     el.classList.add("done");
     hideTimer = setTimeout(() => (el.hidden = true), 500);
   };
@@ -150,9 +132,11 @@ export async function playIntro({ ms, sun, terrain, picks, when }) {
   };
 
   function draw(t) {
-    const dpr = devicePixelRatio || 1, W = innerWidth, H = innerHeight;
+    const W = innerWidth, H = innerHeight;
+    const dpr = Math.min(devicePixelRatio || 1, 2, Math.sqrt(8e6 / (W * H)));
     if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.imageSmoothingQuality = 'medium';
     g.fillStyle = "#000";
     g.fillRect(0, 0, W, H);
     for (const [x, y, s, a] of stars) { g.fillStyle = `rgba(255,226,180,${a})`; g.fillRect(x * W, y * H, s, s); }
@@ -200,12 +184,13 @@ export async function playIntro({ ms, sun, terrain, picks, when }) {
 
     const pm = S(pos.moon), rm = Math.max(R_KM * k, 2.5);
     if (on(pm, rm)) {
-      g.drawImage(moon, pm[0] - rm, pm[1] - rm, 2 * rm, 2 * rm);
-      g.imageSmoothingQuality = 'high';
+      const moonCrop = moon && clippedImage(moon.width, moon.height, pm[0] - rm, pm[1] - rm, 2 * rm, 2 * rm, W, H);
+      if (moonCrop) g.drawImage(moon, ...moonCrop);
       const a = Math.min(1, Math.max(0, (1800 - w) / 1200));
       if (land && a > 0) {
         g.globalAlpha = a;
-        g.drawImage(land, pm[0] - T * k, pm[1] - T * k, 2 * T * k, 2 * T * k);
+        const crop = clippedImage(land.width, land.height, pm[0] - T * k, pm[1] - T * k, 2 * T * k, 2 * T * k, W, H);
+        if (crop) g.drawImage(land, ...crop);
         g.globalAlpha = 1;
       }
       if (rm < 120) label(pm, rm, "Moon");
@@ -242,11 +227,19 @@ export async function playIntro({ ms, sun, terrain, picks, when }) {
   }
 
   const tick = (now) => {
-    start ||= now;
-    const t = (now - start) / 1000;
+    const t = clock(now, document.hidden);
+    el.dataset.time = t.toFixed(3);
     draw(Math.min(t, END));
     if (t >= END) finish();
     else raf = requestAnimationFrame(tick);
   };
+  el.dataset.phase = 'preparing';
+  draw(0);
+  line.textContent = 'Preparing the lunar view…';
+  const assets = await prepareIntroAssets({ terrain, sun, quality, textureUrl: new URL('moon-albedo-4k.jpg', document.baseURI).href });
+  if (over || thisRun !== run || !assets) return;
+  moon = imageCanvas(assets.moon, assets.moonN);
+  land = assets.land && imageCanvas(assets.land, assets.landN, true);
+  el.dataset.phase = 'playing';
   raf = requestAnimationFrame(tick);
 }

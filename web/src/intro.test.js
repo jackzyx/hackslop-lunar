@@ -1,10 +1,26 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { sunLongitude, scene, introResolution } from "./intro.js";
+import { sunLongitude, scene, introResolution, createIntroClock, clippedImage } from "./intro.js";
 
 const RAD = Math.PI / 180;
 const near = (a, b, tol) => assert.ok(Math.abs(a - b) < tol, `${a} vs ${b}`);
 const angDiff = (a, b) => Math.abs(((a - b + 540) % 360) - 180);
+
+test('intro clock resumes smoothly after a long frame or a hidden tab', () => {
+  const clock = createIntroClock();
+  near(clock(1000), 0, 1e-9);
+  near(clock(1016), .016, 1e-9);
+  near(clock(4016), .066, 1e-9); // a 3-second stall never skips 3 seconds of the intro
+  near(clock(8016, true), .066, 1e-9);
+  near(clock(8032), .082, 1e-9);
+});
+
+test('oversized lunar images are cropped to the visible viewport before drawing', () => {
+  const crop = clippedImage(1000, 1000, -4500, -4500, 10000, 10000, 1000, 600);
+  assert.deepEqual(crop, [450,450,100,60,0,0,1000,600]);
+  assert.equal(clippedImage(100,100,2000,2000,100,100,1000,600), null);
+  assert.deepEqual(clippedImage(100,100,20,30,200,200,1000,600), [0,0,100,100,20,30,200,200]);
+});
 
 test('intro final camera keeps every screen corner inside the detailed terrain', () => {
   for (const [w, h, dpr] of [[1920,1080,1], [3840,2160,2], [2560,1080,1], [390,844,3]]) {

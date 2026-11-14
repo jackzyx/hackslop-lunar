@@ -27,6 +27,14 @@ project reference log when data, imagery or tools change.
 
 Intro visuals use a bundled 4096 × 2048 NASA lunar albedo texture, a
 viewport-sized globe raster (768–1536 px), and an 800–1280 px terrain render.
+Image preparation runs in `intro.worker.js`, with one prepared scene cached for
+replay. The first frame and Skip remain available while preparation completes;
+playback starts only when the images are ready. Worker-disabled browsers prepare
+smaller terrain tiles cooperatively. The playback clock caps long-frame advances
+and pauses in hidden tabs instead of jumping ahead. Close-up image draws are
+cropped to the viewport, and the display canvas is capped at 8 million pixels.
+`node scripts/check-intro-browser.cjs` checks full playback, synthetic stalls,
+cached replay and skipping during preparation (dev server on port 5174).
 The final camera fits the detailed terrain to every screen corner, including wide
 and portrait displays. The surface-data resolution remains 500 m; rendering at
 more pixels does not add new scientific terrain detail. Visual source and credit:
