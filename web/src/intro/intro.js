@@ -275,7 +275,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
         const endY = y + sy * 13 * scale - (sy > 0 ? 12 : 0);
         handoffAnimations.push(corner.animate([
           { transform: corner.style.transform, opacity: 1 },
-          { transform: `translate3d(${endX}px, ${endY}px, 0)`, opacity: 0 },
+          { transform: `translate3d(${endX}px, ${endY}px, 0)`, opacity: 1 },
         ], timing));
       });
     });

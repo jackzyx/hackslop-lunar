@@ -45,7 +45,7 @@ const replay = page => page.evaluate(async () => {
     const names = await page.locator('.intro-site-marker span').allTextContents();
     await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'revealing');
     assert.equal(await page.locator('.intro-reticle').getAttribute('data-state'), 'split');
-    assert.ok(await page.locator('.intro-reticle i').first().evaluate(el => el.getAnimations().some(animation => animation.effect.getKeyframes().some(frame => frame.opacity === '0'))), 'crosshair corners should fade during the website handoff');
+    assert.ok(await page.locator('.intro-reticle i').evaluateAll(corners => corners.every(el => el.getAnimations().some(animation => animation.effect.getKeyframes().every(frame => frame.opacity === '1')))), 'split crosshairs must stay visible throughout the website handoff');
     assert.deepEqual(await page.locator('.intro-site-marker span').allTextContents(), names, 'site labels must survive the handoff');
     assert.deepEqual(await page.locator('.shell .mapwrap .pin-label').allTextContents(), names, 'intro and map must use the same site labels');
     assert.ok(await page.locator('.shell .details').evaluate(el => el.getAnimations().length > 0), 'graphs should fade in during the handoff');
@@ -55,6 +55,7 @@ const replay = page => page.evaluate(async () => {
     await page.waitForFunction(() => document.querySelector('#intro').hidden, { timeout: 20000 });
     assert.equal(await page.locator('.intro-site-marker').count(), 0, 'handoff markers must be removed after revealing the real map');
     assert.equal(await page.locator('.intro-reticle').count(), 0, 'crosshair must be removed after the transition');
+    assert.equal(await page.locator('.shell .mapwrap .bracket').count(), 2, 'the map must retain both site brackets after the handoff');
     await replay(page);
     await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'playing');
     await page.keyboard.press('Escape');
