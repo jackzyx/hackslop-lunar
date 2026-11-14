@@ -1,7 +1,7 @@
 import { memo, useMemo, useState } from "react";
 import { WINDOW_H, maskAt, windowMetrics } from "@/domain/metrics.js";
 import { data, sites, vis, t0, H, fmtTime, latLon, dur } from "@/lib/data.js";
-import { TL, P, panorama, yRange } from "@/lib/charts.js";
+import { TL, P, panorama, skylineY, yRange } from "@/lib/charts.js";
 import VisibilityTimeline from '@/components/VisibilityTimeline';
 import { validation, fmtDeg, worst } from "@/lib/validation.js";
 import { Card } from "@/components/ui/card";
@@ -11,17 +11,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 // Chart hover text follows the mouse, so it is a positioned box rather than an anchored tooltip.
 function useTip() {
   const [tip, setTip] = useState(null);
-  const bind = (text) => ({
+  const bind = (readHover) => ({
     onMouseMove: (ev) => {
-      const r = ev.currentTarget.getBoundingClientRect(), s = text(((ev.clientX - r.left) / r.width) * 600);
-      setTip(s ? { s, x: ev.clientX, y: ev.clientY } : null);
+      const transform = ev.currentTarget.getScreenCTM();
+      const point = transform && new DOMPoint(ev.clientX, ev.clientY).matrixTransform(transform.inverse());
+      const hover = point && readHover(point);
+      setTip(hover ? { ...hover, x: ev.clientX, y: ev.clientY } : null);
     },
     onMouseLeave: () => setTip(null),
   });
   const el = tip && (
     <div className="tip" style={tip.x > innerWidth - 360 ? { right: innerWidth - tip.x + 14, top: tip.y + 16 } : { left: tip.x + 14, top: tip.y + 16 }}>{tip.s}</div>
   );
-  return [bind, el];
+  return [bind, el, tip?.guide];
 }
 
 function nextEvent(m) {
@@ -31,7 +33,11 @@ function nextEvent(m) {
   return h === Infinity ? ["NEXT SET", "NONE IN FIRST 30 DAYS"] : [name, dur(h).toUpperCase()];
 }
 
-function SiteDetail({ n, id, i0, yr, bind }) {
+const SkylinePlot = memo(function SkylinePlot({ horizon, eph, i0, yr }) {
+  return <g dangerouslySetInnerHTML={{ __html: panorama(horizon, eph, i0, yr) }} />;
+});
+
+function SiteDetail({ n, id, i0, yr, bind, guide }) {
   const site = sites[id], eph = data.ephemeris.sites[id];
   const v = vis(id);
   const az = eph.sun_az[i0], el = eph.sun_el[i0];
@@ -44,26 +50,36 @@ function SiteDetail({ n, id, i0, yr, bind }) {
       {site.terrain_modelled === false && <p className="caption">Smooth-sphere horizon · Terrain not modelled</p>}
       <p className="hud-label">SUN AND EARTH · 30 DAYS FROM LANDING</p>
       <VisibilityTimeline key={id} visibility={v} i0={i0}
-        {...bind((x) => {
+        {...bind(({ x }) => {
           const k = Math.floor(((x - TL.x0) / (TL.x1 - TL.x0)) * WINDOW_H);
           if (k < 0 || k >= WINDOW_H) return null;
           const i = i0 + k;
-          return `${fmtTime(t0 + i * H)} UTC · Sun ${Math.round(v.sun[i] * 100)} % visible · Earth ${v.earth[i] ? "in view" : "hidden"}`;
+          return { s: `${fmtTime(t0 + i * H)} UTC · Sun ${Math.round(v.sun[i] * 100)} % visible · Earth ${v.earth[i] ? "in view" : "hidden"}` };
         })} />
       <p className="readout">{evName} · {evVal}</p>
       <p className="hud-label">SKYLINE 360° · SUN AND EARTH PATHS</p>
-      <svg viewBox="0 0 600 186" role="img" aria-label="Skyline all around the site with the Sun and Earth paths" dangerouslySetInnerHTML={{ __html: panorama(site.horizon, eph, i0, yr) }}
-        {...bind((x) => {
+      <svg viewBox="0 0 600 186" role="img" aria-label="Skyline all around the site with the Sun and Earth paths"
+        {...bind(({ x, y }) => {
+          if (x < P.x0 || x > P.x1 || y < P.y0 || y > P.y1) return null;
           const az = ((x - P.x0) / (P.x1 - P.x0)) * 360;
-          return az < 0 || az >= 360 ? null : `Azimuth ${az.toFixed(0)}° · skyline ${maskAt(site.horizon, az).toFixed(1)}° up`;
-        })} />
+          const elevation = maskAt(site.horizon, az);
+          return { s: `Azimuth ${az.toFixed(0)}° · skyline ${elevation.toFixed(1)}° up`, guide: { n, x, y: skylineY(elevation, yr) } };
+        })}>
+        <SkylinePlot horizon={site.horizon} eph={eph} i0={i0} yr={yr} />
+        {guide?.n === n && (
+          <g className="skyline-hover" aria-hidden="true">
+            <line x1={guide.x} x2={guide.x} y1={P.y0} y2={P.y1} />
+            <circle cx={guide.x} cy={guide.y} r="4" />
+          </g>
+        )}
+      </svg>
       <p className="readout">SUN AT LANDING · AZIMUTH {az.toFixed(1)}° · ELEVATION {el.toFixed(1)}° · {Math.abs(margin).toFixed(1)}° {margin >= 0 ? "ABOVE" : "BELOW"} SKYLINE</p>
     </Card>
   );
 }
 
 function DetailTabs({ picks, i0, tab, onTab }) {
-  const [bind, tipEl] = useTip(), yr = useMemo(() => yRange(picks), [picks]), v = validation;
+  const [bind, tipEl, guide] = useTip(), yr = useMemo(() => yRange(picks), [picks]), v = validation;
   const illumination = v.checks.find((c) => c.id === "V4");
   return (
     <Tabs value={tab} onValueChange={onTab} className="details" id="details">
@@ -74,7 +90,7 @@ function DetailTabs({ picks, i0, tab, onTab }) {
       </TabsList>
 
       <TabsContent value="skylines" className="grid gap-4 md:grid-cols-2">
-        {picks.map((id, c) => <SiteDetail key={c} n={c + 1} id={id} i0={i0} yr={yr} bind={bind} />)}
+        {picks.map((id, c) => <SiteDetail key={c} n={c + 1} id={id} i0={i0} yr={yr} bind={bind} guide={guide} />)}
       </TabsContent>
 
       <TabsContent value="validation">

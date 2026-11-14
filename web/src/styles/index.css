@@ -269,6 +269,9 @@ html:has(#intro:not([hidden])) { --scrollbar-opacity: 0; transition: none; }
 .detail svg { display: block; width: 100%; height: auto; }
 .details svg text { font-family: var(--font-mono); font-size: 12px; fill: var(--muted-foreground); }
 .details svg text.ink { fill: var(--foreground); }
+.skyline-hover { pointer-events: none; }
+.skyline-hover line { stroke: var(--foreground); stroke-width: 1.5; stroke-dasharray: 1 5; stroke-linecap: round; }
+.skyline-hover circle { fill: var(--primary); stroke: var(--foreground); stroke-width: 1.5; }
 .track { fill: rgb(255 176 0 / 0.08); }
 rect.sun { fill: var(--sun); } rect.earth { fill: var(--earth); }
 .sun-line, .earth-line { fill: none; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }

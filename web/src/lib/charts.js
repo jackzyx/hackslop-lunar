@@ -11,8 +11,12 @@ export const TL = { x0: 64, x1: 596 };
 // --- 360 deg horizon panorama with the Sun and Earth paths over the 30 days
 export const P = { x0: 40, x1: 596, y0: 8, y1: 160 };
 const px = (az) => P.x0 + (az / 360) * (P.x1 - P.x0);
-export function panorama(mask, e, i0, [lo, hi]) {
-  const py = (el) => Math.min(P.y1 + 2, Math.max(P.y0, P.y1 - ((el - lo) / (hi - lo)) * (P.y1 - P.y0)));
+export function skylineY(el, [lo, hi]) {
+  return Math.min(P.y1 + 2, Math.max(P.y0, P.y1 - ((el - lo) / (hi - lo)) * (P.y1 - P.y0)));
+}
+export function panorama(mask, e, i0, range) {
+  const [lo, hi] = range;
+  const py = (el) => skylineY(el, range);
   const step = [1, 2, 5, 10].find((s) => (hi - lo) / s <= 8) ?? 20; // at most ~8 gridlines
   let g = "";
   for (let el = Math.ceil(lo / step) * step; el <= hi; el += step) {
