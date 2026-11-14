@@ -2,19 +2,95 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { windowMetrics, verdictDelay, MAX_DELAY_D } from "@/domain/metrics.js";
 import { initialTerrain } from '@/terrain/startup.js';
 import { narrate } from "@/domain/narrator.js";
-import { data, sites, vis, t0, H, DAY, iso, fmtDate, reducedMotion } from "@/lib/data.js";
+import { data, sites, vis, t0, H, DAY, iso, fmtDate, reducedMotion, loadPlannerData } from "@/lib/data.js";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import SiteCard from "@/components/SiteCard";
+import SiteFooter from "@/components/SiteFooter";
+import PolicyPage, { policyTitles } from "@/components/PolicyPage";
 import ShadowMap from "@/components/ShadowMap";
 import DetailTabs from "@/components/DetailTabs";
 import About from "@/components/About";
 import LandingDatePicker from "@/components/LandingDatePicker";
 import AmbientStars from '@/components/AmbientStars';
-import { currentPage, routeUrl } from "@/lib/routes.js";
+import { currentPage, isPolicyPage, pageForPath, routeUrl } from "@/lib/routes.js";
+
+function focusPage(page) {
+  const sources = page === 'about' && location.hash === '#about-sources';
+  const target = document.getElementById(sources ? 'about-sources' : `${page}-main`);
+  target?.focus({ preventScroll: true });
+  if (sources) target?.scrollIntoView();
+  else window.scrollTo(0, 0);
+}
 
 export default function App() {
   const [page, setPage] = useState(currentPage);
+  const [paused, setPaused] = useState(false);
+  const [plannerReady, setPlannerReady] = useState(() => Boolean(data));
+  const [plannerError, setPlannerError] = useState(false);
+  const policyPage = isPolicyPage(page);
+
+  useEffect(() => {
+    const onPopState = () => setPage(currentPage());
+    addEventListener('popstate', onPopState);
+    return () => removeEventListener('popstate', onPopState);
+  }, []);
+  useEffect(() => {
+    if (policyPage || plannerReady) return;
+    let active = true;
+    setPlannerError(false);
+    loadPlannerData().then(() => {
+      if (active) setPlannerReady(true);
+    }).catch(() => {
+      if (active) setPlannerError(true);
+    });
+    return () => { active = false; };
+  }, [page, policyPage, plannerReady]);
+  useEffect(() => {
+    document.title = policyPage ? `${policyTitles[page]} | Sun Shade` : page === 'about' ? 'About Sun Shade' : 'Sun Shade';
+    if (page !== 'compare') document.getElementById('intro').hidden = true;
+    const raf = requestAnimationFrame(() => focusPage(page));
+    return () => cancelAnimationFrame(raf);
+  }, [page, policyPage, plannerReady]);
+  const navigate = (nextPage, hash = '') => {
+    const path = routeUrl(nextPage);
+    if (location.pathname !== path || location.hash !== hash) history.pushState(null, '', path + location.search + hash);
+    if (page === nextPage) focusPage(nextPage);
+    else setPage(nextPage);
+  };
+  const followRoute = (event) => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const { pathname, hash } = event.currentTarget;
+    const nextPage = pageForPath(pathname);
+    if (!nextPage || (hash && pathname === location.pathname)) return;
+    event.preventDefault();
+    navigate(nextPage, hash);
+  };
+  const compareHref = routeUrl('compare');
+  const aboutHref = routeUrl('about');
+
+  return (
+    <>
+      <AmbientStars />
+      <div className="shell">
+        <nav className="site-nav" aria-label="Main navigation">
+          <a id="site-top" className="nav-wordmark" href={compareHref} onClick={followRoute}>SUN SHADE</a>
+          <div>
+            <a href={compareHref} onClick={followRoute} aria-current={page === 'compare' ? 'page' : undefined}>Compare</a>
+            <a href={aboutHref} onClick={followRoute} aria-current={page === 'about' ? 'page' : undefined}>About</a>
+          </div>
+        </nav>
+        {policyPage && <PolicyPage page={page} onRoute={followRoute} />}
+        {plannerReady && page === 'about' && <About onCompare={() => navigate('compare')} paused={paused} />}
+        {plannerReady && <Planner hidden={page !== 'compare'} />}
+        {!policyPage && !plannerReady && <main className="policy-page" role="status">{plannerError ? 'Could not load the planner. Refresh to try again.' : 'Loading planner.'}</main>}
+        <SiteFooter page={page} onRoute={followRoute} paused={paused} onToggleAnimations={plannerReady && page === 'about' ? () => setPaused(value => !value) : undefined} />
+      </div>
+    </>
+  );
+}
+
+function Planner({ hidden }) {
   const [date, setDate] = useState("2026-11-20");
   const [delay, setDelay] = useState(0);
   const [interacting, setInteracting] = useState(false);
@@ -23,33 +99,6 @@ export default function App() {
   const [tab, setTab] = useState("skylines");
   const [terrain, setTerrain] = useState(null);
   const [terrainErr, setTerrainErr] = useState(null);
-
-  useEffect(() => {
-    const onPopState = () => setPage(currentPage());
-    addEventListener('popstate', onPopState);
-    return () => removeEventListener('popstate', onPopState);
-  }, []);
-  useEffect(() => {
-    document.title = page === 'about' ? 'About Sun Shade' : 'Sun Shade';
-    if (page === 'about') document.getElementById('intro').hidden = true;
-    const raf = requestAnimationFrame(() => {
-      document.getElementById(page === 'about' ? 'about-main' : 'compare-main')?.focus({ preventScroll: true });
-      if (location.hash === '#about-sources') document.getElementById('about-sources')?.scrollIntoView();
-      else window.scrollTo(0, 0);
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [page]);
-  const navigate = (nextPage) => {
-    const path = routeUrl(nextPage);
-    if (location.pathname !== path || location.hash) history.pushState(null, '', path + location.search);
-    setPage(nextPage);
-  };
-  const followRoute = (event) => {
-    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    event.preventDefault();
-    navigate(event.currentTarget.pathname === routeUrl('about') ? 'about' : 'compare');
-  };
-  const compareHref = routeUrl('compare');
 
   const dateMin = iso(t0 + MAX_DELAY_D * DAY);
   const dateMax = iso(t0 + data.ephemeris.count * H - (MAX_DELAY_D + 30) * DAY);
@@ -69,15 +118,7 @@ export default function App() {
   const slip = delay === 0 ? "ON TIME" : delay > 0 ? `SLIP +${n} D` : `EARLY −${n} D`;
 
   return (
-    <>
-    <AmbientStars />
-    <div className="shell">
-      <nav className="site-nav" aria-label="Main navigation">
-        <a className="nav-wordmark" href={compareHref} onClick={followRoute}>SUN SHADE</a>
-        <div><a href={compareHref} onClick={followRoute} aria-current={page === 'compare' ? 'page' : undefined}>Compare</a><a href={routeUrl('about')} onClick={followRoute} aria-current={page === 'about' ? 'page' : undefined}>About</a></div>
-      </nav>
-      {page === 'about' && <About compareHref={compareHref} onCompare={() => navigate('compare')} onCompareLink={followRoute} />}
-      <div hidden={page === 'about'}>
+      <div hidden={hidden}>
         <header className="top">
           <div className="min-w-0 flex-1 basis-80">
             <h1 className="brand glow">SUN SHADE</h1>
@@ -123,7 +164,5 @@ export default function App() {
         <DetailTabs picks={picks} i0={detailIndex} tab={tab} onTab={setTab} />
         <p className="foot">Half sunlight = 360 of 720 hours. Verdicts test delays of 0 to {MAX_DELAY_D} days from the planned date. Landing at 00:00 UTC. Hover the charts for detail.</p>
       </div>
-    </div>
-    </>
   );
 }

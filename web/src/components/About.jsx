@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { data } from '@/lib/data.js';
-import { sourceGroups } from '@/lib/sources.js';
+import { projectRepository, sourceGroups } from '@/lib/sources.js';
 import { Button } from '@/components/ui/button';
 import MoonGlobe from '@/components/MoonGlobe';
 
-export default function About({ compareHref, onCompare, onCompareLink }) {
-  const root = useRef(null), [query, setQuery] = useState(''), [paused, setPaused] = useState(false);
+export default function About({ onCompare, paused }) {
+  const root = useRef(null), [query, setQuery] = useState('');
   useEffect(() => {
     if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     root.current.classList.add('has-observer');
@@ -49,8 +49,8 @@ export default function About({ compareHref, onCompare, onCompareLink }) {
       <div className="hud about-limit-panel"><h3>What the comparison means</h3><p>Sunlight is geometric visibility, not available electrical power. Earth contact is line of sight, not a radio-link budget.</p><ul><li>No power or thermal model.</li><li>No landing-hazard or slope assessment.</li><li>Curated sites; no custom coordinates.</li><li>Landing dates at 00:00 UTC.</li></ul><p>Measured validation results are shown in the planner’s Validation tab, with unfinished checks labelled.</p></div>
     </section>
 
-    <section className="about-sources about-reveal" id="about-sources" aria-labelledby="sources-heading">
-      <div className="about-source-heading"><div><h2 id="sources-heading">Check the sources.</h2><p>The data, imagery, software and references behind Sun Shade. Each entry explains what it contributes.</p></div><a href="https://github.com/jackzyx/hackslop-lunar" target="_blank" rel="noreferrer">View the code ↗</a></div>
+    <section className="about-sources about-reveal" id="about-sources" aria-labelledby="sources-heading" tabIndex={-1}>
+      <div className="about-source-heading"><div><h2 id="sources-heading">Check the sources.</h2><p>The data, imagery, software and references behind Sun Shade. Each entry explains what it contributes.</p></div><a href={projectRepository} target="_blank" rel="noreferrer">View the code ↗</a></div>
       <label className="about-search">Find a source<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Try LOLA, Horizons, imagery or React" /></label>
       <p className="about-source-count" role="status">{count} {count === 1 ? 'source' : 'sources'}{query ? ` matching “${query}”` : ' in the bibliography'}</p>
       {groups.map((group, i) => group.entries.length > 0 && <details className="about-source-group" key={`${group.title}-${Boolean(query)}`} open={Boolean(query) || i === 0}>
@@ -59,6 +59,5 @@ export default function About({ compareHref, onCompare, onCompareLink }) {
       </details>)}
       {count === 0 && <p>No sources match that search. <button onClick={() => setQuery('')}>Show all sources</button></p>}
     </section>
-    <footer className="about-footer"><span>Sun Shade · NASA Space Apps / HackAthlone 2026</span><button onClick={() => setPaused(!paused)} aria-pressed={paused}>{paused ? 'Resume animations' : 'Pause animations'}</button><a href={compareHref} onClick={onCompareLink}>Back to the comparison ↑</a></footer>
   </main>;
 }

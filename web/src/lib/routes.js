@@ -1,11 +1,20 @@
 export const appBase = new URL('./', location.href);
+const pages = ['compare', 'about', 'privacy', 'terms'];
 
 export function routeUrl(page) {
   return new URL(page, appBase).pathname;
 }
 
+export function pageForPath(pathname) {
+  return pages.find(page => pathname === routeUrl(page));
+}
+
 export function currentPage() {
-  return location.pathname === routeUrl('about') ? 'about' : 'compare';
+  return pageForPath(location.pathname) ?? 'compare';
+}
+
+export function isPolicyPage(page) {
+  return page === 'privacy' || page === 'terms';
 }
 
 export function migrateLegacyRoute() {

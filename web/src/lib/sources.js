@@ -1,3 +1,5 @@
+export const projectRepository = 'https://github.com/jackzyx/hackslop-lunar';
+
 // Public bibliography. Keep provenance and usage separate from unverified results.
 export const sourceGroups = [
   { title: 'Lunar data and science', entries: [
