@@ -2,6 +2,7 @@ import { grade, MAX_DELAY_D, WINDOW_H } from "@/domain/metrics.js";
 import { data, sites, dur } from "@/lib/data.js";
 import { useCountUp } from "@/lib/useCountUp.js";
 import { Card } from "@/components/ui/card";
+import HelpTip from '@/components/HelpTip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const STATUS = { good: "NOMINAL", warning: "MARGINAL", critical: "CRITICAL" };
@@ -15,7 +16,7 @@ export default function SiteCard({ n, st, onPick, onRemove }) {
   const verdict = d === null ? `Holds through a ${MAX_DELAY_D}-day delay` : d === 0 ? "Under half sunlight even on time" : `Falls below half sunlight with a ${d}-day delay`;
   const bar = (label, cls, h) => (
     <div className={`hbar ${cls}`}>
-      <span className="hud-label">{label}</span>
+      <span className="hud-label">{label}<HelpTip label={label === 'SUN' ? 'sunlight hours' : 'Earth contact hours'}>{label === 'SUN' ? 'Total sunlight over the 30 days after landing. Partial visibility of the Sun counts proportionally; this is not electrical power.' : 'Hours when Earth is above the local terrain skyline during the 30 days after landing. This measures line of sight, not a guaranteed radio connection.'}</HelpTip></span>
       <span className="seg"><i style={{ width: `${((h / WINDOW_H) * 100).toFixed(1)}%` }} /></span>
       <b>{Math.round(h)} H</b>
     </div>
@@ -54,7 +55,7 @@ export default function SiteCard({ n, st, onPick, onRemove }) {
 
       <p className="verdict">{verdict}</p>
       <dl className="nums">
-        <div><dt>LONGEST DARK GAP</dt><dd>{dur(m.darkGap).toUpperCase()}</dd></div>
+        <div><dt>LONGEST DARK GAP<HelpTip label="longest dark gap">The longest uninterrupted stretch with no part of the Sun visible, within the 30 days after landing.</HelpTip></dt><dd>{dur(m.darkGap).toUpperCase()}</dd></div>
       </dl>
     </Card>
   );
