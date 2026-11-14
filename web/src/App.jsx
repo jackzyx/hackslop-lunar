@@ -88,6 +88,7 @@ function Planner({ hidden }) {
   const [hourOffset, setHourOffset] = useState(0);
   const [plannedHour, setPlannedHour] = useState(0);
   const slipTrack = useRef(null);
+  const hourTrack = useRef(null);
   const [interacting, setInteracting] = useState(false);
   const [picks, setPicks] = useState(["A", "B"]);
   const [zoom, setZoom] = useState(true);
@@ -97,11 +98,14 @@ function Planner({ hidden }) {
   const [customKey, setCustomKey] = useState(0); // bumps when custom sites are added or removed
 
   useEffect(() => {
-    const track = slipTrack.current;
+    const cleanups = [
+      [slipTrack.current, setDelay, MAX_DELAY_D],
+      [hourTrack.current, setHourOffset, 23],
+    ].map(([track, setValue, limit]) => {
     let accumulated = 0;
     let lastWheel = 0;
     const scrollSlip = (event) => {
-      if (event.ctrlKey) return; // Preserve trackpad pinch zoom.
+      if (event.ctrlKey || event.metaKey || !event.cancelable) return; // Preserve zoom gestures.
       const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
       if (!delta) return;
       event.preventDefault();
@@ -109,14 +113,21 @@ function Planner({ hidden }) {
       if (now - lastWheel > 200 || Math.sign(delta) !== Math.sign(accumulated)) accumulated = 0;
       lastWheel = now;
       accumulated += delta * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? track.clientWidth : 1);
-      const days = Math.trunc(accumulated / 40);
-      if (days) {
-        accumulated -= days * 40;
-        setDelay(value => Math.max(-MAX_DELAY_D, Math.min(MAX_DELAY_D, value + days)));
+      const steps = Math.trunc(accumulated / 40);
+      if (steps) {
+        accumulated -= steps * 40;
+        setValue(value => Math.max(-limit, Math.min(limit, value + steps)));
       }
     };
     track.addEventListener('wheel', scrollSlip, { passive: false });
-    return () => track.removeEventListener('wheel', scrollSlip);
+    const reset = () => { accumulated = 0; lastWheel = 0; };
+    track.addEventListener('pointerleave', reset);
+    return () => {
+      track.removeEventListener('wheel', scrollSlip);
+      track.removeEventListener('pointerleave', reset);
+    };
+    });
+    return () => cleanups.forEach(cleanup => cleanup());
   }, []);
 
   // A click on the map: build the site, show it as site 2. Returns an error message or null.
@@ -196,7 +207,7 @@ function Planner({ hidden }) {
           </div>
           <output htmlFor="slip slip-hours" className="slipout glow">{slip} · LANDS {when.toUpperCase()}</output>
           <label htmlFor="slip-hours" className="hud-label slip-hours-label">HOUR ADJUSTMENT</label>
-          <div className="slip-hours-track">
+          <div className="slip-hours-track" ref={hourTrack} title="Scroll to adjust launch slip by hours">
             <Slider id="slip-hours" aria-label="Launch delay hour adjustment" min={-23} max={23} step={1} value={[hourOffset]}
               onPointerDown={() => setInteracting(true)} onPointerUp={() => setInteracting(false)}
               onLostPointerCapture={() => setInteracting(false)} onPointerCancel={() => setInteracting(false)}
