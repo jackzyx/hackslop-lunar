@@ -12,6 +12,7 @@ import ShadowMap from "@/components/ShadowMap";
 import DetailTabs from "@/components/DetailTabs";
 import About from "@/components/About";
 import LandingDatePicker from "@/components/LandingDatePicker";
+import HelpTip from '@/components/HelpTip';
 import AmbientStars from '@/components/AmbientStars';
 import { currentPage, isPolicyPage, pageForPath, routeUrl } from "@/lib/routes.js";
 
@@ -171,7 +172,7 @@ function Planner({ hidden }) {
         </header>
 
         <section className="hud panel slipbar">
-          <label htmlFor="slip" className="hud-label shrink-0">LAUNCH SLIP</label>
+          <div className="hud-label shrink-0"><label htmlFor="slip">LAUNCH SLIP</label><HelpTip label="launch slip">Days earlier or later than your planned landing date. Drag or scroll the slider, or scroll the Sun/Earth bars below. The planned date stays fixed.</HelpTip></div>
           <div className="slip-track" ref={slipTrack} title="Scroll to adjust launch slip">
             <Slider
               id="slip"

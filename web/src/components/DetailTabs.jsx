@@ -8,6 +8,7 @@ import { TL, P, panorama, skylineY, yRange } from "@/lib/charts.js";
 import VisibilityTimeline from '@/components/VisibilityTimeline';
 import { validation, fmtDeg, worst } from "@/lib/validation.js";
 import { Card } from "@/components/ui/card";
+import HelpTip from '@/components/HelpTip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -62,7 +63,7 @@ function SiteDetail({ n, id, i0, yr, bind, guide, onShiftDate }) {
           } };
         })} />
       <p className="readout">{evName} · {evVal}</p>
-      <p className="hud-label">SKYLINE 360° · SUN AND EARTH PATHS</p>
+      <p className="hud-label">SKYLINE 360° · SUN AND EARTH PATHS<HelpTip label="skyline chart">The terrain height in every direction around the site. Azimuth is direction clockwise from north; elevation is angle above the local horizontal. Terrain can hide the Sun or Earth when their paths dip below the skyline.</HelpTip></p>
       <svg viewBox="0 0 600 186" role="img" aria-label="Skyline all around the site with the Sun and Earth paths"
         {...bind(({ x, y }) => {
           if (x < P.x0 || x > P.x1 || y < P.y0 || y > P.y1) return null;
