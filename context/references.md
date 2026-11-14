@@ -30,6 +30,8 @@ project ineligible. Format: what, who, link, what we used it for.
 - Blue Ghost Mission 1 ended at lunar sunset 16 Mar 2025: [add source]
 
 ## Software and libraries
+- Slide wording/design guidance (14 Nov 2026): blader, Humanizer, https://github.com/blader/humanizer/blob/main/SKILL.md (MIT); Anthropic, PowerPoint skill, https://github.com/anthropics/skills/blob/main/skills/pptx/SKILL.md (terms in that repository's LICENSE.txt). Used for: plain wording, less repetitive titles, editable elements, layout and visual review in `docs/slides-v1.pptx`. Guidance read and applied; no global skill installation or third-party skill script execution. See `docs/slide-design-notes.md` for selection and application notes.
+- Microsoft PowerPoint automation documentation: https://learn.microsoft.com/en-us/office/vba/api/powerpoint.sequence.addeffect and https://learn.microsoft.com/en-us/office/vba/api/powerpoint.ppentryeffect. Used for: native entrance effects and slide transitions in `scripts/animate-slides.ps1`.
 - SpiceyPy (Annex, A. et al., JOSS 2020, doi:10.21105/joss.02050), MIT.
 - NumPy, SciPy, rasterio, pyproj, trimesh, matplotlib, astroquery, geopandas.
 - Vite 8.3.5 (Evan You and contributors), MIT, https://vite.dev. Used for: web app dev server and static build. No other front-end libraries (charts are hand-written SVG).
@@ -39,7 +41,10 @@ project ineligible. Format: what, who, link, what we used it for.
 - [fonts, icons, music]
 
 ## AI tools
+- Codex: Humanizer and PowerPoint skill research, wording/design review, and native PowerPoint transitions/animations for `docs/slides-v1.pptx`, 14 Nov 2026. PowerPoint saved and reopened the deck to verify 8 fade transitions and 37 entrance effects; all 8 slide renders visually reviewed. Original v0 preserved.
 - [tool, what it was used for, by whom; keep this honest and current]
+- Codex: pitch-claim source verification and eight-slide editable PowerPoint v0 (`docs/slides-v0.pptx`, generator `scripts/make-slides.mjs`), including speaker notes and challenge-objective-to-screen mapping, 14 Nov 2026. Arial font; editable text and shapes; terrain image generated with `web/src/shadow.js` from NASA LOLA terrain and explicitly labelled mock scenario lighting. No AI-generated raster imagery. Validation figures transcribed from `web/src/validation.json`; screen feature mapping checked against `web/index.html` and `web/src/main.js`; challenge objectives from the supplied text in `context/02-challenge.md`.
+- PptxGenJS, https://github.com/gitbrent/PptxGenJS, MIT. Used for: generating the editable eight-slide PowerPoint and speaker notes with `scripts/make-slides.mjs`.
 - Claude Code: environment setup, data-fetch scripts, context documents (13 Nov, before the event).
 - Claude Code (Claude Opus 5.5): web app mockup in `web/` (screen layout, SVG charts, metrics functions and tests, mock-data generator), Fri 13 Nov 22:40-23:30. All data in it is invented placeholder data.
 - Claude Code (Claude Opus 5.5): cross-platform setup and data download (`scripts/setup.py`, `scripts/fetch_data.py`) so Windows laptops work, Sat 14 Nov 09:00-09:30.

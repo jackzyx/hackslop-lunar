@@ -69,6 +69,25 @@ Capture Saturday 19:00-20:30. A Sunday morning capture will not happen.
 
 ## Seven slides (local pitch, and global fallback)
 
+**Current deck:** [slides v1 with transitions and animations](../docs/slides-v1.pptx).
+The original [v0](../docs/slides-v0.pptx) is preserved. Slides 1-7 follow
+the outline below; slide 8 maps all seven challenge objectives to current screen
+elements and is a Q&A appendix. PowerPoint speaker notes carry timing, source details
+and demo cues. Export to PDF from PowerPoint if needed. Rebuild with
+`node scripts/make-slides.mjs` after installing `pptxgenjs` under `.slide-tools/`,
+then run `scripts/animate-slides.ps1` in PowerShell with PowerPoint installed.
+Slide 2 uses one click to reveal Chang'e 7 before advancing. All slide advances are
+manual; slide 8 stays fully visible. Design sources and motion details are in
+[`docs/slide-design-notes.md`](../docs/slide-design-notes.md).
+
+This is a review draft: the comparison screen is an editable schematic, terrain
+images come from the app's shadow renderer, scenario data remain
+mock, and pending science checks are visible. Before final delivery, replace the
+schematics with verified app captures, add the confirmed team roster and live URL,
+and verify public repo access, licence and the app's offline build. Speaker notes
+carry the demo cues, timing and claim limits. Slides 1-7 total about 170 seconds,
+leaving 10 seconds of margin in the 3-minute pitch.
+
 1. Title, one-line pitch, the shadow map.
 2. Problem: IM-2, Chang'e 7, and why existing tools are slow for comparison.
 3. The tool: the slip comparison screenshot.
