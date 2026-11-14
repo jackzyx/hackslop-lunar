@@ -52,9 +52,9 @@ export default function App() {
   // STARS intro for the current landing; latest state through a ref so the button never plays a stale scene.
   const live = useRef();
   live.current = { i0, picks, terrain };
-  const intro = (t = live.current.terrain) => {
-    const { i0: i, picks: p } = live.current, ms = t0 + i * H;
-    playIntro({ ms, sun: sunAt(p[0], i), terrain: t, picks: p.map((id) => sites[id]), when: fmtDate(ms, { year: "numeric" }) });
+  const intro = () => {
+    const { i0: i, picks: p, terrain: t } = live.current, ms = t0 + i * H;
+    playIntro({ ms, sun: sunAt(p[0], i), terrain: t, terrainReady: t ? undefined : initialTerrain().catch(() => null), zoom, picks: p.map((id) => sites[id]), when: fmtDate(ms, { year: "numeric" }) });
   };
   useEffect(() => {
     initialTerrain().then(setTerrain).catch(err => setTerrainErr(err.message));

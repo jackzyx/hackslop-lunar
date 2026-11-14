@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import { createShadowRenderer } from "@/shadow-renderer.js";
-import { sunAt } from "@/lib/data.js";
-import { mapView, mapOverlay } from "@/lib/charts.js";
+import { sites, sunAt } from "@/lib/data.js";
+import { mapView } from "@/shadow.js";
+import { mapOverlay } from "@/lib/charts.js";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -10,7 +11,7 @@ const MAP = 360; // canvas pixels; CSS scales it to the panel
 // Real terrain with the shadows at the landing instant (shadow.js), lon 0 up, 90 E right.
 // The Sun direction comes from the first chosen site's row of the same table the cards use.
 export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terrainErr, interacting = false }) {
-  const surface = useRef(null), renderer = useRef(null), view = mapView(picks, zoom);
+  const surface = useRef(null), renderer = useRef(null), view = mapView(picks.map(id => sites[id]), zoom);
   useEffect(() => {
     if (!terrain) return;
     renderer.current = createShadowRenderer(terrain, surface.current);
@@ -27,7 +28,7 @@ export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terr
         <Button variant="outline" size="xs" onClick={onZoom}>{zoom ? "WHOLE REGION" : "CLOSE-UP ON THE TWO SITES"}</Button>
       </div>
       <div className="mapwrap">
-        <div className="shadow-surface" ref={surface} />
+        <div className="shadow-surface" id="landing-terrain" data-terrain-error={terrainErr ? true : undefined} ref={surface} />
         <svg viewBox={`0 0 ${MAP} ${MAP}`} role="img" aria-label="Map of the lunar south pole: sunlit ground and shadows at landing, with the chosen sites"
           dangerouslySetInnerHTML={{ __html: mapOverlay(view, picks, i0, MAP) }} />
         <span className="map-hud br">LOLA 500 M · MOON_ME</span>

@@ -11,7 +11,9 @@ const loadApp = () => appReady ??= import('./App.jsx').then(({ default: App }) =
   return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 });
 const overlay = document.getElementById('intro');
-overlay.querySelector('.skip').addEventListener('click', loadApp);
+overlay.querySelector('.skip').addEventListener('click', () => {
+  if (overlay.dataset.bootSkipped === 'true') loadApp();
+});
 if (location.hash.startsWith('#about') || matchMedia('(prefers-reduced-motion: reduce)').matches || overlay.dataset.bootSkipped === 'true') {
   loadApp();
   overlay.hidden = true;
@@ -25,9 +27,7 @@ if (location.hash.startsWith('#about') || matchMedia('(prefers-reduced-motion: r
       preload.href = new URL(scene.appModule, document.baseURI).href; document.head.append(preload);
     }
     if (!location.hash.startsWith('#about') && overlay.dataset.bootSkipped !== 'true') {
-      let reveal;
-      const readyToReveal = new Promise(resolve => { reveal = resolve; });
-      playIntro({ ...scene, terrainReady, readyToReveal, onLanding: () => loadApp().then(reveal) });
+      playIntro({ ...scene, terrainReady, onLanding: loadApp });
     } else loadApp();
   }).catch(() => { loadApp(); overlay.hidden = true; });
 }

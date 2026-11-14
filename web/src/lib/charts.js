@@ -79,13 +79,6 @@ export function yRange(ids) {
 }
 
 // --- map: the square view (km on the polar map) and its HUD overlay
-export function mapView(picks, zoom) {
-  if (!zoom) return { cx: 0, cy: 0, half: 170 };
-  const [a, b] = picks.map((id) => toMap(sites[id].lat, sites[id].lon));
-  const half = Math.min(170, Math.max(12, 0.7 * Math.hypot(a[0] - b[0], a[1] - b[1]) + 8));
-  return { cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, half };
-}
-
 export function mapOverlay(view, picks, i0, size) {
   const toPx = ([x, y]) => [((x - view.cx + view.half) / (2 * view.half)) * size, ((view.cy + view.half - y) / (2 * view.half)) * size];
   const inView = ([x, y], m = 10) => x > -m && x < size + m && y > -m && y < size + m;

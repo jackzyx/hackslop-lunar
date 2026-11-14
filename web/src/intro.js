@@ -2,7 +2,7 @@
 // instant. Seen from the south, like the polar map, so the last frame lines up with it: 0 deg
 // longitude (Earth-facing) up, 90 E right. Positions come from the landing date and the same Sun
 // vector the shadow map uses. Sizes and distances are true at every zoom level.
-import { toMap, R_KM } from "./shadow.js";
+import { mapView, toMap, R_KM } from "./shadow.js";
 import { prepareIntroAssets } from './intro-assets.js';
 import { spherePixels } from './intro-pixels.js';
 
@@ -26,7 +26,7 @@ export function scene(ms, sun) {
 }
 
 // Camera keyframes: [seconds, body to centre on, half the view in km].
-const KEYS = [[0, "sun", 1.35 * AU], [2, "earth", 6.5e5], [3.6, "moon", 2600], [5.4, "moon", 170]];
+const KEYS = [[0, "sun", 1.35 * AU], [2, "earth", 6.5e5], [3.6, "moon", 2600], [5.4, "landing", 170]];
 const END = 7.8;
 const LINES = [
   [0, (w) => `Plotting your landing: ${w}.`],
@@ -107,39 +107,132 @@ export function clippedImage(imageWidth, imageHeight, x, y, width, height, viewp
     left, top, right - left, bottom - top];
 }
 
-let hideTimer = 0, run = 0, stopIntro;
-export async function playIntro({ ms, sun, terrain, terrainReady, readyToReveal, onLanding, picks, when }) {
+export function terrainHandoff(width, height, size, target) {
+  const x = (width - size) / 2, y = (height - size) / 2;
+  return {
+    x, y,
+    scaleX: target.width / size,
+    scaleY: target.height / size,
+    tx: target.left - x,
+    ty: target.top - y,
+  };
+}
+
+let stopIntro;
+export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, picks, when, zoom = true }) {
   stopIntro?.();
-  const thisRun = ++run;
-  const el = document.querySelector("#intro"), cv = el.querySelector("canvas"), g = cv.getContext("2d");
+  const el = document.querySelector("#intro"), layer = el.querySelector(".intro-scene");
+  const cv = layer.querySelector("canvas"), g = cv.getContext("2d");
   const line = el.querySelector(".stars-line span"), skip = el.querySelector(".skip");
   const quality = introResolution(innerWidth, innerHeight, devicePixelRatio || 1);
   const pos = scene(ms, sun), T = 250;
+  const view = mapView(picks, zoom);
+  pos.landing = [pos.moon[0] + view.cx, pos.moon[1] + view.cy];
   let moon = imageCanvas(spherePixels(sun, 256, null), 256), land, landApproach;
   let shownMoon, shownLand, terrainUnavailable = false, elapsed = 0;
-  let canReveal = !readyToReveal, landingRequested = false;
-  readyToReveal?.then(() => { canReveal = true; });
   const stars = Array.from({ length: 220 }, () => [Math.random(), Math.random(), Math.random() < 0.1 ? 2 : 1, 0.2 + 0.6 * Math.random()]);
-  clearTimeout(hideTimer);
   el.hidden = false;
-  delete el.dataset.bootSkipped;
-  el.classList.remove("done");
 
-  let raf = 0, over = false;
+  let raf = 0, over = false, skipping = false, landing, sceneAnimation, snapshot, snapshotSource, layoutChanged, targetObserver;
   const clock = createIntroClock();
-  const key = (ev) => { if (["Escape", "Enter", " "].includes(ev.key)) { ev.preventDefault(); finish(); } };
+  const key = (ev) => {
+    if (el.hidden || (ev.key !== "Escape" && (sceneAnimation || !["Enter", " "].includes(ev.key)))) return;
+    ev.preventDefault();
+    dismiss();
+  };
   const finish = () => {
     if (over) return;
     over = true;
     cancelAnimationFrame(raf);
     removeEventListener("keydown", key);
-    ++run;
+    skip.onclick = null;
+    stopIntro = undefined;
+    el.hidden = true;
     el.dataset.phase = 'done';
-    el.classList.add("done");
-    hideTimer = setTimeout(() => (el.hidden = true), 500);
+    sceneAnimation?.cancel();
+    snapshot?.remove();
+    targetObserver?.disconnect();
+    if (layoutChanged) {
+      removeEventListener("scroll", layoutChanged);
+      removeEventListener("resize", layoutChanged);
+    }
+  };
+  const loadLanding = () => landing ??= Promise.resolve().then(onLanding).catch(finish);
+  const dismiss = () => {
+    if (sceneAnimation || !onLanding) {
+      finish();
+    } else if (!skipping) {
+      skipping = true;
+      cancelAnimationFrame(raf);
+      loadLanding().then(finish);
+    }
+  };
+  const placeTerrain = (source, width, height, size) => {
+    if (!snapshot) {
+      snapshot = document.createElement('canvas');
+      snapshot.className = 'intro-terrain-copy';
+      layer.append(snapshot);
+    }
+    if (source !== snapshotSource || source.dataset.frame !== snapshot.dataset.frame ||
+        source.width !== snapshot.width || source.height !== snapshot.height) {
+      snapshot.width = source.width;
+      snapshot.height = source.height;
+      snapshot.dataset.frame = source.dataset.frame;
+      snapshot.getContext('2d', { alpha: false }).drawImage(source, 0, 0);
+      snapshotSource = source;
+    }
+    Object.assign(snapshot.style, {
+      left: `${(width - size) / 2}px`, top: `${(height - size) / 2}px`,
+      width: `${size}px`, height: `${size}px`,
+    });
+  };
+  const reveal = () => {
+    if (over || skipping) return;
+    if (el.hidden || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      finish();
+      return;
+    }
+    const surface = document.getElementById('landing-terrain');
+    const liveCanvas = surface?.querySelector('canvas');
+    if (!surface || surface.dataset.terrainError === 'true' || liveCanvas?.dataset.renderError === 'true') {
+      finish();
+      return;
+    }
+    if (!liveCanvas?.hasAttribute('data-frame')) {
+      raf = requestAnimationFrame(reveal);
+      return;
+    }
+    const W = el.clientWidth, H = el.clientHeight;
+    let target = surface.getBoundingClientRect();
+    if (target.top < 0 || target.bottom > H) {
+      surface.scrollIntoView({ block: 'center', behavior: 'instant' });
+      target = surface.getBoundingClientRect();
+    }
+    if (!target.width || !target.height) {
+      raf = requestAnimationFrame(reveal);
+      return;
+    }
+    const size = draw(END);
+    placeTerrain(liveCanvas, W, H, size);
+    const transformTo = (rect) => {
+      const { scaleX, scaleY, tx, ty } = terrainHandoff(W, H, size, rect);
+      return { transform: ['translate(0px, 0px) scale(1, 1)', `translate(${tx}px, ${ty}px) scale(${scaleX}, ${scaleY})`] };
+    };
+    layoutChanged = () => {
+      const current = surface.getBoundingClientRect();
+      if (current.width && current.height) sceneAnimation.effect.setKeyframes(transformTo(current));
+    };
+    el.dataset.phase = 'revealing';
+    const timing = { duration: 850, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' };
+    sceneAnimation = snapshot.animate(transformTo(target), timing);
+    sceneAnimation.onfinish = finish;
+    addEventListener("scroll", layoutChanged);
+    addEventListener("resize", layoutChanged);
+    targetObserver = new ResizeObserver(layoutChanged);
+    targetObserver.observe(surface);
   };
   addEventListener("keydown", key);
-  skip.onclick = finish;
+  skip.onclick = dismiss;
   stopIntro = finish;
 
   // HUD look (index.css): amber phosphor vectors and mono labels; Earth cyan; the Sun and Moon stay true.
@@ -151,7 +244,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, readyToReveal,
   };
 
   function draw(t) {
-    const W = innerWidth, H = innerHeight;
+    const W = el.clientWidth, H = el.clientHeight;
     const dpr = Math.min(devicePixelRatio || 1, 2, Math.sqrt(8e6 / (W * H)));
     if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -160,7 +253,9 @@ export async function playIntro({ ms, sun, terrain, terrainReady, readyToReveal,
     g.fillRect(0, 0, W, H);
     for (const [x, y, s, a] of stars) { g.fillStyle = `rgba(255,226,180,${a})`; g.fillRect(x * W, y * H, s, s); }
 
-    const [[cx, cy], w] = camera(t, pos, introResolution(W, H).half), k = Math.min(W, H) / 2 / w;
+    const short = Math.min(W, H);
+    const finalHalf = Math.min(introResolution(W, H).half, view.half * short / Math.max(W, H));
+    const [[cx, cy], w] = camera(t, pos, finalHalf), k = short / 2 / w;
     const S = ([x, y]) => [W / 2 + (x - cx) * k, H / 2 - (y - cy) * k];
     const on = ([x, y], m) => x > -m && x < W + m && y > -m && y < H + m;
 
@@ -250,6 +345,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, readyToReveal,
     let cur = LINES[0];
     for (const l of LINES) if (t >= l[0]) cur = l;
     line.textContent = cur[1](when).slice(0, Math.floor((t - cur[0]) * 45) + 1);
+    return 2 * view.half * k;
   }
 
   const tick = (now) => {
@@ -258,10 +354,15 @@ export async function playIntro({ ms, sun, terrain, terrainReady, readyToReveal,
     const t = clock(now, document.hidden || (elapsed >= 3.4 && !land && !terrainUnavailable && Boolean(terrain || terrainReady)));
     elapsed = t;
     // Evaluate the large planner module only after the moving camera has landed.
-    if (t >= 5.4 && !landingRequested) { landingRequested = true; onLanding?.(); }
-    el.dataset.time = t.toFixed(3);
-    draw(Math.min(t, END));
-    if (t >= END && canReveal) finish();
+    if (t >= 5.4 && !landing) loadLanding();
+    const frame = Math.min(t, END);
+    el.dataset.time = frame.toFixed(3);
+    const size = draw(frame);
+    if (frame >= 5.4 && land) {
+      const liveCanvas = document.querySelector('#landing-terrain canvas[data-frame]');
+      if (liveCanvas) placeTerrain(liveCanvas, el.clientWidth, el.clientHeight, size);
+    }
+    if (t >= END) loadLanding().then(reveal);
     else raf = requestAnimationFrame(tick);
   };
   el.dataset.phase = 'playing';
@@ -270,9 +371,9 @@ export async function playIntro({ ms, sun, terrain, terrainReady, readyToReveal,
   document.getElementById('intro-boot')?.setAttribute('hidden', '');
   raf = requestAnimationFrame(tick);
   const readyTerrain = terrainReady ? await terrainReady : terrain;
-  if (over || thisRun !== run) return;
+  if (over || skipping) return;
   await prepareIntroAssets({ terrain: readyTerrain, sun, quality, textureUrl: new URL('moon-albedo-4k.jpg', document.baseURI).href }, assets => {
-    if (over || thisRun !== run) return;
+    if (over || skipping) return;
     if (assets.moon && assets.moon !== shownMoon) { moon = imageCanvas(assets.moon, assets.moonN); shownMoon = assets.moon; }
     if (assets.land && assets.land !== shownLand) {
       landApproach = imageCanvas(assets.land, assets.landN, 'approach');

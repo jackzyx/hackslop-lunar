@@ -6,9 +6,14 @@ export function createShadowRenderer(terrain, mount) {
     renderer?.dispose();
     const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
     canvas.dataset.renderer = 'worker';
-    worker = new Worker(new URL('./shadow.worker.js', import.meta.url), { type: 'module' });
-    worker.postMessage({ terrain });
-    worker.onmessage = ({ data: { pixels, size, id } }) => {
+    try {
+      worker = new Worker(new URL('./shadow.worker.js', import.meta.url), { type: 'module' });
+      worker.onerror = () => { canvas.dataset.renderError = 'true'; };
+      worker.postMessage({ terrain });
+    } catch {
+      canvas.dataset.renderError = 'true';
+    }
+    if (worker) worker.onmessage = ({ data: { pixels, size, id } }) => {
       if (disposed) return;
       canvas.width = size; canvas.height = size;
       ctx.putImageData(new ImageData(pixels,size,size),0,0); canvas.dataset.frame = String(id);
@@ -18,10 +23,11 @@ export function createShadowRenderer(terrain, mount) {
     renderer = { canvas,
       render(request) {
         // One active job plus the newest request. Never build up a queue of old dates.
+        if (canvas.dataset.renderError) return;
         if (busy) { pending = request; return; }
         busy = true; worker.postMessage({ ...request, size: request.interacting ? 144 : 360 });
       },
-      dispose() { worker.terminate(); },
+      dispose() { worker?.terminate(); },
     };
     mount.replaceChildren(canvas);
   }

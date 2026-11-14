@@ -33,6 +33,13 @@ export function toMap(latDeg, lonDeg) {
   return [rho * Math.sin(lonDeg * RAD), rho * Math.cos(lonDeg * RAD)];
 }
 
+export function mapView(picks, zoom) {
+  if (!zoom) return { cx: 0, cy: 0, half: 170 };
+  const [a, b] = picks.map(({ lat, lon }) => toMap(lat, lon));
+  const half = Math.min(170, Math.max(12, 0.7 * Math.hypot(a[0] - b[0], a[1] - b[1]) + 8));
+  return { cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, half };
+}
+
 // The Sun seen from map point (x, y): sine of its elevation, cosine of it, and the unit map
 // direction toward it. Each point gets its own elevation because the surface curves.
 export function localSun(sun, x, y) {

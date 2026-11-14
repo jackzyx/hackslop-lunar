@@ -6,7 +6,7 @@ import { spherePixels } from './intro-pixels.js';
 let cached;
 export function prepareIntroAssets({ terrain, sun, quality, textureUrl }, onProgress) {
   const key = `${sun.join(',')}/${quality.sphere}/${quality.terrain}`;
-  if (cached?.terrain === terrain && cached.key === key) {
+  if (cached?.key === key && cached.terrain === terrain) {
     cached.onProgress = onProgress;
     if (cached.assets) onProgress?.(cached.assets);
     return cached.promise;

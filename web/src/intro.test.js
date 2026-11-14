@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { sunLongitude, scene, introResolution, createIntroClock, clippedImage, terrainBlend } from "./intro.js";
+import { sunLongitude, scene, introResolution, createIntroClock, clippedImage, terrainBlend, terrainHandoff } from "./intro.js";
 
 const RAD = Math.PI / 180;
 const near = (a, b, tol) => assert.ok(Math.abs(a - b) < tol, `${a} vs ${b}`);
@@ -45,6 +45,23 @@ test('intro final camera keeps every screen corner inside the detailed terrain',
     assert.ok(Math.hypot(q.half, longHalf) < 250 * 0.94, 'corners must avoid the fading rim');
     assert.ok(q.terrain >= 800 && q.terrain <= 1280);
     assert.ok(q.sphere >= 768 && q.sphere <= 1536);
+  }
+});
+
+test('terrain handoff lands all four edges on the planner map', () => {
+  for (const [width, height, size, left, top, mapWidth, mapHeight] of [
+    [1440, 900, 1440, 495.5, 260.25, 449, 449],
+    [390, 844, 844, 17, 204, 356, 356],
+    [1280, 720, 1280, 620, 155, 600, 550],
+  ]) {
+    const target = { left, top, width: mapWidth, height: mapHeight, right: left + mapWidth, bottom: top + mapHeight };
+    const { x, y, scaleX, scaleY, tx, ty } = terrainHandoff(width, height, size, target);
+    assert.ok(scaleX > 0 && scaleX < 1 && scaleY > 0 && scaleY < 1);
+    assert.ok(x <= 0 && y <= 0 && x + size >= width && y + size >= height);
+    near(x + tx, target.left, 1e-9);
+    near(y + ty, target.top, 1e-9);
+    near(x + tx + size * scaleX, target.right, 1e-9);
+    near(y + ty + size * scaleY, target.bottom, 1e-9);
   }
 });
 
