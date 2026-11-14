@@ -25,10 +25,7 @@ const KEYS = [[0, "sun", 1.35 * AU], [2, "earth", 6.5e5], [3.6, "moon", 2600], [
 const END = 7.8;
 const LINES = [
   [0, (w) => `Plotting your landing: ${w}.`],
-  [1.8, () => "Earth, and the Moon where it will be that day."],
-  [3.4, () => "The Moon from below its south pole, lit as it will be."],
-  [4.6, () => "The south pole. Here the Sun only skims the horizon."],
-  [5.6, () => "Real NASA terrain, shadows at landing. Now pick two sites and slip the date."],
+  [5.4, () => "Compare two sites. Shift the landing date."],
 ];
 
 export function introResolution(width, height, dpr = 1) {
@@ -359,7 +356,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
 
     let cur = LINES[0];
     for (const l of LINES) if (t >= l[0]) cur = l;
-    line.textContent = cur[1](when).slice(0, Math.floor((t - cur[0]) * 45) + 1);
+    line.textContent = cur[1](when);
     return 2 * view.half * k;
   }
 
