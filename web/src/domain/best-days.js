@@ -1,4 +1,4 @@
-// Best landing days: every 00:00 UTC landing in a range, scored on the 30-day window after it.
+// Best landing days: each day at the selected UTC hour, scored on its following 30-day window.
 // "Earth" is geometric line of sight (Earth's centre above the skyline), not a radio link.
 import { WINDOW_H } from "./metrics.js";
 
