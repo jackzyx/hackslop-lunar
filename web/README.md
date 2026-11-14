@@ -1,11 +1,17 @@
 # Long Shadow web app
 
-One screen: two south pole sites side by side, a launch-delay slider (-60 to +60 days),
-and per site the sunlit hours in the 30 days after landing, a verdict, longest dark gap,
-Earth contact hours, time to the next sunset or Earthset, a one-month strip and a 360°
-horizon panorama. Below them, a true-scale map of the real terrain with the shadows at
-the landing instant (`src/shadow.js`), close-up on the two chosen sites or the whole
-region. Static, no backend, runs offline.
+React + Tailwind + shadcn/ui, styled as a retro amber HUD (dark only, for the projector).
+The console fits one 1280x720 screen: a launch-slip slider (-60 to +60 days), the STARS line
+(`src/narrator.js`, one sentence built from the computed numbers), and site 1 | shadow map |
+site 2. Per site: sunlit hours in the 30 days after landing, a status (NOMINAL / MARGINAL /
+CRITICAL), Sun and Earth bars, a verdict, longest dark gap, next sunset or Earthset. Under the
+console, tabs: the skylines and 30-day strips, the JPL Horizons validation, what we do not model.
+Static, no backend, runs offline.
+
+Code: `src/App.jsx` (state and layout), `src/components/` (SiteCard, ShadowMap, DetailTabs, and
+the shadcn components in `ui/`, which we own and restyle), `src/lib/` (data, chart SVG,
+validation formatting), `src/index.css` (theme tokens and HUD styles). The maths stays in plain
+JS with node tests: `metrics.js`, `shadow.js`, `intro.js`, `narrator.js`.
 
 The map's terrain is `public/terrain_500m.bin` (LOLA 80 m DEM averaged to 500 m, ±250 km,
 int16 metres), made by `python scripts/export_terrain.py`. Its Sun direction is rebuilt
@@ -18,7 +24,7 @@ npm run dev      # http://localhost:5173
 npm test         # metrics unit tests (node:test, no extra deps)
 npm run build    # dist/ (relative paths: any static server, USB stick, Pages subpath)
 python dist/serve.py   # USB stick / offline: serves dist on http://127.0.0.1:8000 and opens it (file:// pages can't load the app)
-npm run mock     # regenerate src/mock-data.json and check it still tells the story
+npm run mock     # WARNING: overwrites src/mock-data.json (now the real SPICE table) with invented data
 ```
 
 ## Precomputed lunar ephemeris
