@@ -1,0 +1,34 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "web": {
+      "root": "web",
+      "framework": "vite",
+      "trailingSlash": false,
+      "rewrites": [
+        {
+          "source": "/(compare|about|privacy|terms|accessibility)",
+          "destination": "/index.html"
+        }
+      ]
+    },
+    "terrain": {
+      "root": "web/public",
+      "outputDirectory": "."
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/terrain_500m.bin",
+      "destination": { "service": "terrain" }
+    },
+    {
+      "source": "/terrain_approach_1500m.bin",
+      "destination": { "service": "terrain" }
+    },
+    {
+      "source": "/(.*)",
+      "destination": { "service": "web" }
+    }
+  ]
+}
