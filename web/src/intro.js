@@ -126,12 +126,8 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   const line = el.querySelector(".stars-line span"), skip = el.querySelector(".skip");
   const quality = introResolution(innerWidth, innerHeight, devicePixelRatio || 1);
   const pos = scene(ms, sun), T = 250;
-<<<<<<< Updated upstream
-  const view = mapView(picks, zoom);
-  const closeView = { cx: view.cx, cy: view.cy, half: view.half * 2 };
-=======
   const view = { ...mapView(picks, zoom), ...center };
->>>>>>> Stashed changes
+  const closeView = { cx: view.cx, cy: view.cy, half: view.half * 2 };
   pos.landing = [pos.moon[0] + view.cx, pos.moon[1] + view.cy];
   let moon = imageCanvas(spherePixels(sun, 256, null), 256), land, landApproach;
   let shownMoon, shownLand, shownClose, closeLand, closeApproach, terrainUnavailable = false, elapsed = 0;
