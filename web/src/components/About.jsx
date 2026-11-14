@@ -35,18 +35,25 @@ export default function About({ onCompare, paused }) {
         <li><b>Choose the alternatives</b><p>Two site selectors and one landing date put both options on the same footing.</p></li>
         <li><b>Move the schedule</b><p>The delay slider shifts arrival earlier or later. Sunlight hours, dark gaps and Earth visibility update together.</p></li>
         <li><b>See why the answer changes</b><p>The shadow map explains the geography. Horizon panoramas and hourly timelines explain the visible and hidden intervals.</p></li>
+        <li><b>Drop your own site</b><p>Click anywhere on the map within 160 km of the pole, or right-click to name it. The browser computes its skyline from the terrain and compares it with any other site.</p></li>
+        <li><b>Find the best day to land</b><p>The Best landing days tab ranks every landing date in the next year for most sunlight, most Earth contact, or the best of both. One click plans it.</p></li>
       </ol>
     </section>
 
     <section className="about-method about-reveal" aria-labelledby="about-method">
       <h2 id="about-method">From lunar measurements<br />to a view you can compare.</h2>
       <div className="about-pipeline" aria-label="Science pipeline"><span>NASA LOLA<small>terrain & horizon</small></span><i aria-hidden="true">+</i><span>SPICE / DE440<small>Sun & Earth positions</small></span><i aria-hidden="true">→</i><span>Visibility windows<small>site cards, charts & map</small></span></div>
-      <div className="about-method-notes"><p>The Python pipeline prepares the positions and local terrain horizons. The browser turns those tables into a site comparison. The map uses terrain averaged to 500 m; it is a spatial explanation, not the source of the card metrics.</p><p>JPL Horizons supplies an independent angle check. Terrain-resolution comparison and a published illumination benchmark remain separate checks; agreement in body positions alone does not validate the whole model.</p></div>
+      <div className="about-method-notes"><p>The Python pipeline prepares the positions and local terrain horizons. The browser turns those tables into a site comparison. The map uses terrain averaged to 500 m. For curated sites it explains the geography; custom sites take their skyline from it, which the Validation tab compares with the 80 m results.</p><p>JPL Horizons supplies an independent angle check. Terrain-resolution comparison and a published illumination benchmark remain separate checks; agreement in body positions alone does not validate the whole model.</p></div>
     </section>
 
     <section className="about-boundaries about-reveal" aria-labelledby="about-limits">
       <div><h2 id="about-limits">A first look for planners.<br />An explanation for everyone.</h2><p>Mission analysts and students can explore a shortlist before detailed engineering analysis. In a classroom, the same screen connects a ridge on the map to a gap on the timeline.</p><p>The static app can be served locally for offline use. Its source is available under the MIT licence.</p></div>
-      <div className="hud about-limit-panel"><h3>What the comparison means</h3><p>Sunlight is geometric visibility, not available electrical power. Earth contact is line of sight, not a radio-link budget.</p><ul><li>No power or thermal model.</li><li>No landing-hazard or slope assessment.</li><li>Curated sites; no custom coordinates.</li><li>Landing dates at 00:00 UTC.</li></ul><p>Measured validation results are shown in the planner’s Validation tab, with unfinished checks labelled.</p></div>
+      <div className="hud about-limit-panel"><h3>What the comparison means</h3><p>Sunlight is geometric visibility, not available electrical power. Earth contact is line of sight, not a radio-link budget.</p><ul><li>No power or thermal model.</li><li>No landing-hazard or slope assessment.</li><li>Custom sites use coarser 500 m terrain and are screening estimates.</li><li>Landing dates at 00:00 UTC.</li></ul><p>Measured validation results are shown in the planner’s Validation tab, with unfinished checks labelled.</p></div>
+    </section>
+
+    <section className="about-faq about-reveal" aria-labelledby="about-faq">
+      <h2 id="about-faq">Questions.</h2>
+      <div className="about-faq-list">{faq.map(([q, a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div>
     </section>
 
     <section className="about-sources about-reveal" id="about-sources" aria-labelledby="sources-heading" tabIndex={-1}>
@@ -61,3 +68,13 @@ export default function About({ onCompare, paused }) {
     </section>
   </main>;
 }
+
+const faq = [
+  ['Is this a NASA tool?', 'No. Sun Shade was built by a team at HackAthlone 2026, a local event of the NASA International Space Apps Challenge. It uses NASA data, but NASA does not endorse it.'],
+  ['Where do the numbers come from?', 'Sun and Earth positions come from NASA/JPL ephemerides (DE440) through SPICE, computed hourly for 2025 to 2030. Skylines come from NASA LOLA terrain. The browser combines the two to count the hours each site sees the Sun and Earth.'],
+  ['How accurate is it?', 'Sun and Earth directions agree with JPL Horizons; the Validation tab shows the comparison. The bigger uncertainty is terrain resolution and what is not modelled: power, thermal, radio links and landing hazards. Treat results as a first look, not mission data.'],
+  ['Why 30 days?', 'One lunar day is about 29.5 Earth days, so a 30-day window covers a full cycle of light and dark at a site. Half sunlight is 360 of the 720 hours.'],
+  ['Why does a short launch slip matter so much?', 'Near the pole the Sun skims the horizon. A few days’ delay can move a landing into the part of the month when a ridge or crater rim blocks the Sun, and the sunlight total drops sharply.'],
+  ['Do my custom sites leave my computer?', 'No. They are calculated in your browser and saved only in its local storage. See the Privacy Policy.'],
+  ['Can I use it offline?', 'Yes. The built app is a folder of static files. Run python serve.py inside it and it works without an internet connection.'],
+];

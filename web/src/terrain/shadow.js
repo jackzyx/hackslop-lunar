@@ -34,7 +34,7 @@ export function toMap(latDeg, lonDeg) {
 export function mapView(picks, zoom) {
   if (!zoom || !picks.length) return { cx: 0, cy: 0, half: 170 };
   const [a, b = a] = picks.map(({ lat, lon }) => toMap(lat, lon));
-  const half = Math.min(170, Math.max(12, 0.7 * Math.hypot(a[0] - b[0], a[1] - b[1]) + 8));
+  const half = Math.min(170, Math.max(30, 1.4 * Math.hypot(a[0] - b[0], a[1] - b[1]) + 20)); // room around the pins to place custom sites
   return { cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, half };
 }
 

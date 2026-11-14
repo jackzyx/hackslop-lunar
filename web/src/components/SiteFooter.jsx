@@ -10,6 +10,7 @@ export default function SiteFooter({ page, onRoute, paused, onToggleAnimations }
         <a href={projectRepository}>GitHub</a>
         <a href={routeUrl('privacy')} onClick={onRoute} aria-current={page === 'privacy' ? 'page' : undefined}>Privacy Policy</a>
         <a href={routeUrl('terms')} onClick={onRoute} aria-current={page === 'terms' ? 'page' : undefined}>Terms of Service</a>
+        <a href={routeUrl('accessibility')} onClick={onRoute} aria-current={page === 'accessibility' ? 'page' : undefined}>Accessibility</a>
         {onToggleAnimations && <button type="button" onClick={onToggleAnimations}>{paused ? 'Resume animations' : 'Pause animations'}</button>}
         <a href="#site-top">Back to top</a>
       </nav>

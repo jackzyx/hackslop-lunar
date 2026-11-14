@@ -1,5 +1,5 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
-import { Crosshair, MinusIcon, PlusIcon } from "lucide-react";
+import { MinusIcon, PlusIcon } from "lucide-react";
 import { createShadowRenderer } from "@/terrain/shadow-renderer.js";
 import { sites, sunAt } from "@/lib/data.js";
 import { mapView, mapViewport, MIN_MAP_HALF, transformMapViewport } from "@/terrain/shadow.js";
@@ -26,11 +26,12 @@ function gesture(pointers, bounds) {
 // The Sun direction comes from the first chosen site's row of the same table the cards use.
 export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terrain, terrainErr, interacting = false, onPlace }) {
   const wrapper = useRef(null), surface = useRef(null), renderer = useRef(null), down = useRef(null);
-  const [placing, setPlacing] = useState(false);
   const [hover, setHover] = useState(null); // live crosshair: svg position and the ground under it
   const [placeMsg, setPlaceMsg] = useState(null);
+  const [ask, setAsk] = useState(null); // right-click dialog: the ground under the click
   const pointers = useRef(new Map());
   const [aspect, setAspect] = useState(null);
+  const [px, setPx] = useState(512); // map height in device pixels: render sharp on any screen
   const [dragging, setDragging] = useState(false);
   const [wheeling, setWheeling] = useState(false);
   const [painted, setPainted] = useState(null);
@@ -50,7 +51,7 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
   useEffect(() => {
     const observer = new ResizeObserver(entries => {
       const { width, height } = entries[0].contentRect;
-      if (width > 0 && height > 0) setAspect(Math.round(width / height * 10000) / 10000);
+      if (width > 0 && height > 0) { setAspect(Math.round(width / height * 10000) / 10000); setPx(Math.min(2048, Math.max(256, Math.round(height * devicePixelRatio)))); }
     });
     observer.observe(surface.current);
     return () => observer.disconnect();
@@ -62,8 +63,8 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
   }, [terrain]);
   useEffect(() => {
     if (aspect === null) return;
-    renderer.current?.request({ sun: sunAt(sunSite, i0), view, size: preview ? 256 : 512, interacting: preview, id: i0 });
-  }, [terrain, i0, sunSite, view.cx, view.cy, view.half, aspect, preview]);
+    renderer.current?.request({ sun: sunAt(sunSite, i0), view, size: preview ? Math.min(512, px) : px, interacting: preview, id: i0 });
+  }, [terrain, i0, sunSite, view.cx, view.cy, view.half, aspect, preview, px]);
 
   function changeView(scale, from = CENTER, to = from) {
     setViewport(current => {
@@ -143,13 +144,24 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
   function place(event) {
     const start = down.current;
     down.current = null;
-    if (!placing || !start || Math.hypot(event.clientX - start.x, event.clientY - start.y) > 5) return; // a drag pans
+    if (ask) { if (start) setAsk(null); return; } // a click outside the dialog closes it
+    if (!onPlace || !terrain || !start || Math.hypot(event.clientX - start.x, event.clientY - start.y) > 5) return; // a drag pans
     const g = groundAt(event);
     if (!g) return;
     if (g.km > MAX_POLE_KM) { setPlaceMsg(`Too far from the pole (${Math.round(g.km)} km). Custom sites must be within ${MAX_POLE_KM} km.`); return; }
-    const err = onPlace(g.lat, g.lon);
+    setPlaceMsg(onPlace(g.lat, g.lon));
+  }
+  function openAsk(event) {
+    if (!onPlace || !terrain) return;
+    event.preventDefault();
+    const g = groundAt(event);
+    if (g) { setAsk(g); setPlaceMsg(null); }
+  }
+  function submitAsk(event) {
+    event.preventDefault();
+    const err = onPlace(ask.lat, ask.lon, new FormData(event.currentTarget).get("name").trim().slice(0, 60) || undefined);
     setPlaceMsg(err);
-    if (!err) setPlacing(false);
+    if (!err) setAsk(null);
   }
 
   return (
@@ -164,20 +176,17 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
             <PlusIcon aria-hidden="true" className="size-3" />
           </Button>
           <Button type="button" variant="outline" size="xs" disabled={!mapPicks.length} onClick={onZoom}>{zoom ? "WHOLE REGION" : "CLOSE-UP"}</Button>
-          {onPlace && <Button type="button" variant="outline" size="xs" disabled={!terrain} aria-pressed={placing} className="place-btn" onClick={() => { setPlacing(!placing); setPlaceMsg(null); }}>
-            <Crosshair aria-hidden="true" className="size-3" />{placing ? "CANCEL" : "CUSTOM SITE"}
-          </Button>}
         </div>
       </div>
-      <div ref={wrapper} className="mapwrap" data-pan={terrain ? (dragging ? "dragging" : "ready") : undefined} data-placing={placing || undefined}
-        onPointerDown={(e) => { down.current = { x: e.clientX, y: e.clientY }; startPan(e); }}
+      <div ref={wrapper} className="mapwrap" data-pan={terrain ? (dragging ? "dragging" : "ready") : undefined}
+        onPointerDown={(e) => { down.current = e.button === 0 ? { x: e.clientX, y: e.clientY } : null; startPan(e); }}
         onPointerMove={(e) => { movePan(e); if (e.pointerType !== "touch") setHover(groundAt(e)); }}
         onPointerUp={(e) => { endPan(e); place(e); }} onPointerLeave={() => setHover(null)}
-        onPointerCancel={endPan} onLostPointerCapture={endPan}>
+        onPointerCancel={endPan} onLostPointerCapture={endPan} onContextMenu={openAsk}>
         <div className="shadow-surface" id="landing-terrain" data-terrain-error={terrainErr ? true : undefined} ref={surface} />
         <svg viewBox={`0 0 ${mapWidth} ${MAP}`} role="img" aria-label="Map of the lunar south pole: sunlit ground and shadows at landing, with the chosen sites"
           dangerouslySetInnerHTML={{ __html: mapOverlay(overlay, picks, painted?.id ?? i0, mapWidth, MAP) }} />
-        {hover && terrain && <svg className="crosshair" viewBox={`0 0 ${mapWidth} ${MAP}`} aria-hidden="true" data-bad={placing && hover.km > MAX_POLE_KM || undefined}>
+        {hover && terrain && !ask && <svg className="crosshair" viewBox={`0 0 ${mapWidth} ${MAP}`} aria-hidden="true" data-bad={hover.km > MAX_POLE_KM || undefined}>
           <path className="ch-line" d={`M0,${hover.sy}H${hover.sx - 10}M${hover.sx + 10},${hover.sy}H${mapWidth}M${hover.sx},0V${hover.sy - 10}M${hover.sx},${hover.sy + 10}V${MAP}`} />
           <path className="ch-mark" d={`M${hover.sx - 6},${hover.sy}h12M${hover.sx},${hover.sy - 6}v12`} />
           <circle className="ch-mark" cx={hover.sx} cy={hover.sy} r="10" />
@@ -186,10 +195,26 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
             const a = right ? "start" : "end";
             return <g className="ch-text">
               <text x={x} y={y} textAnchor={a}>{Math.abs(hover.lat).toFixed(3)}°S {hover.lon.toFixed(2)}°E</text>
-              <text x={x} y={y + 12} textAnchor={a}>{hover.km.toFixed(1)} KM FROM POLE{placing ? (hover.km > MAX_POLE_KM ? " · TOO FAR" : " · CLICK TO PLACE") : ""}</text>
+              <text x={x} y={y + 12} textAnchor={a}>{hover.km.toFixed(1)} KM FROM POLE{onPlace ? (hover.km > MAX_POLE_KM ? " · TOO FAR" : " · CLICK OR RIGHT-CLICK TO ADD") : ""}</text>
             </g>;
           })()}
         </svg>}
+        {ask && (() => {
+          const far = ask.km > MAX_POLE_KM, right = ask.sx > mapWidth * 0.6, low = ask.sy > MAP * 0.6;
+          return <form className="map-ask" onSubmit={submitAsk} aria-label="Add a custom landing site"
+            style={{ left: `${ask.sx / mapWidth * 100}%`, top: `${ask.sy / MAP * 100}%`, translate: `${right ? "-100%" : "0"} ${low ? "-100%" : "0"}` }}
+            onPointerDown={(e) => e.stopPropagation()} onPointerUp={(e) => e.stopPropagation()} onPointerMove={(e) => e.stopPropagation()}
+            onContextMenu={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === "Escape") setAsk(null); }}>
+            <p className="hud-label">ADD CUSTOM LANDING SITE?</p>
+            <p className="map-ask-where">{Math.abs(ask.lat).toFixed(3)}°S {ask.lon.toFixed(2)}°E · {ask.km.toFixed(1)} km from pole</p>
+            {far ? <p className="map-ask-err" role="alert">Too far from the pole. Custom sites must be within {MAX_POLE_KM} km.</p>
+              : <label className="map-ask-name">Name<input name="name" autoFocus maxLength={60} placeholder="e.g. Ridge north spur" autoComplete="off" /></label>}
+            <div className="map-ask-actions">
+              <Button type="button" variant="ghost" size="xs" onClick={() => setAsk(null)}>CANCEL</Button>
+              {!far && <Button type="submit" variant="outline" size="xs">ADD AND COMPARE</Button>}
+            </div>
+          </form>;
+        })()}
         <span className="map-hud br">LOLA 500 M · MOON_ME</span>
       </div>
       <p className="caption">
@@ -198,7 +223,7 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
           : "Loading terrain…"}
       </p>
       {mapPicks.length < picks.length && <p className="caption">Apollo 11 is outside the south-pole map coverage.</p>}
-      {(placing || placeMsg) && <p className="caption" role="status">{placeMsg ?? `Click the map to place a custom site (within ${MAX_POLE_KM} km of the pole). Drag still pans.`}</p>}
+      {onPlace && terrain && <p className="caption" role="status">{placeMsg ?? `Click any spot within ${MAX_POLE_KM} km of the pole to drop a custom site as site 2, or right-click to name it first. Drag to pan, scroll to zoom.`}</p>}
     </Card>
   );
 }

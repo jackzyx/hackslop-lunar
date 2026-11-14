@@ -17,7 +17,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map, ".js": "text/javascript"}
 
     def translate_path(self, path):
-        if urlsplit(path).path in ("/about", "/compare", "/privacy", "/terms"):
+        if urlsplit(path).path in ("/about", "/compare", "/privacy", "/terms", "/accessibility"):
             path = "/index.html"
         return super().translate_path(path)
 

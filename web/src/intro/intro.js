@@ -134,7 +134,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   stopIntro?.();
   const el = document.querySelector("#intro"), layer = el.querySelector(".intro-scene");
   const cv = layer.querySelector("canvas"), g = cv.getContext("2d");
-  const line = el.querySelector(".stars-line span"), skip = el.querySelector(".skip");
+  const line = el.querySelector(".intro-line span"), skip = el.querySelector(".skip");
   const quality = introResolution(innerWidth, innerHeight, devicePixelRatio || 1);
   const pos = scene(ms, sun), T = 250;
   const view = { ...mapView(picks, zoom), ...center };

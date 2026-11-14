@@ -5,6 +5,7 @@ import { buildCustomSite } from "@/domain/custom-site.js";
 
 const KEY = "sun-shade-custom-sites";
 const MAX = 6;
+export const MAX_CUSTOM = MAX;
 const shipped = () => data.sites.filter((s) => !s.custom && s.terrain_modelled !== false).map((s) => ({ ...s, table: data.ephemeris.sites[s.id] }));
 const fmt = (lat, lon) => `${Math.abs(lat).toFixed(2)}°S ${lon.toFixed(1)}°E`;
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(customSites().map(({ name, lat, lon }) => ({ name, lat, lon })))); } catch {} };

@@ -77,18 +77,18 @@ Updated browser captures are in `docs/intro-approach-updated.png` and
 `docs/intro-terrain-updated.png`.
 
 React + Tailwind + shadcn/ui, styled as a retro amber HUD (dark only, for the projector).
-The console fits one 1280x720 screen: a launch-slip slider (-60 to +60 days), the STARS line
-(`src/domain/narrator.js`, one sentence built from the computed numbers), and site 1 | shadow map |
-site 2. Per site: sunlit hours in the 30 days after landing, a status (NOMINAL / MARGINAL /
+The console fits one 1280x720 screen: a launch-slip slider (-60 to +60 days) and site 1 | shadow map |
+site 2. Click the map to drop a custom site (right-click to name it first); it is compared as site 2. Per site: sunlit hours in the 30 days after landing, a status (NOMINAL / MARGINAL /
 CRITICAL), Sun and Earth bars, a verdict, longest dark gap, next sunset or Earthset. Under the
-console, tabs: the skylines and 30-day strips, the JPL Horizons validation, what we do not model.
+console, tabs: the skylines and 30-day strips, best landing days, the JPL Horizons validation
+(plus the custom-site method check), what we do not model.
 Static, no backend, runs offline.
 
 Code layout:
 
 - `src/App.jsx` and `src/main.jsx`: application state and startup.
 - `src/components/`: page sections and controls; shared primitives in `ui/`.
-- `src/domain/`: visibility metrics and narration, with colocated Node tests.
+- `src/domain/`: visibility metrics, custom sites and best landing days, with colocated Node tests.
 - `src/terrain/`: CPU/GPU shadow rendering, worker fallback, and terrain loading.
 - `src/intro/`: camera animation, image preparation, worker, and tests.
 - `src/data/`: generated ephemeris, horizon masks, and validation results.

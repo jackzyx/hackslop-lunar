@@ -1,8 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { windowMetrics, verdictDelay, MAX_DELAY_D } from "@/domain/metrics.js";
-import { addCustomSite, removeCustomSite, restoreCustomSites } from "@/lib/custom-sites.js";
+import { addCustomSite, removeCustomSite, restoreCustomSites, customSites, MAX_CUSTOM } from "@/lib/custom-sites.js";
 import { initialTerrain } from '@/terrain/startup.js';
-import { narrate } from "@/domain/narrator.js";
 import { data, sites, vis, t0, H, DAY, iso, fmtDate, reducedMotion, loadPlannerData } from "@/lib/data.js";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
@@ -103,8 +102,12 @@ function Planner({ hidden }) {
   const [customKey, setCustomKey] = useState(0); // bumps when custom sites are added or removed
 
   // A click on the map: build the site, show it as site 2. Returns an error message or null.
-  const placeSite = (lat, lon) => {
-    try { const id = addCustomSite(terrain, lat, lon); setPicks([picks[0], id]); setCustomKey((k) => k + 1); return null; }
+  const placeSite = (lat, lon, name) => {
+    try {
+      const spare = customSites().find((s) => !picks.includes(s.id));
+      if (customSites().length >= MAX_CUSTOM && spare) removeCustomSite(spare.id); // full: drop the oldest one not on screen
+      const id = addCustomSite(terrain, lat, lon, name); setPicks([picks[0], id]); setCustomKey((k) => k + 1); return null;
+    }
     catch (e) { return e.message; }
   };
   const removeSite = (id) => {
@@ -120,7 +123,6 @@ function Planner({ hidden }) {
   const plannedStats = useMemo(() => picks.map(id => ({ onTime: windowMetrics(vis(id), iPlanned).sunlit, d: verdictDelay(vis(id), iPlanned) })), [picks, iPlanned]);
   const stats = useMemo(() => picks.map((id, index) => ({ id, m: windowMetrics(vis(id), i0), ...plannedStats[index] })), [picks, i0, plannedStats]);
   const detailIndex = useDeferredValue(i0);
-  const said = narrate(delay, stats.map((s) => ({ name: sites[s.id].name, now: s.m.sunlit, onTime: s.onTime, d: s.d })));
 
   useEffect(() => {
     initialTerrain().then((t) => { restoreCustomSites(t); setTerrain(t); setCustomKey((k) => k + 1); }).catch(err => setTerrainErr(err.message));
@@ -165,8 +167,6 @@ function Planner({ hidden }) {
           </div>
           <output htmlFor="slip" className="slipout glow">{slip} · LANDS {when.toUpperCase()}</output>
         </section>
-
-        <p className="stars-say" aria-live="off"><b>✦ STARS //</b><span>{said}<i className="cursor" aria-hidden="true" /></span></p>
 
         <main className="console" id="compare-main" tabIndex={-1}>
           <SiteCard n={1} st={stats[0]} onPick={(id) => setPicks([id, picks[1]])} onRemove={removeSite} />
