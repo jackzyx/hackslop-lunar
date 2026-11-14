@@ -64,13 +64,27 @@ function imageCanvas(pixels, n, fadeRim = false) {
   c.putImageData(im, 0, 0);
   if (!fadeRim) return cv;
   const fade = c.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
-  // Only soften the outer edge, outside the final camera view. The old circular
-  // fade erased most of the visible terrain on wide screens.
-  fade.addColorStop(0.94, "#000"); fade.addColorStop(1, "rgba(0,0,0,0)");
+  // During approach use a broad feather; once terrain fills the viewport use a
+  // narrow rim so the finished view retains its full contrast and detail.
+  fade.addColorStop(fadeRim === 'approach' ? 0.35 : 0.94, "#000");
+  fade.addColorStop(1, "rgba(0,0,0,0)");
   c.globalCompositeOperation = "destination-in";
   c.fillStyle = fade;
   c.fillRect(0, 0, n, n);
   return cv;
+}
+
+const smoothstep = (lo, hi, value) => {
+  const x = Math.min(1, Math.max(0, (value - lo) / (hi - lo)));
+  return x * x * (3 - 2 * x);
+};
+
+export function terrainBlend(radius, cx, cy, width, height, cameraHalf) {
+  const corner = Math.hypot(Math.max(cx, width - cx), Math.max(cy, height - cy));
+  return {
+    opacity: smoothstep(0, 1, (1800 - cameraHalf) / 1200),
+    detail: smoothstep(0.8, 1.08, radius / corner),
+  };
 }
 
 // Advance by rendered time, not a wall-clock jump after a long task or tab switch.
@@ -101,7 +115,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, readyToReveal,
   const line = el.querySelector(".stars-line span"), skip = el.querySelector(".skip");
   const quality = introResolution(innerWidth, innerHeight, devicePixelRatio || 1);
   const pos = scene(ms, sun), T = 250;
-  let moon = imageCanvas(spherePixels(sun, 256, null), 256), land;
+  let moon = imageCanvas(spherePixels(sun, 256, null), 256), land, landApproach;
   let shownMoon, shownLand, terrainUnavailable = false, elapsed = 0;
   let canReveal = !readyToReveal, landingRequested = false;
   readyToReveal?.then(() => { canReveal = true; });
@@ -191,11 +205,18 @@ export async function playIntro({ ms, sun, terrain, terrainReady, readyToReveal,
     if (on(pm, rm)) {
       const moonCrop = moon && clippedImage(moon.width, moon.height, pm[0] - rm, pm[1] - rm, 2 * rm, 2 * rm, W, H);
       if (moonCrop) g.drawImage(moon, ...moonCrop);
-      const a = Math.min(1, Math.max(0, (1800 - w) / 1200));
-      if (land && a > 0) {
-        g.globalAlpha = a;
+      const blend = terrainBlend(T * k, pm[0], pm[1], W, H, w);
+      if (land && blend.opacity > 0) {
         const crop = clippedImage(land.width, land.height, pm[0] - T * k, pm[1] - T * k, 2 * T * k, 2 * T * k, W, H);
-        if (crop) g.drawImage(land, ...crop);
+        if (crop) {
+          // Keep the edge soft while the tile is visibly surrounded by globe.
+          g.globalAlpha = blend.opacity;
+          g.drawImage(landApproach, ...crop);
+          if (blend.detail > 0) {
+            g.globalAlpha = blend.opacity * blend.detail;
+            g.drawImage(land, ...crop);
+          }
+        }
         g.globalAlpha = 1;
       }
       if (rm < 120) label(pm, rm, "Moon");
@@ -253,7 +274,11 @@ export async function playIntro({ ms, sun, terrain, terrainReady, readyToReveal,
   await prepareIntroAssets({ terrain: readyTerrain, sun, quality, textureUrl: new URL('moon-albedo-4k.jpg', document.baseURI).href }, assets => {
     if (over || thisRun !== run) return;
     if (assets.moon && assets.moon !== shownMoon) { moon = imageCanvas(assets.moon, assets.moonN); shownMoon = assets.moon; }
-    if (assets.land && assets.land !== shownLand) { land = imageCanvas(assets.land, assets.landN, true); shownLand = assets.land; }
+    if (assets.land && assets.land !== shownLand) {
+      landApproach = imageCanvas(assets.land, assets.landN, 'approach');
+      land = imageCanvas(assets.land, assets.landN, true);
+      shownLand = assets.land;
+    }
     if (assets.complete && !assets.land) terrainUnavailable = true;
     el.dataset.assets = assets.stage;
   });

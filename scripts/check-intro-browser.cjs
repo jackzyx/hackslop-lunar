@@ -8,13 +8,13 @@ const base = process.env.TEST_URL || 'http://127.0.0.1:5174/';
     const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 2 });
     const errors = []; page.on('pageerror', error => errors.push(error.message));
     await page.goto(base + '#compare');
-    await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'preparing');
+    await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'playing');
     await page.evaluate(() => {
       window.preparationTasks = [];
       window.preparationObserver = new PerformanceObserver(list => window.preparationTasks.push(...list.getEntries().map(e => e.duration)));
       window.preparationObserver.observe({ type: 'longtask' });
     });
-    await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'playing', { timeout: 30000 });
+    await page.waitForFunction(() => document.querySelector('#intro').dataset.assets === 'complete', { timeout: 30000 });
     const preparationTasks = await page.evaluate(() => { window.preparationObserver.disconnect(); return window.preparationTasks; });
     await page.waitForFunction(() => Number(document.querySelector('#intro').dataset.time) > .3);
     const jump = await page.evaluate(() => {
@@ -39,7 +39,7 @@ const base = process.env.TEST_URL || 'http://127.0.0.1:5174/';
     const slow = await browser.newPage(); slow.on('pageerror', error => errors.push(error.message));
     await slow.route('**/moon-albedo-4k.jpg', async route => { await new Promise(resolve => setTimeout(resolve, 1200)); await route.continue(); });
     await slow.goto(base + '#compare');
-    await slow.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'preparing');
+    await slow.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'playing');
     await slow.getByRole('button', { name: /SKIP INTRO/i }).click();
     await slow.waitForFunction(() => document.querySelector('#intro').hidden);
     await slow.waitForTimeout(2500);

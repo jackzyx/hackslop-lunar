@@ -1,10 +1,26 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { sunLongitude, scene, introResolution, createIntroClock, clippedImage } from "./intro.js";
+import { sunLongitude, scene, introResolution, createIntroClock, clippedImage, terrainBlend } from "./intro.js";
 
 const RAD = Math.PI / 180;
 const near = (a, b, tol) => assert.ok(Math.abs(a - b) < tol, `${a} vs ${b}`);
 const angDiff = (a, b) => Math.abs(((a - b + 540) % 360) - 180);
+
+test('terrain uses a soft approach edge, with full contrast only after covering every corner', () => {
+  const approach = terrainBlend(400, 960, 540, 1920, 1080, 500);
+  assert.equal(approach.detail, 0);
+  assert.equal(approach.opacity, 1);
+  const final = terrainBlend(1250, 960, 540, 1920, 1080, 108);
+  assert.equal(final.detail, 1);
+  assert.equal(final.opacity, 1);
+  assert.equal(terrainBlend(100, 960, 540, 1920, 1080, 1800).opacity, 0);
+  let previous = 0;
+  for (let radius = 700; radius <= 1300; radius += 10) {
+    const blend = terrainBlend(radius, 960, 540, 1920, 1080, 500);
+    assert.ok(blend.detail >= previous && blend.detail <= 1);
+    previous = blend.detail;
+  }
+});
 
 test('intro clock resumes smoothly after a long frame or a hidden tab', () => {
   const clock = createIntroClock();

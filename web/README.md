@@ -48,7 +48,11 @@ to verify the dark first paint, delays planner/terrain downloads to verify the
 intro starts independently, and checks the final handoff. Set `TEST_URL` to a
 Vite preview URL to check the built site with the same test.
 The final camera fits the detailed terrain to every screen corner, including wide
-and portrait displays. The surface-data resolution remains 500 m; rendering at
+and portrait displays. During approach, a broad terrain feather blends the local
+tile into the globe; full-contrast terrain is restored only as it covers the whole
+viewport. This removes the sharp circular tile boundary without changing the
+underlying terrain or increasing download size. A comparison frame is saved in
+`docs/intro-blend-preview.png`. The surface-data resolution remains 500 m; rendering at
 more pixels does not add new scientific terrain detail. Visual source and credit:
 NASA's Scientific Visualization Studio, [CGI Moon Kit](https://svs.gsfc.nasa.gov/4720/).
 The texture is served locally, so no external imagery connection is needed at runtime.
