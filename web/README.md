@@ -77,8 +77,9 @@ Updated browser captures are in `docs/intro-approach-updated.png` and
 `docs/intro-terrain-updated.png`.
 
 React + Tailwind + shadcn/ui, styled as a retro amber HUD (dark only, for the projector).
-The console fits one 1280x720 screen: a launch-slip slider (-60 to +60 days), the STARS line
-(`src/domain/narrator.js`, one sentence built from the computed numbers), and site 1 | shadow map |
+The console fits one 1280x720 screen: a launch-slip slider (-60 to +60 days), the STARS corner
+assistant (live line from `src/domain/narrator.js`; questions, screening and apply/undo, see
+`../STARS.md`), and site 1 | shadow map |
 site 2. Per site: sunlit hours in the 30 days after landing, a status (NOMINAL / MARGINAL /
 CRITICAL), Sun and Earth bars, a verdict, longest dark gap, next sunset or Earthset. Under the
 console, tabs: the skylines and 30-day strips, the JPL Horizons validation, what we do not model.

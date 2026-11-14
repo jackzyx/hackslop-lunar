@@ -35,6 +35,7 @@ fetches one tier.
 2. `context/03-plan.md`: scope, cut order, gates, schedule.
 3. Your role's doc: Science `04-science.md` + `05-data.md`,
    Web `02-challenge.md` + skills, Story `07-pitch.md` + `10-submission.md`.
+4. `STARS.md`: the in-app assistant (local LLM via Ollama, voice, demo script, limits).
 
 ## Using Claude Code here
 
