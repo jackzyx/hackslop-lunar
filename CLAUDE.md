@@ -73,14 +73,18 @@ Subagents in `.claude/agents/`: `science-red-team` (hunts frame/sign/unit errors
   rasterio (`/vsicurl/https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_20MPP_ADJ.TIF`),
   never download it on the venue Wi-Fi.
 
-## Ownership (rename once the team is known)
+## Ownership (team of 3, set Sat 14 Nov)
 
-| Area | Owner role | Paths (planned) |
-|---|---|---|
-| Print, table, lamp, firmware, camera mount | Hardware | `hardware/`, `firmware/` |
-| DEM, ephemeris, horizon masks, validation | Science | `science/`, `data/` outputs |
-| App, WebSerial, deployment | Web | `web/` |
-| Pitch, video, project page, references, mentors | Story | `context/07-pitch.md`, `context/references.md`, `media/` |
+| Area | Role | Owner | Backup | Paths (planned) |
+|---|---|---|---|---|
+| Ephemeris table, demo-site pick, Mazarico check; owns all the maths and reviews masks | Science | Jack | Nicolas | `science/`, `data/` outputs |
+| Horizon masks for the demo sites, Horizons validation | Science | Nicolas | Jack | `science/`, `data/horizons/` |
+| App, deployment | Web | Davit | Nicolas | `web/` |
+| Print, table, lamp, camera mount | Hardware | Davit | none | `hardware/` |
+| Pitch, video edit, project page, references, submission | Story | Nicolas | Davit (filming) | `context/07-pitch.md`, `context/references.md`, `media/` |
+
+Hourly rhythm: work :00-:55, review :55-:00 with everyone awake (done, blocked, next).
+Sleep: Davit Sat 21:00-01:00, Nicolas 01:00-05:00, Jack 05:00-09:00.
 
 The browser does everything at runtime; the ephemeris table and horizon masks are
 computed once in Python and shipped as static files, so the app runs offline from a
