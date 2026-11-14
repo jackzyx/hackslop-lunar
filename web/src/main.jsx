@@ -39,7 +39,7 @@ if (page !== 'compare' || matchMedia('(prefers-reduced-motion: reduce)').matches
         preload.href = new URL(scene.appModule, document.baseURI).href;
         document.head.append(preload);
       }
-      try { localStorage.setItem('sun-shade-intro-seen', '1'); } catch {}
+      try { if (localStorage.getItem('sun-shade-intro') !== 'always') localStorage.setItem('sun-shade-intro', 'seen'); } catch {}
       playIntro({ ...scene, terrainReady, onLanding: loadApp });
       loadPlannerData().catch(() => {});
     } else loadApp();

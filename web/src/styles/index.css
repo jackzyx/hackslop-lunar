@@ -155,7 +155,14 @@ html:has(#intro:not([hidden])) { --scrollbar-opacity: 0; transition: none; }
 .site-starfield[data-visible="true"] { opacity: .75; }
 @media (prefers-reduced-motion: reduce) { .site-starfield { transition: none; } }
 .top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding: 28px 0 12px; }
-.brand { font-size: 24px; font-weight: 700; letter-spacing: 0.12em; color: var(--primary); white-space: nowrap; }
+.brand { display: inline-flex; align-items: center; gap: 12px; margin-bottom: 4px; font-size: 24px; font-weight: 700; letter-spacing: 0.12em; color: var(--primary); white-space: nowrap; }
+.brand > span { position: relative; padding-bottom: 6px; }
+.brand > span::after { content: ""; position: absolute; left: 0; right: 0.12em; bottom: 0; height: 2px; background: linear-gradient(90deg, var(--primary), rgb(255 176 0 / 0.35) 60%, transparent); box-shadow: 0 0 8px rgb(255 176 0 / 0.5); }
+.brand > span::before { content: ""; position: absolute; right: -0.4em; top: 0.1em; width: 6px; height: 6px; background: var(--primary); box-shadow: 0 0 8px var(--primary); }
+.brand-mark { width: 1.35em; height: 1.35em; flex: none; filter: drop-shadow(0 0 6px rgb(255 176 0 / 0.6)); }
+.brand-orbit { transform-box: fill-box; transform-origin: center; animation: brand-spin 24s linear infinite; }
+@keyframes brand-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .brand-orbit { animation: none; } }
 .tag { font-size: 14px; margin-top: 2px; }
 .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-left: auto; }
 .landing-picker { position: relative; display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); }
@@ -181,7 +188,7 @@ html:has(#intro:not([hidden])) { --scrollbar-opacity: 0; transition: none; }
 #about-main:focus-visible, #compare-main:focus-visible, #about-sources:focus-visible, .policy-page:focus-visible { outline: none; }
 
 /* launch slip: the one control that drives the demo */
-.slipbar { display: grid; grid-template-columns: max-content minmax(0, 1fr) auto; align-items: center; gap: 20px; padding: 12px 18px; margin-bottom: 4px; }
+.slipbar { display: grid; grid-template-columns: max-content minmax(0, 1fr) auto; align-items: center; gap: 20px; padding: 12px 18px; margin-bottom: 8px; }
 .slipout { width: 40ch; font-size: 20px; font-weight: 600; letter-spacing: 0.06em; color: var(--primary); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ticks { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--muted-foreground); letter-spacing: 0.08em; }
 [data-slot="slider-track"] {

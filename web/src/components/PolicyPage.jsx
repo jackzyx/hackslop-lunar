@@ -60,7 +60,7 @@ const pages = {
         <div className="policy-table" role="region" aria-label="Browser storage used by Sun Shade" tabIndex={0}>
           <table>
             <thead><tr><th>Name</th><th>Contents</th><th>Purpose</th><th>Kept until</th></tr></thead>
-            <tbody><tr><td><code>sun-shade-intro-seen</code></td><td>The value “1”</td><td>Show the opening animation on your first visit only</td><td>You clear this site’s data in your browser</td></tr>
+            <tbody><tr><td><code>sun-shade-intro</code></td><td>“seen” or “always”</td><td>Play the opening animation on your first visit only, or on every visit if you turn on “Intro on open” in the footer</td><td>You clear this site’s data in your browser</td></tr>
             <tr><td><code>sun-shade-custom-sites</code></td><td>For up to six custom sites: the name you gave it and its lunar latitude and longitude</td><td>Restore your custom sites when you come back</td><td>You remove the site in the planner, or clear this site’s data in your browser</td></tr></tbody>
           </table>
         </div>
@@ -180,7 +180,7 @@ const pages = {
     summary: [
       'We aim for Sun Shade to meet WCAG 2.2 level AA. It has not been independently audited.',
       'Every number in the planner is available as text. The map and charts explain the numbers but are not the only way to read them.',
-      'The intro can be skipped, motion respects your “reduce motion” setting, and About-page animations can be paused.',
+      'The intro plays on the first visit only, can be skipped, can be turned on or off in the footer, and is never shown if you ask for reduced motion.',
       'Placing a custom site needs a pointer (mouse, trackpad or touch). This is a known limit.',
     ],
     sections: [
@@ -194,7 +194,7 @@ const pages = {
         <ul>
           <li><b>Keyboard:</b> site pickers, the landing-date picker, the launch-slip slider, the tabs and all buttons work from the keyboard, with visible focus outlines. The slider moves in one-day steps with the arrow keys.</li>
           <li><b>Screen readers:</b> pages use headings and landmarks; site cards give their key figures as plain sentences (for example “369 hours of sunlight”); the map has a text description; results tables are real tables.</li>
-          <li><b>Motion:</b> the opening animation can be skipped and is not shown at all if your system asks for reduced motion. Other animations follow the same setting, and the About page has a “Pause animations” control in the footer.</li>
+          <li><b>Motion:</b> the opening animation plays on your first visit only, can be skipped with any key or the Skip button, can be turned on or off with “Intro on open” in the footer, and is not shown at all if your system asks for reduced motion. Other animations follow the same setting, and the About page has a “Pause animations” control in the footer.</li>
           <li><b>Colour:</b> the shadow map uses light and dark, not colour, to show sunlit and shadowed ground. Verdicts are written in words, not shown by colour alone. Text is set in high contrast on a dark background.</li>
           <li><b>Zoom and small screens:</b> the layout reflows on phone-sized screens without sideways scrolling of the page, and text can be enlarged with browser zoom. Wide tables and the tab bar scroll within their own box.</li>
           <li><b>Plain language:</b> numbers come with their units and a one-line explanation of what they mean and what they do not mean.</li>

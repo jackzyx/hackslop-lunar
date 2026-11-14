@@ -127,7 +127,16 @@ function Planner({ hidden }) {
       <div hidden={hidden}>
         <header className="top">
           <div className="min-w-0 flex-1 basis-80">
-            <h1 className="brand glow">SUN SHADE</h1>
+            <h1 className="brand glow">
+              {/* mark: a half-lit disc (sun and shade) inside a targeting ring */}
+              <svg className="brand-mark" viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor">
+                <circle className="brand-orbit" cx="16" cy="16" r="14" strokeWidth="1.2" strokeDasharray="3 2.5" opacity=".6" />
+                <circle cx="16" cy="16" r="9" strokeWidth="1.6" />
+                <path d="M16 7a9 9 0 0 0 0 18z" fill="currentColor" stroke="none" />
+                <path d="M0.5 16h3M28.5 16h3M16 0.5v3M16 28.5v3" strokeWidth="1.6" />
+              </svg>
+              <span>SUN SHADE</span>
+            </h1>
             <p className="tag">Sunlight and Earth contact at the lunar south pole, and what a launch slip does to them</p>
           </div>
           <div className="tools">

@@ -189,7 +189,6 @@ function DetailTabs({ picks, i0, tab, onTab, terrain, iPlanned, dateMax, onLand 
             <li>No power or thermal model</li>
             <li>No radio link budget: Earth contact is line of sight only</li>
             <li>No slopes or landing hazards</li>
-            <li>Custom sites: horizon from the 500 m map terrain, lower fidelity than the curated sites (see Validation)</li>
           </ul>
         </Card>
       </TabsContent>

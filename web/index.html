@@ -48,8 +48,8 @@
     </div>
     <script>
       const introSkip = document.querySelector('#intro .skip');
-      // The intro plays on the first visit only (flag set in main.jsx when it starts).
-      try { if (localStorage.getItem('sun-shade-intro-seen')) { const intro = document.getElementById('intro'); intro.dataset.bootSkipped = 'true'; intro.hidden = true; } } catch {}
+      // The intro plays on the first visit only, unless turned on in the footer ('always'); flag set in main.jsx.
+      try { if (localStorage.getItem('sun-shade-intro') === 'seen') { const intro = document.getElementById('intro'); intro.dataset.bootSkipped = 'true'; intro.hidden = true; } } catch {}
       if ('policyPage' in document.documentElement.dataset) {
         document.getElementById('intro').hidden = true;
         document.querySelector('.planner-loading').textContent = 'Loading page.';
