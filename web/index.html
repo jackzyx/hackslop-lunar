@@ -11,7 +11,7 @@
       <h1>Long Shadow</h1>
       <label class="date">Planned landing <input type="date" id="date" required /></label>
       <span class="badge" title="Every number on this screen is a placeholder until real data replaces it">MOCK DATA</span>
-      <a class="valid" href="#validation">Sun and Earth angles vs JPL Horizons: not yet measured</a>
+      <a class="valid" href="#validation" id="val-link"></a>
     </header>
 
     <section class="delay">
@@ -28,9 +28,13 @@
 
     <section class="lower">
       <figure class="card">
-        <h2>South pole</h2>
-        <svg id="map" viewBox="-30 -20 460 440" role="img" aria-label="Map of the lunar south pole with site pins"></svg>
-        <figcaption>0° longitude (the Earth-facing side) at the top. Schematic, not to scale: no terrain yet.</figcaption>
+        <h2>Sunlight at landing</h2>
+        <div class="mapwrap">
+          <canvas id="shade" width="360" height="360"></canvas>
+          <svg id="map" viewBox="0 0 360 360" role="img" aria-label="Map of the lunar south pole: sunlit ground and shadows at landing, with the chosen sites"></svg>
+        </div>
+        <button type="button" class="zoom" id="zoom"></button>
+        <figcaption id="map-cap"></figcaption>
       </figure>
       <div class="card">
         <h2>What we do not model</h2>
@@ -45,26 +49,15 @@
 
     <section class="card" id="validation">
       <h2>Validation</h2>
-      <p class="note">Stub. Filled by the Science pipeline (checks V1 to V8 in <code>context/04-science.md</code>).</p>
+      <p class="note" id="val-note">Filled from <code>src/validation.json</code>, written by the Science pipeline (checks V1 to V8 in <code>context/04-science.md</code>).</p>
       <table>
         <thead>
           <tr><th>Site</th><th>Body</th><th>Max |ΔEl|</th><th>Max |ΔAz|·cos El</th><th>Hours compared</th><th>Dates</th></tr>
         </thead>
-        <tbody>
-          <tr><td>Near the pole (0° E, 89.9° S)</td><td>Sun</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
-          <tr><td>Near the pole (0° E, 89.9° S)</td><td>Earth</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
-          <tr><td>Mons Mouton region</td><td>Sun</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
-          <tr><td>Mons Mouton region</td><td>Earth</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
-          <tr><td>Apollo 11 (control)</td><td>Sun</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
-          <tr><td>Apollo 11 (control)</td><td>Earth</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>
-        </tbody>
+        <tbody id="val-rows"></tbody>
       </table>
-      <p class="note">Reference: JPL Horizons, topocentric site on the Moon, airless, frame MOON_ME, correction LT+S. Not yet queried.</p>
-      <ul class="note">
-        <li>Flat-terrain horizon dip test (V2): not yet run</li>
-        <li>Horizon from 80 m vs 240 m terrain, RMS (V3): not yet run</li>
-        <li>Published illumination result reproduced, Mazarico et al. 2011 (V4): not yet run</li>
-      </ul>
+      <p class="note" id="val-ref"></p>
+      <ul class="note" id="val-checks"></ul>
     </section>
 
     <div class="tip" id="tip" hidden></div>

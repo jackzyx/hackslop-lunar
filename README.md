@@ -3,8 +3,7 @@
 NASA Space Apps Challenge 2026, Challenge 11, at HackAthlone (TUS Athlone, 13-15 Nov 2026).
 
 > For any lunar south pole site and date: how many hours of sunlight and Earth contact
-> you get, and what a launch slip does to them, on screen and on a 3D-printed relief of
-> the real LOLA terrain turning under a fixed lamp.
+> you get, and what a launch slip does to them, on screen over the real LOLA terrain.
 
 **This branch is the team's prep environment** (context, data scripts, Claude Code
 skills). Product code starts when the hackspaces open (Fri 19:55) unless the organisers
@@ -34,7 +33,7 @@ fetches one tier.
 
 1. `context/00-start-here.md`: before-you-leave checklist, Friday timeline, first hour by role.
 2. `context/03-plan.md`: scope, cut order, gates, schedule.
-3. Your role's doc: Science `04-science.md` + `05-data.md`, Hardware `06-hardware.md`,
+3. Your role's doc: Science `04-science.md` + `05-data.md`,
    Web `02-challenge.md` + skills, Story `07-pitch.md` + `10-submission.md`.
 
 ## Using Claude Code here
@@ -44,13 +43,13 @@ relevant, or ask for one by name):
 
 | Skill | For |
 |---|---|
-| `lunar-ephemeris` | SPICE Sun/Earth az/el in MOON_ME, rig drivers, debugging table |
+| `lunar-ephemeris` | SPICE Sun/Earth az/el in MOON_ME, debugging table |
 | `horizons-validation` | JPL Horizons API for lunar sites, V1-V8, in-app validation table |
-| `lola-dem` | PGDA 90 DEMs, projection, crops, heightmap for print, map layers |
+| `lola-dem` | PGDA 90 DEMs, projection, crops, map layers |
 | `horizon-mask` | 720-azimuth masks, Sun disc fraction, Earth visibility, site metrics |
-| `shadow-map` | Browser "virtual table" shadow map, de-rotated webcam |
-| `relief-print` | Spherical-cap STL, slicing, coupon, finishing |
-| `twin-rig` | Firmware line protocol, AccelStepper, WebSerial client |
+| `shadow-map` | Browser shadow map of the real terrain (built: `web/src/shadow.js`) |
+| `relief-print` | Spherical-cap STL, slicing, coupon, finishing (dropped Sat 14 Nov) |
+| `twin-rig` | Firmware line protocol, AccelStepper, WebSerial client (dropped Sat 14 Nov) |
 | `pitch-video` | 29 s video with ffmpeg, pitch, slides, rehearsal |
 | `space-apps-submission` | Project page, references, AI disclosure, going public |
 | `gate-check` | "Where are we?" against the gates and cut order |
