@@ -80,7 +80,7 @@ export default function App() {
       <div hidden={page === 'about'}>
         <header className="top">
           <div className="min-w-0 flex-1 basis-80">
-            <h1 className="brand glow">▓▒░ SUN SHADE ░▒▓</h1>
+            <h1 className="brand glow">SUN SHADE</h1>
             <p className="tag">Sunlight and Earth contact at the lunar south pole, and what a launch slip does to them</p>
           </div>
           <div className="tools">
