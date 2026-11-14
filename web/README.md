@@ -21,7 +21,7 @@ keeps this shape:
 
 | Key | Shape |
 |---|---|
-| `sites[]` | `id`, `name`, `kind`, `lat`, `lon` (deg, east-positive), `mast_m`, `az_step_deg` (0.5), `horizon` (720 skyline elevations in deg, azimuth 0, 0.5 ... 359.5 clockwise from north) |
+| `sites[]` | `id`, `name`, `kind`, `mission` (mission or programme label from Story's site list, or `null`), `lat`, `lon` (deg, east-positive), `mast_m`, `az_step_deg` (0.5), `horizon` (720 skyline elevations in deg, azimuth 0, 0.5 ... 359.5 clockwise from north) |
 | `ephemeris` | `start_utc`, `step_s` (3600), `count`, `frame` (`MOON_ME`), and `sites[id]` = `{sun_az, sun_el, earth_az, earth_el}`, each `count` values in deg (az clockwise from north) |
 | `rig` | `start_utc`, `step_s`, `count`, `subsolar_lat`, `subsolar_lon` (deg, MOON_ME) |
 
