@@ -9,9 +9,11 @@ export function reticleState(time, points, radii) {
   const [start, previous, target] = time < 2 ? [0, 'sun', 'earth'] : time < 3.6 ? [2, 'earth', 'moon'] : [3.6, 'moon', 'landing'];
   const acquire = ease((time - start) / 0.24);
   const center = points[previous].map((value, i) => value + (points[target][i] - value) * acquire);
+  const size = body => Math.min(80, Math.max(24, (radii[body] ?? 32) * 1.1 + 10));
+  const previousRadius = size(previous), targetRadius = size(target);
   return {
     center, target, locked: time >= start + 0.24,
-    radius: Math.min(80, Math.max(24, radii[target] * 1.1 + 10)) + (1 - acquire) * 14,
+    radius: previousRadius + (targetRadius - previousRadius) * acquire,
     split: ease((time - 4.8) / 0.6),
   };
 }

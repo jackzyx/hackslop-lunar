@@ -27,3 +27,17 @@ test('reticle separates into diagonal brackets for both landing sites', () => {
   assert.deepEqual(corners[1], { x: 740, y: 238 });
   assert.deepEqual(corners[3], { x: 708, y: 270 });
 });
+
+test('reticle size stays continuous when targets change and resize', () => {
+  const sizes = { sun: 9, earth: 18, moon: 200, landing: 24 };
+  for (const boundary of [2, 3.6]) {
+    const before = reticleState(boundary - 1e-6, points, sizes);
+    const after = reticleState(boundary + 1e-6, points, sizes);
+    assert.ok(Math.abs(before.radius - after.radius) < .001, `size jumped at ${boundary}s`);
+  }
+  const start = reticleState(2, points, sizes).radius;
+  const middle = reticleState(2.12, points, sizes).radius;
+  const locked = reticleState(2.24, points, sizes).radius;
+  assert.ok(start < middle && middle < locked);
+  assert.ok(Math.abs(reticleState(2.24 - 1e-6, points, sizes).radius - locked) < .001);
+});
