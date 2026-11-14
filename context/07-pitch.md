@@ -24,7 +24,7 @@ Take it even if the team is full: 200 voters hear "the Moon table" 40 hours befo
 | Time | Say | Show |
 |---|---|---|
 | 0:00-0:20 | "At noon today the Sun over Athlone is about 18 deg up. At the Moon's south pole it never climbs above 1.6 deg. A 5 km mountain there throws a shadow 186 km long." | App on the projector: the shadow map at landing |
-| 0:20-0:45 | IM-2 came down 250 m off target, in a crater, and was dead in 13 hours. Chang'e 7 missed its August window. Every slip changes the lighting, and today's tools are built for experts | One slide, two photos |
+| 0:20-0:45 | IM-2 came down off target, on its side in a crater, and operated for about 13 hours. Chang'e 7 missed its 23-24 August 2026 launch opportunity. Every slip changes the lighting, and today's tools are built for experts | One slide, two photos |
 | 0:45-1:45 | Pick two sites. Slide the date. Hours of Sun and Earth contact update. On the map a ridge shadow takes site A's pin; site A goes red, site B holds | App |
 | 1:45-2:20 | "Our Sun and Earth angles match JPL Horizons within X deg. Terrain is NASA LOLA at 80 m. We do not model power or radio links." | Validation table |
 | 2:20-2:45 | Planners get a first answer in seconds. It runs in any browser, offline, and the code is open | QR code to the repo |
