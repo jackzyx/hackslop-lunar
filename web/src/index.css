@@ -141,6 +141,8 @@ html body[data-scroll-locked] { margin-right: 0 !important; }
 .landing-calendar button:disabled { opacity: .25; cursor: default; }
 .calendar-footer { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px; font-size: 10px; color: var(--muted-foreground); }
 .calendar-footer strong { color: var(--primary); font-weight: 500; }
+.visibility-strip { transition: transform 180ms linear; }
+@media (prefers-reduced-motion: reduce) { .visibility-strip { transition: none; } }
 @media (max-width: 760px) { .landing-calendar { left: 0; right: auto; } }
 .mock { background: var(--primary); color: var(--primary-foreground); font-weight: 800; font-size: 12px; padding: 4px 8px; letter-spacing: 0.1em; }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }

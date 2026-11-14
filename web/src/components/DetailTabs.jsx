@@ -1,7 +1,8 @@
 import { memo, useMemo, useState } from "react";
 import { WINDOW_H, maskAt, windowMetrics } from "@/metrics.js";
 import { data, sites, vis, t0, H, fmtTime, latLon, dur } from "@/lib/data.js";
-import { TL, P, timeline, panorama, yRange } from "@/lib/charts.js";
+import { TL, P, panorama, yRange } from "@/lib/charts.js";
+import VisibilityTimeline from '@/components/VisibilityTimeline';
 import { validation, fmtDeg, worst } from "@/lib/validation.js";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -41,7 +42,7 @@ function SiteDetail({ n, id, i0, yr, bind }) {
       <h3 className="hud-title">SITE {n} · {site.name.toUpperCase()}</h3>
       <p className="hud-label">{latLon(site)}</p>
       <p className="hud-label">SUN AND EARTH · 30 DAYS FROM LANDING</p>
-      <svg viewBox="0 0 600 84" role="img" aria-label="Sun and Earth over the 30 days" dangerouslySetInnerHTML={{ __html: timeline(v, i0) }}
+      <VisibilityTimeline key={id} visibility={v} i0={i0}
         {...bind((x) => {
           const k = Math.floor(((x - TL.x0) / (TL.x1 - TL.x0)) * WINDOW_H);
           if (k < 0 || k >= WINDOW_H) return null;
