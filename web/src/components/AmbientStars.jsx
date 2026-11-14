@@ -1,11 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { createStars, drawStars } from '@/lib/starfield.js';
+import { createConstellations, drawConstellations } from '@/lib/constellations.js';
 
-export default function AmbientStars() {
+export default function AmbientStars({ page }) {
   const canvas = useRef(null);
+  const pageConstellations = useRef(new Map());
   useEffect(() => {
     const element = canvas.current, context = element.getContext('2d');
     if (!context) return;
+    if (!pageConstellations.current.has(page)) pageConstellations.current.set(page, createConstellations());
+    const constellations = pageConstellations.current.get(page);
+    const constellationTopLimit = page === 'compare' ? 48 : 138;
     const intro = document.getElementById('intro');
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     const pointer = { x: 0, y: 0, active: false };
@@ -17,7 +22,9 @@ export default function AmbientStars() {
       if (!motion.matches) time += dt;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       context.clearRect(0, 0, width, height);
-      drawStars(context, stars, width, height, time, dt, motion.matches ? null : pointer, motion.matches);
+      const activePointer = motion.matches ? null : pointer;
+      drawStars(context, stars, width, height, time, dt, activePointer, motion.matches);
+      drawConstellations(context, constellations, width, height, time, activePointer, constellationTopLimit);
     }
     function tick(now) {
       frame = requestAnimationFrame(tick);
@@ -59,6 +66,6 @@ export default function AmbientStars() {
       removeEventListener('blur', blur); removeEventListener('resize', resize);
       document.removeEventListener('visibilitychange', sync); motion.removeEventListener('change', sync);
     };
-  }, []);
+  }, [page]);
   return <canvas ref={canvas} className="site-starfield" aria-hidden="true" data-visible="false" />;
 }

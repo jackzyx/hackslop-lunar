@@ -70,7 +70,7 @@ export default function App() {
 
   return (
     <>
-      <AmbientStars />
+      <AmbientStars page={page} />
       <div className="shell" id="site-top">
         {policyPage && <PolicyPage page={page} onRoute={followRoute} />}
         {plannerReady && page === 'about' && <About onCompare={() => navigate('compare')} onRoute={followRoute} paused={paused} />}
