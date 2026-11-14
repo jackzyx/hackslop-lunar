@@ -4,6 +4,8 @@ import { createMoonRenderer } from '@/lib/moon-globe.js';
 const orbitRadius = 0.47;
 const orbitSpeed = 2 * Math.PI / 20000;
 const returnDuration = 460;
+const followTime = 22;
+const followTolerance = 0.0003;
 const startAngle = -2.45;
 const orbitPoint = angle => [0.5 + orbitRadius * Math.cos(angle), 0.5 + orbitRadius * Math.sin(angle)];
 const defaultSun = orbitPoint(startAngle);
@@ -52,14 +54,13 @@ export default function MoonGlobe({ paused }) {
       const tracking = target.current;
       const animate = !isPaused.current && !reducedMotion.matches;
       const elapsed = previousTime === null ? 0 : Math.min(time - previousTime, 50);
-
-      if (!tracking && !wasTracking && animate && previousTime !== null && elapsed < 28) {
-        requestFrame();
-        return;
-      }
+      let following = false;
 
       if (tracking) {
-        position.current = tracking;
+        const blend = animate ? 1 - Math.exp(-(elapsed || 1000 / 60) / followTime) : 1;
+        const next = position.current.map((coordinate, index) => coordinate + (tracking[index] - coordinate) * blend);
+        following = Math.hypot(tracking[0] - next[0], tracking[1] - next[1]) > followTolerance;
+        position.current = following ? next : tracking;
         returnFrom = null;
       } else {
         if (wasTracking) {
@@ -86,8 +87,9 @@ export default function MoonGlobe({ paused }) {
       sun.style.top = `${y * 100}%`;
       renderer?.render(x, y);
       wasTracking = Boolean(tracking);
-      previousTime = !tracking && animate ? time : null;
-      if (!tracking && animate) requestFrame();
+      const keepDrawing = following || (!tracking && animate);
+      previousTime = keepDrawing ? time : null;
+      if (keepDrawing) requestFrame();
     }
 
     requestDraw.current = requestFrame;
@@ -105,6 +107,39 @@ export default function MoonGlobe({ paused }) {
     observer?.observe(globe);
     reducedMotion.addEventListener('change', requestFrame);
 
+    function releaseMouse() {
+      returnToOrbit('mouse');
+    }
+
+    function trackMouse(event) {
+      if (!visible || !event.isPrimary || event.pointerType !== 'mouse') return;
+      const { left, top, width, height } = globe.getBoundingClientRect();
+      if (!width || !height) return;
+
+      const x = event.clientX - left;
+      const y = event.clientY - top;
+      const distance = Math.hypot(Math.max(0, -x, x - width), Math.max(0, -y, y - height));
+      const range = Math.min(width * 0.25, 110);
+      const allowance = globe.dataset.input === 'mouse' ? 16 : 0;
+      if (distance <= range + allowance) {
+        const markerRadius = 9;
+        const cursorX = Math.max(markerRadius, Math.min(document.documentElement.clientWidth - markerRadius, event.clientX));
+        const cursorY = Math.max(markerRadius, Math.min(document.documentElement.clientHeight - markerRadius, event.clientY));
+        moveSun((cursorX - left) / width, (cursorY - top) / height, 'mouse');
+      } else {
+        releaseMouse();
+      }
+    }
+
+    function releaseMouseAtWindowEdge(event) {
+      if (event.pointerType === 'mouse' && event.relatedTarget === null) releaseMouse();
+    }
+
+    window.addEventListener('pointermove', trackMouse);
+    window.addEventListener('pointerout', releaseMouseAtWindowEdge);
+    window.addEventListener('blur', releaseMouse);
+    window.addEventListener('scroll', releaseMouse, { passive: true });
+
     const texture = new Image();
     texture.onload = () => {
       renderer?.setTexture(texture);
@@ -119,18 +154,22 @@ export default function MoonGlobe({ paused }) {
       if (frame !== null) cancelAnimationFrame(frame);
       observer?.disconnect();
       reducedMotion.removeEventListener('change', requestFrame);
+      window.removeEventListener('pointermove', trackMouse);
+      window.removeEventListener('pointerout', releaseMouseAtWindowEdge);
+      window.removeEventListener('blur', releaseMouse);
+      window.removeEventListener('scroll', releaseMouse);
     };
   }, []);
 
   function moveSun(x, y, mode) {
     clearTimeout(touchRelease.current);
-    target.current = [Math.max(0, Math.min(1, x)), Math.max(0, Math.min(1, y))];
+    target.current = mode === 'mouse' ? [x, y] : [Math.max(0, Math.min(1, x)), Math.max(0, Math.min(1, y))];
     scene.current.dataset.input = mode;
     requestDraw.current?.();
   }
 
   function movePointer(event) {
-    if (!event.isPrimary) return;
+    if (!event.isPrimary || event.pointerType === 'mouse') return;
     const { left, top, width, height } = event.currentTarget.getBoundingClientRect();
     moveSun((event.clientX - left) / width, (event.clientY - top) / height, event.pointerType);
   }
@@ -156,8 +195,8 @@ export default function MoonGlobe({ paused }) {
 
   return <figure className="about-moon">
     <div ref={scene} className="about-moon-scene" role="group" tabIndex={0} aria-label="Interactive Moon lighting" aria-describedby="about-moon-help"
-      onPointerEnter={event => { if (event.pointerType !== 'touch') movePointer(event); }} onPointerMove={movePointer} onPointerDown={movePointer}
-      onPointerLeave={event => { if (event.pointerType !== 'touch') returnToOrbit(event.pointerType); }}
+      onPointerEnter={event => { if (event.pointerType === 'pen') movePointer(event); }} onPointerMove={movePointer} onPointerDown={movePointer}
+      onPointerLeave={event => { if (event.pointerType === 'pen') returnToOrbit('pen'); }}
       onPointerCancel={event => returnToOrbit(event.pointerType)}
       onPointerUp={event => {
         if (event.isPrimary && event.pointerType === 'touch') {
