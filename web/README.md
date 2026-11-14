@@ -1,5 +1,13 @@
 # Long Shadow web app
 
+The shared navigation switches between **Compare sites** (`#compare`) and
+**About** (`#about`) without resetting the selected date or sites. The About page
+uses the same amber HUD theme, real terrain rendering, scroll reveals and a
+searchable public bibliography (`#about-sources`). Its animations can be paused
+and respect reduced-motion preferences.
+Public source entries live in `src/lib/sources.js`; keep them in sync with the
+project reference log when data, imagery or tools change.
+
 Intro visuals use a bundled 4096 × 2048 NASA lunar albedo texture, a
 viewport-sized globe raster (768–1536 px), and an 800–1280 px terrain render.
 The final camera fits the detailed terrain to every screen corner, including wide
