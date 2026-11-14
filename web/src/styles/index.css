@@ -312,6 +312,28 @@ body:has(.intro[data-phase="revealing"]) .shell .mapcard > :not(.mapwrap) { anim
 .site-nav a[aria-current], .site-nav a:hover { color:var(--sun); }
 .site-nav a:focus-visible, .about-page a:focus-visible, .about-page button:focus-visible, .about-page summary:focus-visible { outline:2px solid var(--primary); outline-offset:5px; }
 .about-page { max-width:1240px; margin:0 auto; color:#dec7a0; font-family:var(--font-sans); }
+.about-page {
+  background-image:
+    radial-gradient(circle at 4% 19%, #f5e9d14d 0.5px, transparent 1.25px),
+    radial-gradient(circle at 13% 75%, #f5e9d137 0.5px, transparent 1px),
+    radial-gradient(circle at 22% 47%, #f5e9d12b 0.5px, transparent 1px),
+    radial-gradient(circle at 30% 91%, #f5e9d147 0.5px, transparent 1.25px),
+    radial-gradient(circle at 39% 8%, #f5e9d13d 0.5px, transparent 1px),
+    radial-gradient(circle at 48% 60%, #f5e9d12b 0.5px, transparent 1px),
+    radial-gradient(circle at 58% 34%, #f5e9d14d 0.5px, transparent 1.25px),
+    radial-gradient(circle at 66% 83%, #f5e9d137 0.5px, transparent 1px),
+    radial-gradient(circle at 73% 15%, #f5e9d133 0.5px, transparent 1px),
+    radial-gradient(circle at 82% 51%, #f5e9d13d 0.5px, transparent 1px),
+    radial-gradient(circle at 91% 68%, #f5e9d14d 0.5px, transparent 1.25px),
+    radial-gradient(circle at 97% 29%, #f5e9d137 0.5px, transparent 1px),
+    radial-gradient(circle at 8% 54%, #f5e9d133 0.5px, transparent 1px),
+    radial-gradient(circle at 27% 27%, #f5e9d13d 0.5px, transparent 1px),
+    radial-gradient(circle at 44% 79%, #f5e9d137 0.5px, transparent 1px),
+    radial-gradient(circle at 61% 12%, #f5e9d12b 0.5px, transparent 1px),
+    radial-gradient(circle at 76% 64%, #f5e9d137 0.5px, transparent 1px),
+    radial-gradient(circle at 87% 94%, #f5e9d133 0.5px, transparent 1px);
+  background-size: min(100%, 681px) 479px;
+}
 #about-main:focus-visible { outline:none; }
 .about-page h1, .about-page h2, .about-page h3 { color:var(--foreground); font-weight:550; letter-spacing:-.035em; }
 .about-page h1 { font-size:clamp(42px,5vw,76px); line-height:1.06; margin:0 0 28px; }

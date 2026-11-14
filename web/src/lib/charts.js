@@ -86,8 +86,8 @@ export function mapOverlay(view, picks, i0, size, height = size) {
   if (inView(pole)) g += `<path class="cross" d="M${pole[0] - 9},${pole[1]}h18M${pole[0]},${pole[1] - 9}v18"/><text x="${pole[0] + 10}" y="${pole[1] - 8}">POLE</text>`;
 
   // Sites: the other six as small lettered pins, the chosen two with a target bracket and a name.
-  const pickY = picks.map((id) => toPx(toMap(sites[id].lat, sites[id].lon))[1]);
-  const chosenLast = [...data.sites].sort((a, b) => picks.includes(a.id) - picks.includes(b.id));
+  const pickY = picks.map((id) => sites[id].terrain_modelled === false ? Infinity : toPx(toMap(sites[id].lat, sites[id].lon))[1]);
+  const chosenLast = data.sites.filter(site => site.terrain_modelled !== false).sort((a, b) => picks.includes(a.id) - picks.includes(b.id));
   for (const site of chosenLast) {
     const p = toPx(toMap(site.lat, site.lon)), k = picks.indexOf(site.id), [x, y] = p;
     if (!inView(p)) continue;
