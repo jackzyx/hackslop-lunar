@@ -260,14 +260,6 @@ function render() {
 // --- validation table: Science writes src/validation.json; null = not measured yet
 function renderValidation() {
   const v = validation, done = v.rows.filter((r) => r.max_del_deg != null && r.max_daz_cos_deg != null);
-<<<<<<< HEAD
-  const f = (x) => (x == null ? "-" : `${x.toFixed(6)}°`);
-  $("#val-rows").innerHTML = v.rows.map((r) =>
-    `<tr><td>${r.site}</td><td>${r.body}</td><td>${f(r.max_del_deg)}</td><td>${f(r.max_daz_cos_deg)}</td><td>${r.hours ?? "–"}</td><td>${r.start ? `${r.start} to ${r.stop}` : "–"}</td></tr>`).join("");
-  const worst = Math.max(...done.flatMap((r) => [r.max_del_deg, r.max_daz_cos_deg]));
-  $("#val-link").textContent = !done.length ? "Sun and Earth angles vs JPL Horizons: not yet measured"
-    : `Sun and Earth angles within ${worst.toFixed(6)}° of JPL Horizons (pass mark ${v.pass_deg}°)${done.length < v.rows.length ? `, ${done.length} of ${v.rows.length} rows so far` : ""}`;
-=======
   // Two significant figures however small (Horizons agreement is ~0.00003 deg; 4 decimals would print 0).
   const f = (x) => (x == null ? "–" : x === 0 ? "0°" : `${x.toFixed(Math.max(4, 1 - Math.floor(Math.log10(x))))}°`);
   $("#val-rows").innerHTML = v.rows.map((r) =>
@@ -277,7 +269,6 @@ function renderValidation() {
   $("#val-link").textContent = !done.length ? "Check vs NASA JPL Horizons: not yet run"
     : `✓ Within ${f(worst)} of NASA JPL Horizons${done.length < v.rows.length ? ` (${done.length} of ${v.rows.length} rows)` : ""}`;
   $("#val-link").title = done.length ? `Sun and Earth angles, worst of ${done.length} site and body rows; pass mark ${v.pass_deg}°` : "";
->>>>>>> 96fe2bc89aa341d861a09ad7e4202516f489eabb
   $("#val-ref").textContent = `Reference: JPL Horizons, topocentric site on the Moon, airless, frame MOON_ME, correction LT+S. ${v.queried ? `Queried ${v.queried}.` : "Not yet queried."}`;
   $("#val-note").hidden = !!v.queried;
   $("#val-checks").innerHTML = v.checks.map((c) => `<li>${c.label} (${c.id}): ${c.result ?? "not yet run"}</li>`).join("");
