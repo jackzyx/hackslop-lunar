@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { windowMetrics, verdictDelay, MAX_DELAY_D } from "@/metrics.js";
-import { terrainFrom } from "@/shadow.js";
+import { initialTerrain } from '@/startup.js';
 import { playIntro } from "@/intro.js";
 import { narrate } from "@/narrator.js";
 import { data, sites, vis, sunAt, t0, H, DAY, iso, fmtDate, reducedMotion } from "@/lib/data.js";
@@ -57,11 +57,7 @@ export default function App() {
     playIntro({ ms, sun: sunAt(p[0], i), terrain: t, picks: p.map((id) => sites[id]), when: fmtDate(ms, { year: "numeric" }) });
   };
   useEffect(() => {
-    fetch("terrain_500m.bin")
-      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(`HTTP ${r.status}`))))
-      .then((b) => { const t = terrainFrom(b); setTerrain(t); return t; })
-      .catch((err) => { setTerrainErr(err.message); return null; })
-      .then((t) => (reducedMotion() || location.hash.startsWith('#about') ? (document.getElementById("intro").hidden = true) : intro(t)));
+    initialTerrain().then(setTerrain).catch(err => setTerrainErr(err.message));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const showValidation = () => { setTab("validation"); requestAnimationFrame(() => document.getElementById("details")?.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth" })); };

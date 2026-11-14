@@ -4,6 +4,7 @@
 // vector the shadow map uses. Sizes and distances are true at every zoom level.
 import { toMap, R_KM } from "./shadow.js";
 import { prepareIntroAssets } from './intro-assets.js';
+import { spherePixels } from './intro-pixels.js';
 
 const RAD = Math.PI / 180, AU = 149.6e6, MOON_DIST = 384400, R_SUN = 696000, R_EARTH = 6371;
 
@@ -93,17 +94,21 @@ export function clippedImage(imageWidth, imageHeight, x, y, width, height, viewp
 }
 
 let hideTimer = 0, run = 0, stopIntro;
-export async function playIntro({ ms, sun, terrain, picks, when }) {
+export async function playIntro({ ms, sun, terrain, terrainReady, readyToReveal, onLanding, picks, when }) {
   stopIntro?.();
   const thisRun = ++run;
   const el = document.querySelector("#intro"), cv = el.querySelector("canvas"), g = cv.getContext("2d");
   const line = el.querySelector(".stars-line span"), skip = el.querySelector(".skip");
   const quality = introResolution(innerWidth, innerHeight, devicePixelRatio || 1);
   const pos = scene(ms, sun), T = 250;
-  let moon, land;
+  let moon = imageCanvas(spherePixels(sun, 256, null), 256), land;
+  let shownMoon, shownLand, terrainUnavailable = false, elapsed = 0;
+  let canReveal = !readyToReveal, landingRequested = false;
+  readyToReveal?.then(() => { canReveal = true; });
   const stars = Array.from({ length: 220 }, () => [Math.random(), Math.random(), Math.random() < 0.1 ? 2 : 1, 0.2 + 0.6 * Math.random()]);
   clearTimeout(hideTimer);
   el.hidden = false;
+  delete el.dataset.bootSkipped;
   el.classList.remove("done");
 
   let raf = 0, over = false;
@@ -227,19 +232,29 @@ export async function playIntro({ ms, sun, terrain, picks, when }) {
   }
 
   const tick = (now) => {
-    const t = clock(now, document.hidden);
+    // If an unusually slow connection has not delivered even preview terrain,
+    // hold the lunar approach instead of revealing an empty surface or skipping it.
+    const t = clock(now, document.hidden || (elapsed >= 3.4 && !land && !terrainUnavailable && Boolean(terrain || terrainReady)));
+    elapsed = t;
+    // Evaluate the large planner module only after the moving camera has landed.
+    if (t >= 5.4 && !landingRequested) { landingRequested = true; onLanding?.(); }
     el.dataset.time = t.toFixed(3);
     draw(Math.min(t, END));
-    if (t >= END) finish();
+    if (t >= END && canReveal) finish();
     else raf = requestAnimationFrame(tick);
   };
-  el.dataset.phase = 'preparing';
-  draw(0);
-  line.textContent = 'Preparing the lunar view…';
-  const assets = await prepareIntroAssets({ terrain, sun, quality, textureUrl: new URL('moon-albedo-4k.jpg', document.baseURI).href });
-  if (over || thisRun !== run || !assets) return;
-  moon = imageCanvas(assets.moon, assets.moonN);
-  land = assets.land && imageCanvas(assets.land, assets.landN, true);
   el.dataset.phase = 'playing';
+  el.dataset.assets = 'loading';
+  draw(0);
+  document.getElementById('intro-boot')?.setAttribute('hidden', '');
   raf = requestAnimationFrame(tick);
+  const readyTerrain = terrainReady ? await terrainReady : terrain;
+  if (over || thisRun !== run) return;
+  await prepareIntroAssets({ terrain: readyTerrain, sun, quality, textureUrl: new URL('moon-albedo-4k.jpg', document.baseURI).href }, assets => {
+    if (over || thisRun !== run) return;
+    if (assets.moon && assets.moon !== shownMoon) { moon = imageCanvas(assets.moon, assets.moonN); shownMoon = assets.moon; }
+    if (assets.land && assets.land !== shownLand) { land = imageCanvas(assets.land, assets.landN, true); shownLand = assets.land; }
+    if (assets.complete && !assets.land) terrainUnavailable = true;
+    el.dataset.assets = assets.stage;
+  });
 }

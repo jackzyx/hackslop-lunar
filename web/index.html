@@ -4,15 +4,34 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Long Shadow</title>
+    <meta name="theme-color" content="#050403" />
+    <style>
+      /* Critical first-paint styles: do not wait for the JavaScript CSS bundle. */
+      html,body{margin:0;background:#050403;color:#ffbf47;color-scheme:dark}
+      [hidden]{display:none!important}
+      .intro{position:fixed;inset:0;z-index:50;background:#000}
+      .intro canvas{position:absolute;inset:0;width:100%;height:100%}
+      .intro .skip{position:absolute;top:16px;right:16px;background:#0a0805;color:#ffbf47;border:1px solid #59400e;padding:6px 12px;font:12px monospace;cursor:pointer}
+      .stars-line{position:absolute;left:50%;bottom:40px;transform:translateX(-50%);width:min(780px,calc(100% - 68px));padding:12px 18px;background:#000c;border:1px solid #382600;font:22px sans-serif;color:#ffd98a}
+      .stars-line b{display:block;margin-bottom:6px;font:12px monospace;letter-spacing:.3em}
+      #intro-boot{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden}
+      #intro-boot svg{width:min(80vw,70vh);height:min(80vw,70vh);animation:boot-orbit 30s linear infinite}
+      @keyframes boot-orbit{to{transform:rotate(360deg)}}
+      @media(prefers-reduced-motion:reduce){#intro-boot svg{animation:none}}
+    </style>
+    <link rel="preload" href="./terrain_500m.bin" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="./moon-albedo-4k.jpg" as="fetch" crossorigin="anonymous" fetchpriority="low" />
   </head>
   <body>
     <div id="root"></div>
     <!-- STARS intro (src/intro.js). Plain HTML outside React so it covers the page from the first paint. -->
     <div class="intro" id="intro">
+      <div id="intro-boot" aria-hidden="true"><svg viewBox="0 0 600 600" fill="none"><circle cx="300" cy="300" r="225" stroke="#ffb000" opacity=".2"/><circle cx="300" cy="300" r="110" stroke="#ffb000" opacity=".3"/><circle cx="300" cy="300" r="12" fill="#fff0c2"/><circle cx="525" cy="300" r="5" fill="#38d4ff"/></svg></div>
       <canvas aria-hidden="true"></canvas>
       <p class="stars-line"><b>✦ STARS //</b><span></span></p>
       <button type="button" class="skip">Skip intro</button>
     </div>
+    <script>document.querySelector('#intro .skip').addEventListener('click',function(){document.getElementById('intro').dataset.bootSkipped='true';document.getElementById('intro').hidden=true;});</script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
