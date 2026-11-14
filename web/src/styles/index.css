@@ -194,6 +194,10 @@ html:has(#intro:not([hidden])) { --scrollbar-opacity: 0; transition: none; }
 .slipbar { display: grid; grid-template-columns: max-content minmax(0, 1fr) auto; align-items: center; gap: 20px; padding: 12px 18px; margin-bottom: 8px; }
 .slipout { width: 40ch; font-size: 20px; font-weight: 600; letter-spacing: 0.06em; color: var(--primary); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ticks { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--muted-foreground); letter-spacing: 0.08em; }
+.slipout { white-space: normal; font-size: 16px; width: 36ch; }
+.slip-hours-label { grid-column: 1; }
+.slip-hours-track { grid-column: 2; min-width: 0; }
+.slip-hours-output { text-align: right; }
 [data-slot="slider-track"] {
   height: 10px !important; border-radius: 0; background:
     repeating-linear-gradient(90deg, rgb(255 176 0 / 0.35) 0 1px, transparent 1px calc(100% / 24)),
@@ -575,6 +579,10 @@ html:has(.about-moon-scene[data-input="mouse"]) * { cursor:none !important; }
   .brand { font-size: 20px; }
   .slipbar { grid-template-columns: max-content minmax(0, 1fr); padding: 12px 14px; gap: 10px; }
   .slip-track { grid-column: 1 / -1; grid-row: 2; }
+  .slip-hours-label { grid-row: 3; }
+  .slip-hours-output { grid-column: 2; grid-row: 3; }
+  .slip-hours-track { grid-column: 1 / -1; grid-row: 4; }
+  .slipout { grid-column: 1 / -1; grid-row: 5; }
   .slipout { width: auto; text-align: left; font-size: 16px; white-space: normal; }
   .big > span:first-child { font-size: 56px; }
   .hud-tabs { overflow-x: auto; }

@@ -1,7 +1,7 @@
 import { memo, useMemo, useState } from "react";
 import { WINDOW_H, maskAt, windowMetrics, visibility } from "@/domain/metrics.js";
 import { data, sites, vis, t0, H, DAY, iso, fmtDate, fmtTime, latLon, dur } from "@/lib/data.js";
-import { dailyWindows, bestDays, GOALS } from "@/domain/best-days.js";
+import { hourlyWindows, bestDays, GOALS } from "@/domain/best-days.js";
 import { methodCheck } from "@/domain/custom-site.js";
 import { Button } from "@/components/ui/button";
 import { TL, P, panorama, skylineY, yRange } from "@/lib/charts.js";
@@ -84,29 +84,34 @@ function SiteDetail({ n, id, i0, yr, bind, guide, onShiftDate }) {
   );
 }
 
-// Best 00:00 UTC landing days in the 12 months from the planned date, per goal, for one site.
+// Find the best landing hour across the candidate dates.
 function BestDays({ n, id, iPlanned, dateMax, onLand }) {
-  const days = Math.min(365, Math.floor((Date.parse(`${dateMax}T00:00:00Z`) - (t0 + iPlanned * H)) / DAY) + 1);
-  const rows = useMemo(() => dailyWindows(vis(id), iPlanned, days), [id, iPlanned, days]);
+  const plannedDay = iso(t0 + iPlanned * H);
+  const dayStart = Date.parse(`${plannedDay}T00:00:00Z`);
+  const iFrom = (dayStart - t0) / H;
+  const days = Math.min(365, Math.floor((Date.parse(`${dateMax}T00:00:00Z`) - dayStart) / DAY) + 1);
+  const rows = useMemo(() => hourlyWindows(vis(id), iFrom, days), [id, iFrom, days]);
   return (
     <Card className="hud detail">
       <h3 className="hud-title">SITE {n} · {sites[id].name.toUpperCase()}</h3>
-      <p className="hud-label">Best landing days · 12 months from {fmtDate(t0 + iPlanned * H, { year: "numeric" })} · 30-day windows</p>
+      <p className="hud-label">Best landing days · 12 months from {fmtDate(dayStart, { year: "numeric" })} · all UTC hours · 30-day windows</p>
       <Table className="hud-table">
         <TableHeader><TableRow><TableHead>GOAL</TableHead><TableHead>LAND</TableHead><TableHead>SUN</TableHead><TableHead>EARTH</TableHead><TableHead /></TableRow></TableHeader>
         <TableBody>
           {Object.entries(GOALS).flatMap(([goal, { label }]) => bestDays(rows, goal).map((r, k) => {
             const day = iso(t0 + r.i * H);
+            const landingHour = new Date(t0 + r.i * H).getUTCHours();
+            const hourLabel = `${String(landingHour).padStart(2, '0')}:00 UTC`;
             return <TableRow key={goal + r.d}>
               <TableCell>{k === 0 ? label.toUpperCase() : ""}</TableCell>
-              <TableCell>{fmtDate(t0 + r.i * H, { weekday: "short", year: "numeric" })}</TableCell>
+              <TableCell>{fmtDate(t0 + r.i * H, { weekday: "short", year: "numeric" })}<br />{hourLabel}</TableCell>
               <TableCell>{Math.round(r.sunlit)} h</TableCell><TableCell>{Math.round(r.earth)} h</TableCell>
-              <TableCell><Button type="button" variant="outline" size="xs" onClick={() => onLand(day)} aria-label={`Plan landing on ${day}`}>LAND</Button></TableCell>
+              <TableCell><Button type="button" variant="outline" size="xs" onClick={() => onLand(day, landingHour)} aria-label={`Plan landing on ${day} at ${hourLabel}`}>LAND</Button></TableCell>
             </TableRow>;
           }))}
         </TableBody>
       </Table>
-      <p className="caption">“Best of both” maximises the weaker of sunlight and Earth hours. Earth = line of sight, not a radio link. LAND sets the planned date (slip back to 0).</p>
+      <p className="caption">“Best of both” maximises the weaker of sunlight and Earth hours. Searches every hour; equal scores favour the earliest time. Options are at least 7 days apart. LAND keeps the recommended time and resets both slip sliders to 0. Earth = line of sight, not a radio link.</p>
     </Card>
   );
 }

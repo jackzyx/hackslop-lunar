@@ -85,7 +85,10 @@ export default function App() {
 function Planner({ hidden }) {
   const [date, setDate] = useState("2026-11-20");
   const [delay, setDelay] = useState(0);
+  const [hourOffset, setHourOffset] = useState(0);
+  const [plannedHour, setPlannedHour] = useState(0);
   const slipTrack = useRef(null);
+  const hourTrack = useRef(null);
   const [interacting, setInteracting] = useState(false);
   const [picks, setPicks] = useState(["A", "B"]);
   const [zoom, setZoom] = useState(true);
@@ -95,11 +98,14 @@ function Planner({ hidden }) {
   const [customKey, setCustomKey] = useState(0); // bumps when custom sites are added or removed
 
   useEffect(() => {
-    const track = slipTrack.current;
+    const cleanups = [
+      [slipTrack.current, setDelay, MAX_DELAY_D],
+      [hourTrack.current, setHourOffset, 23],
+    ].map(([track, setValue, limit]) => {
     let accumulated = 0;
     let lastWheel = 0;
     const scrollSlip = (event) => {
-      if (event.ctrlKey) return; // Preserve trackpad pinch zoom.
+      if (event.ctrlKey || event.metaKey || !event.cancelable) return; // Preserve zoom gestures.
       const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
       if (!delta) return;
       event.preventDefault();
@@ -107,14 +113,21 @@ function Planner({ hidden }) {
       if (now - lastWheel > 200 || Math.sign(delta) !== Math.sign(accumulated)) accumulated = 0;
       lastWheel = now;
       accumulated += delta * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? track.clientWidth : 1);
-      const days = Math.trunc(accumulated / 40);
-      if (days) {
-        accumulated -= days * 40;
-        setDelay(value => Math.max(-MAX_DELAY_D, Math.min(MAX_DELAY_D, value + days)));
+      const steps = Math.trunc(accumulated / 40);
+      if (steps) {
+        accumulated -= steps * 40;
+        setValue(value => Math.max(-limit, Math.min(limit, value + steps)));
       }
     };
     track.addEventListener('wheel', scrollSlip, { passive: false });
-    return () => track.removeEventListener('wheel', scrollSlip);
+    const reset = () => { accumulated = 0; lastWheel = 0; };
+    track.addEventListener('pointerleave', reset);
+    return () => {
+      track.removeEventListener('wheel', scrollSlip);
+      track.removeEventListener('pointerleave', reset);
+    };
+    });
+    return () => cleanups.forEach(cleanup => cleanup());
   }, []);
 
   // A click on the map: build the site, show it as site 2. Returns an error message or null.
@@ -132,11 +145,13 @@ function Planner({ hidden }) {
     setCustomKey((k) => k + 1);
   };
 
-  const dateMin = iso(t0 + MAX_DELAY_D * DAY);
-  const dateMax = iso(t0 + data.ephemeris.count * H - (MAX_DELAY_D + 30) * DAY);
+  const dateMin = iso(t0 + (MAX_DELAY_D + 1) * DAY);
+  const dateMax = iso(t0 + data.ephemeris.count * H - (MAX_DELAY_D + 31) * DAY);
   const shiftSlip = (days) => setDelay(current => Math.max(-MAX_DELAY_D, Math.min(MAX_DELAY_D, current + days)));
-  const iPlanned = (Date.parse(`${date}T00:00:00Z`) - t0) / H, i0 = iPlanned + delay * 24;
-  const when = fmtDate(t0 + i0 * H, { weekday: "short", year: "numeric" });
+  const iPlanned = (Date.parse(`${date}T00:00:00Z`) - t0) / H + plannedHour;
+  const totalSlip = delay * 24 + hourOffset;
+  const i0 = iPlanned + totalSlip;
+  const when = fmtDate(t0 + i0 * H, { weekday: "short", year: "numeric", hour: '2-digit', minute: '2-digit' }) + ' UTC';
   const plannedStats = useMemo(() => picks.map(id => ({ onTime: windowMetrics(vis(id), iPlanned).sunlit, d: verdictDelay(vis(id), iPlanned) })), [picks, iPlanned]);
   const stats = useMemo(() => picks.map((id, index) => ({ id, m: windowMetrics(vis(id), i0), ...plannedStats[index] })), [picks, i0, plannedStats]);
 
@@ -145,8 +160,8 @@ function Planner({ hidden }) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const showValidation = () => { setTab("validation"); requestAnimationFrame(() => document.getElementById("details")?.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth" })); };
-  const n = Math.abs(delay);
-  const slip = delay === 0 ? "ON TIME" : delay > 0 ? `SLIP +${n} D` : `EARLY −${n} D`;
+  const n = Math.abs(totalSlip);
+  const slip = totalSlip === 0 ? "ON TIME" : `${totalSlip > 0 ? 'SLIP +' : 'EARLY −'}${Math.floor(n / 24)} D ${n % 24} H`;
 
   return (
       <div hidden={hidden}>
@@ -172,7 +187,7 @@ function Planner({ hidden }) {
         </header>
 
         <section className="hud panel slipbar">
-          <div className="hud-label shrink-0"><label htmlFor="slip">LAUNCH SLIP</label><HelpTip label="launch slip">Days earlier or later than your planned landing date. Drag or scroll the slider, or scroll the Sun/Earth bars below. The planned date stays fixed.</HelpTip></div>
+          <div className="hud-label shrink-0"><label htmlFor="slip">LAUNCH SLIP</label><HelpTip label="launch slip">Days and hours earlier or later than your planned landing. The lower slider adds or subtracts up to 23 hours. Scrolling the day slider or Sun/Earth bars shifts whole days and keeps the hour adjustment.</HelpTip></div>
           <div className="slip-track" ref={slipTrack} title="Scroll to adjust launch slip">
             <Slider
               id="slip"
@@ -190,7 +205,16 @@ function Planner({ hidden }) {
             />
             <div className="ticks" aria-hidden="true"><span>−60 D</span><span>−30</span><span>0</span><span>+30</span><span>+60 D</span></div>
           </div>
-          <output htmlFor="slip" className="slipout glow">{slip} · LANDS {when.toUpperCase()}</output>
+          <output htmlFor="slip slip-hours" className="slipout glow">{slip} · LANDS {when.toUpperCase()}</output>
+          <label htmlFor="slip-hours" className="hud-label slip-hours-label">HOUR ADJUSTMENT</label>
+          <div className="slip-hours-track" ref={hourTrack} title="Scroll to adjust launch slip by hours">
+            <Slider id="slip-hours" aria-label="Launch delay hour adjustment" min={-23} max={23} step={1} value={[hourOffset]}
+              onPointerDown={() => setInteracting(true)} onPointerUp={() => setInteracting(false)}
+              onLostPointerCapture={() => setInteracting(false)} onPointerCancel={() => setInteracting(false)}
+              onValueCommit={() => setInteracting(false)} onValueChange={([hours]) => setHourOffset(hours)} />
+            <div className="ticks" aria-hidden="true"><span>−23 H</span><span>0</span><span>+23 H</span></div>
+          </div>
+          <output htmlFor="slip-hours" className="hud-label slip-hours-output">{hourOffset > 0 ? '+' : ''}{hourOffset} H</output>
         </section>
 
         <main className="console" id="compare-main" tabIndex={-1}>
@@ -199,8 +223,8 @@ function Planner({ hidden }) {
           <SiteCard n={2} st={stats[1]} onPick={(id) => setPicks([picks[0], id])} onRemove={removeSite} />
         </main>
 
-        <DetailTabs picks={picks} i0={i0} tab={tab} onTab={setTab} customKey={customKey} terrain={terrain} iPlanned={iPlanned} dateMax={dateMax} onShiftDate={shiftSlip} onLand={(d) => { setDate(d); setDelay(0); }} />
-        <p className="foot">Half sunlight = 360 of 720 hours. Verdicts test delays of 0 to {MAX_DELAY_D} days from the planned date. Landing at 00:00 UTC. Hover the charts for detail.</p>
+        <DetailTabs picks={picks} i0={i0} tab={tab} onTab={setTab} customKey={customKey} terrain={terrain} iPlanned={iPlanned} dateMax={dateMax} onShiftDate={shiftSlip} onLand={(d, hour = 0) => { setDate(d); setPlannedHour(hour); setDelay(0); setHourOffset(0); }} />
+        <p className="foot">Half sunlight = 360 of 720 hours. Verdicts test delays of 0 to {MAX_DELAY_D} days from the planned date. Landing times are UTC, in one-hour steps. Hover the charts for detail.</p>
       </div>
   );
 }
