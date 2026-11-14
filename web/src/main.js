@@ -1,5 +1,5 @@
 import data from "./mock-data.json";
-import { visibility, windowMetrics, verdictDelay, grade, rig, maskAt, WINDOW_H, MAX_DELAY_D } from "./metrics.js";
+import { visibility, windowMetrics, verdictDelay, grade, maskAt, WINDOW_H, MAX_DELAY_D } from "./metrics.js";
 
 const H = 3600e3, DAY = 86400e3, rad = Math.PI / 180;
 const t0 = Date.parse(data.ephemeris.start_utc);
@@ -140,8 +140,9 @@ function polarMap() {
 // --- site columns
 const cols = [...document.querySelectorAll(".site")].map((el, c) => {
   el.innerHTML = `<select aria-label="Site ${c + 1}">${data.sites.map((s) => `<option value="${s.id}">${s.name} · ${s.kind}</option>`).join("")}</select>
+    <p class="mission"></p>
     <div class="head"><span class="big"></span><span class="status"></span></div>
-    <p class="sub"></p><p class="verdict"></p><dl class="nums"></dl>
+    <p class="sub"></p><p class="sunline"></p><p class="verdict"></p><dl class="nums"></dl>
     <svg class="timeline" viewBox="0 0 600 84" role="img" aria-label="Sun and Earth over the 30 days"></svg>
     <svg class="pano" viewBox="0 0 600 186" role="img" aria-label="Skyline all around the site with the Sun and Earth paths"></svg>`;
   const col = { q: (s) => el.querySelector(s) };
@@ -174,9 +175,14 @@ function renderCol(col, id, i0, iPlanned, yr) {
   Object.assign(col, { id, i0 });
   const v = vis(id), m = windowMetrics(v, i0), g = grade(m.sunlit), big = col.q(".big");
   big.className = `big ${g}`;
-  big.textContent = `${Math.round(m.sunlit)} h`;
+  big.innerHTML = `${Math.round(m.sunlit)}<small> of ${WINDOW_H} h</small>`;
   col.q(".status").textContent = STATUS[g];
-  col.q(".sub").textContent = `of sunlight in the 30 days after landing (${Math.round((m.sunlit / WINDOW_H) * 100)} %)`;
+  col.q(".sub").textContent = `sunlight in the 30 days after landing (${Math.round((m.sunlit / WINDOW_H) * 100)} %)`;
+  col.q(".mission").textContent = sites[id].mission ?? "Mission: pending Story's site list";
+  // Solar elevation and its margin over the skyline in the Sun's direction, at the landing instant.
+  const e = data.ephemeris.sites[id], el = e.sun_el[i0], margin = el - maskAt(sites[id].horizon, e.sun_az[i0]);
+  const deg = (x) => `${x < 0 ? "−" : ""}${Math.abs(x).toFixed(1)}°`;
+  col.q(".sunline").textContent = `At landing: Sun at ${deg(el)} elevation, ${deg(Math.abs(margin))} ${margin >= 0 ? "above" : "below"} the skyline`;
   const d = verdictDelay(v, iPlanned);
   col.q(".verdict").textContent =
     d === null ? `Holds through a ${MAX_DELAY_D}-day delay` : d === 0 ? "Under half sunlight even on time" : `Falls below half sunlight with a ${d}-day delay`;
@@ -194,9 +200,6 @@ function render() {
   const yr = yRange(state.picks);
   cols.forEach((col, c) => renderCol(col, state.picks[c], i0, iPlanned, yr));
   $("#map").innerHTML = polarMap();
-  const r = rig(data.rig.subsolar_lon[i0], data.rig.subsolar_lat[i0]);
-  $("#rig").textContent = `Table to ${r.tableDeg.toFixed(1)}°, lamp to ${r.lampMm < 0 ? "−" : "+"}${Math.abs(r.lampMm).toFixed(0)} mm`;
-  $("#rig-note").textContent = `For ${when}, 00:00 UTC. Lamp 3.00 m from the model, heights ×3, lamp height measured from the pole's level.`;
 }
 
 $("#foot").textContent = `Half sunlight = 360 of 720 hours. Verdicts test delays of 0 to ${MAX_DELAY_D} days from the planned date. Landing at 00:00 UTC. Mast height 2 m. Hover the charts for detail.`;

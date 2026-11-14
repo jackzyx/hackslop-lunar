@@ -1,4 +1,4 @@
-// Writes web/src/mock-data.json: FAKE sites, horizon masks, ephemeris and rig drivers for the
+// Writes web/src/mock-data.json: FAKE sites, horizon masks and ephemeris for the
 // UI mockup, in the shape the real Science outputs will have (see web/README.md).
 // Geometry is real (site ENU frame, az clockwise from north), the inputs are invented:
 // sub-solar and sub-Earth points are sine waves, masks are random skylines.
@@ -59,7 +59,7 @@ const earthDist = (i) => 385000 - 21000 * Math.cos((2 * Math.PI * (days(i) + 6))
 const r2 = (x) => +x.toFixed(3);
 const sites = [], eph = {};
 for (const [id, kind, lat, lon, base, rough, ridges] of SITES) {
-  sites.push({ id, name: `Site ${id}`, kind, lat, lon, mast_m: 2, az_step_deg: 0.5, horizon: skyline(base, rough, ridges) });
+  sites.push({ id, name: `Site ${id}`, kind, mission: null, lat, lon, mast_m: 2, az_step_deg: 0.5, horizon: skyline(base, rough, ridges) });
   const up = unit(lat, lon), east = norm(cross([0, 0, 1], up)), north = cross(up, east);
   const site = up.map((x) => x * R);
   const e = { sun_az: [], sun_el: [], earth_az: [], earth_el: [] };
@@ -78,12 +78,7 @@ const out = {
   note: "FAKE data for the UI mockup. Not computed from SPICE or LOLA. Never quote these numbers.",
   sites,
   ephemeris: { ...head, frame: "MOON_ME", az: "deg clockwise from north", el: "deg", sites: eph },
-  rig: { ...head, subsolar_lat: [], subsolar_lon: [] },
 };
-for (let i = 0; i < COUNT; i++) {
-  const [la, lo] = subSun(i);
-  out.rig.subsolar_lat.push(+la.toFixed(4)); out.rig.subsolar_lon.push(+lo.toFixed(3));
-}
 writeFileSync(new URL("../src/mock-data.json", import.meta.url), JSON.stringify(out));
 
 // The story the mockup must tell, at the default planned date: A loses the Sun as the delay grows, B holds.

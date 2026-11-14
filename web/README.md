@@ -21,9 +21,8 @@ keeps this shape:
 
 | Key | Shape |
 |---|---|
-| `sites[]` | `id`, `name`, `kind`, `lat`, `lon` (deg, east-positive), `mast_m`, `az_step_deg` (0.5), `horizon` (720 skyline elevations in deg, azimuth 0, 0.5 ... 359.5 clockwise from north) |
+| `sites[]` | `id`, `name`, `kind`, `mission` (mission or programme label from Story's site list, or `null`), `lat`, `lon` (deg, east-positive), `mast_m`, `az_step_deg` (0.5), `horizon` (720 skyline elevations in deg, azimuth 0, 0.5 ... 359.5 clockwise from north) |
 | `ephemeris` | `start_utc`, `step_s` (3600), `count`, `frame` (`MOON_ME`), and `sites[id]` = `{sun_az, sun_el, earth_az, earth_el}`, each `count` values in deg (az clockwise from north) |
-| `rig` | `start_utc`, `step_s`, `count`, `subsolar_lat`, `subsolar_lon` (deg, MOON_ME) |
 
 The date picker is limited so that planned date ± 60 days plus the 30-day window stays
 inside the table. When the hourly 2025-2030 table arrives (≈ 52,600 rows) switch to the
@@ -33,6 +32,3 @@ Definitions used on screen: sunlit hours = sum of the visible fraction of the 0.
 dark = no part of the disc visible; Earth in view = Earth centre above the skyline (line of
 sight only); verdict = first delay of 0 to 60 days whose 30-day window gets less than half
 sunlight (360 of 720 h). Thresholds live at the top of `src/metrics.js`.
-
-Table drivers: table angle = sub-solar longitude; lamp height = 3000 mm × 3 × tan(−sub-solar
-latitude). The table's turning direction is fixed on the rig (see `twin-rig` skill).
