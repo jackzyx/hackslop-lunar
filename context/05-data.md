@@ -65,7 +65,10 @@ nutation cycle, hourly, polar stereographic, R = 1737.4 km.
 |---|---|---|
 | `AVGVISIB_85S_060M_201608.TIF` | 34 MB | Average Sun visibility 85-90 S, 60 m. V4 benchmark |
 | `AVGVISIB_85S_060M_201608_EARTH.TIF` | 23 MB | Average Earth visibility. Earth benchmark |
-| `LPSR_85S_060M_201608.TIF` | | PSR map at 60 m |
+| `LPSR_85S_060M_201608.TIF` | 0.6 MB | PSR map at 60 m |
+| `AVGVISIB_75S_120M_201608.TIF` | 79 MB | Average Sun visibility 75-90 S, 120 m. Sites between 80 and 85 S |
+| `AVGVISIB_75S_120M_201608_EARTH.TIF` | 41 MB | Average Earth visibility 75-90 S |
+| `LPSR_75S_120M_201608.TIF` | 1 MB | PSR map at 120 m |
 
 The `_COG.TIF` variants linked on the page return "Not Found" (13 Nov); use the plain TIFs.
 Headline numbers to reproduce: a point near Shackleton's rim sunlit continuously ~240
