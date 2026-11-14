@@ -4,7 +4,7 @@ import { projectRepository, sourceGroups } from '@/lib/sources.js';
 import { Button } from '@/components/ui/button';
 import MoonGlobe from '@/components/MoonGlobe';
 
-export default function About({ onCompare, paused }) {
+export default function About({ onCompare, onRoute, paused }) {
   const root = useRef(null), [query, setQuery] = useState('');
   useEffect(() => {
     if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -23,7 +23,7 @@ export default function About({ onCompare, paused }) {
         <h1>Find the light<br /><em>when plans change.</em></h1>
         <p className="about-lead">The same landing site can tell a different story on a different day.</p>
         <p>Sun Shade helps you compare sunlight and Earth visibility at the Moon’s south pole. Choose two sites, move the landing date, and see what the terrain hides.</p>
-        <div className="about-actions"><Button onClick={onCompare}>COMPARE LANDING SITES →</Button><a href="#about-sources">Explore the sources ↓</a></div>
+        <div className="about-actions"><Button onClick={onCompare}>COMPARE LANDING SITES →</Button><a href="#about-sources" onClick={onRoute}>Explore the sources ↓</a></div>
         {data.mock && <p className="about-status">The current scenario table is marked as demo data. Explore the interface, but do not use its displayed scenarios as mission predictions.</p>}
       </div>
       <MoonGlobe paused={paused} />

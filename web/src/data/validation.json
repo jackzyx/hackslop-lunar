@@ -70,8 +70,12 @@
     },
     {
       "id": "V4",
-      "label": "NASA PGDA 69 illumination cross-check",
-      "result": "Across 18.6 years of hourly surface-level samples, average solar illumination was within 4.2 percentage points of NASA at 7 of 8 sites. Malapert Massif was 23.0% model vs 4.6% NASA. Shackleton Floor was 0.0% in both."
+      "label": "Mazarico et al. (2011) Shackleton illumination duration",
+      "status": "not reproduced",
+      "result": "Not reproduced. Mazarico et al. (2011) reported about 240 days of uninterrupted sunlight per year and about 1.5 days for the longest total darkness near Shackleton's rim. At the paper's Table 3 Shackleton Rim point SP-04 (89.78° S, 204.27° E), the longest modeled spans were 176.54 days with any sunlight (117.71 days with the full Sun visible) and 2.71 days of total darkness.",
+      "method": "We used SP-04 as a comparison point because the abstract gives no coordinates for its duration claim. We sampled the solar disc hourly at ground level for 18.6 years starting 2020-01-01 UTC, using DE440 SPICE and updated 240 m LOLA terrain sampled at pixel centers. The planner's 80 m terrain calculation at the same point gave 165.21 days with any sunlight and 10.92 days of total darkness.",
+      "source": "https://doi.org/10.1016/j.icarus.2010.10.030",
+      "mapCrossCheck": "NASA PGDA 69 average-illumination cross-check. Across 18.6 years of hourly surface-level samples, average solar illumination was within 4.2 percentage points of NASA at 7 of 8 sites. Malapert Massif was 23.0% model vs 4.6% NASA. Shackleton Floor was 0.0% in both."
     }
   ]
 }

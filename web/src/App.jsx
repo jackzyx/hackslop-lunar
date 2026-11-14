@@ -15,11 +15,11 @@ import LandingDatePicker from "@/components/LandingDatePicker";
 import AmbientStars from '@/components/AmbientStars';
 import { currentPage, isPolicyPage, pageForPath, routeUrl } from "@/lib/routes.js";
 
-function focusPage(page) {
+function focusPage(page, animate = false) {
   const sources = page === 'about' && location.hash === '#about-sources';
   const target = document.getElementById(sources ? 'about-sources' : `${page}-main`);
   target?.focus({ preventScroll: true });
-  if (sources) target?.scrollIntoView();
+  if (sources) target?.scrollIntoView({ behavior: animate && !reducedMotion() ? 'smooth' : 'auto' });
   else window.scrollTo(0, 0);
 }
 
@@ -55,14 +55,14 @@ export default function App() {
   const navigate = (nextPage, hash = '') => {
     const path = routeUrl(nextPage);
     if (location.pathname !== path || location.hash !== hash) history.pushState(null, '', path + location.search + hash);
-    if (page === nextPage) focusPage(nextPage);
+    if (page === nextPage) focusPage(nextPage, true);
     else setPage(nextPage);
   };
   const followRoute = (event) => {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     const { pathname, hash } = event.currentTarget;
     const nextPage = pageForPath(pathname);
-    if (!nextPage || (hash && pathname === location.pathname)) return;
+    if (!nextPage || (hash && hash !== '#about-sources' && pathname === location.pathname)) return;
     event.preventDefault();
     navigate(nextPage, hash);
   };
@@ -72,7 +72,7 @@ export default function App() {
       <AmbientStars />
       <div className="shell" id="site-top">
         {policyPage && <PolicyPage page={page} onRoute={followRoute} />}
-        {plannerReady && page === 'about' && <About onCompare={() => navigate('compare')} paused={paused} />}
+        {plannerReady && page === 'about' && <About onCompare={() => navigate('compare')} onRoute={followRoute} paused={paused} />}
         {plannerReady && <Planner hidden={page !== 'compare'} />}
         {!policyPage && !plannerReady && <main className="policy-page" role="status">{plannerError ? 'Could not load the planner. Refresh to try again.' : 'Loading planner.'}</main>}
         <SiteFooter page={page} onRoute={followRoute} paused={paused} onToggleAnimations={plannerReady && page === 'about' ? () => setPaused(value => !value) : undefined} />

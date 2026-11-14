@@ -156,8 +156,9 @@ function DetailTabs({ picks, i0, tab, onTab, terrain, iPlanned, dateMax, onLand 
           {illumination && (
             <section className="grid gap-2 pb-3">
               <h3 className="hud-title">TERRAIN ILLUMINATION CHECK</h3>
-              <p className="caption">This check compares long-term surface sunlight with NASA’s polar illumination maps.</p>
               <p className="checks">{illumination.result ?? "Check pending."}</p>
+              {illumination.method && <p className="caption">{illumination.method}</p>}
+              {illumination.mapCrossCheck && <p className="checks">{illumination.mapCrossCheck}</p>}
             </section>
           )}
           <h3 className="hud-title">SUN AND EARTH POSITION CHECK</h3>
