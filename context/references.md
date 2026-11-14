@@ -39,6 +39,7 @@ project ineligible. Format: what, who, link, what we used it for.
 - [fonts, icons, music]
 
 ## AI tools
+- ChatGPT Codex: ran the Connecting Ridge delay sweep using the app's existing hourly data and metrics, compared window lengths, and recorded the demo decision in Notion, Sat 14 Nov 2026.
 - [tool, what it was used for, by whom; keep this honest and current]
 - Claude Code: environment setup, data-fetch scripts, context documents (13 Nov, before the event).
 - Claude Code (Claude Opus 5.5): web app mockup in `web/` (screen layout, SVG charts, metrics functions and tests, mock-data generator), Fri 13 Nov 22:40-23:30. All data in it is invented placeholder data.
