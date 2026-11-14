@@ -412,7 +412,13 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
         }
         g.globalAlpha = 1;
       }
-      if (rm < 120) label(pm, rm, "Moon");
+      const separation = Math.hypot(pm[0] - pe[0], pm[1] - pe[1]);
+      const moonLabelAlpha = Math.min(1, cameraProgress(t, 2, 3.6) * 4) * smoothstep(re + rm + 80, re + rm + 140, separation);
+      if (rm < 120 && moonLabelAlpha > 0) {
+        g.globalAlpha = moonLabelAlpha;
+        label(pm, rm, "Moon");
+        g.globalAlpha = 1;
+      }
     }
 
     if (closeLand) {
