@@ -4,8 +4,8 @@ import { spherePixels } from './intro-pixels.js';
 // Only one scene is retained. Replaying the same landing reuses the prepared
 // images, while a new landing cancels obsolete preparation work.
 let cached;
-export function prepareIntroAssets({ terrain, sun, quality, textureUrl }, onProgress) {
-  const key = `${sun.join(',')}/${quality.sphere}/${quality.terrain}`;
+export function prepareIntroAssets({ terrain, sun, quality, textureUrl, closeView }, onProgress) {
+  const key = `${sun.join(',')}/${quality.sphere}/${quality.terrain}/${JSON.stringify(closeView)}`;
   if (cached?.key === key && cached.terrain === terrain) {
     cached.onProgress = onProgress;
     if (cached.assets) onProgress?.(cached.assets);
@@ -34,7 +34,19 @@ export function prepareIntroAssets({ terrain, sun, quality, textureUrl }, onProg
         for (let row = 0; row < tile; row++) land.set(pixels.subarray(row * tile * 4, (row + 1) * tile * 4), ((y + row) * landN + x) * 4);
         await new Promise(done => setTimeout(done, 0));
       }
-      resolve(publish({ moon, land, moonN, landN, stage: 'complete', complete: true }));
+      let close;
+      if (terrain && closeView) {
+        close = new Uint8ClampedArray(landN * landN * 4);
+        for (let y = 0; y < landN; y += tile) for (let x = 0; x < landN; x += tile) {
+          if (cached !== entry) { resolve(null); return; }
+          const half = closeView.half * tile / landN;
+          const pixels = new Uint8ClampedArray(tile * tile * 4);
+          paint(shadeView(terrain, sun, { cx: closeView.cx - closeView.half + (x + tile / 2) * 2 * closeView.half / landN, cy: closeView.cy + closeView.half - (y + tile / 2) * 2 * closeView.half / landN, half }, tile), pixels);
+          for (let row = 0; row < tile; row++) close.set(pixels.subarray(row * tile * 4, (row + 1) * tile * 4), ((y + row) * landN + x) * 4);
+          await new Promise(done => setTimeout(done, 0));
+        }
+      }
+      resolve(publish({ moon, land, close, closeN: landN, moonN, landN, stage: 'complete', complete: true }));
     };
     try {
       const worker = new Worker(new URL('./intro.worker.js', import.meta.url), { type: 'module' });
@@ -44,7 +56,7 @@ export function prepareIntroAssets({ terrain, sun, quality, textureUrl }, onProg
         if (data.complete) { worker.terminate(); entry.worker = null; resolve(assets); }
       };
       worker.onerror = event => { event.preventDefault(); worker.terminate(); entry.worker = null; fallback(); };
-      worker.postMessage({ terrain, sun, quality, textureUrl });
+      worker.postMessage({ terrain, sun, quality, textureUrl, closeView });
     } catch { fallback(); }
   });
   return entry.promise;

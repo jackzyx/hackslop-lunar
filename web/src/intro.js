@@ -127,9 +127,10 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   const quality = introResolution(innerWidth, innerHeight, devicePixelRatio || 1);
   const pos = scene(ms, sun), T = 250;
   const view = mapView(picks, zoom);
+  const closeView = { cx: view.cx, cy: view.cy, half: view.half * 2 };
   pos.landing = [pos.moon[0] + view.cx, pos.moon[1] + view.cy];
   let moon = imageCanvas(spherePixels(sun, 256, null), 256), land, landApproach;
-  let shownMoon, shownLand, terrainUnavailable = false, elapsed = 0;
+  let shownMoon, shownLand, shownClose, closeLand, closeApproach, terrainUnavailable = false, elapsed = 0;
   const stars = Array.from({ length: 220 }, () => [Math.random(), Math.random(), Math.random() < 0.1 ? 2 : 1, 0.2 + 0.6 * Math.random()]);
   el.hidden = false;
 
@@ -321,6 +322,21 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
       if (rm < 120) label(pm, rm, "Moon");
     }
 
+    if (closeLand) {
+      const p = S(pos.landing), radius = closeView.half * k;
+      const blend = terrainBlend(radius, p[0], p[1], W, H, w);
+      const crop = clippedImage(closeLand.width, closeLand.height, p[0] - radius, p[1] - radius, 2 * radius, 2 * radius, W, H);
+      if (crop) {
+        g.globalAlpha = blend.opacity;
+        g.drawImage(closeApproach, ...crop);
+        if (blend.detail > 0) {
+          g.globalAlpha = blend.opacity * blend.detail;
+          g.drawImage(closeLand, ...crop);
+        }
+        g.globalAlpha = 1;
+      }
+    }
+
     if (t > 4.8) {
       g.globalAlpha = Math.min(1, (t - 4.8) / 0.6);
       const pins = picks.map((s) => { const [mx, my] = toMap(s.lat, s.lon); return [s.name, S([pos.moon[0] + mx, pos.moon[1] + my])]; });
@@ -376,7 +392,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   raf = requestAnimationFrame(tick);
   const readyTerrain = terrainReady ? await terrainReady : terrain;
   if (over || skipping) return;
-  await prepareIntroAssets({ terrain: readyTerrain, sun, quality, textureUrl: new URL('moon-albedo-4k.jpg', document.baseURI).href }, assets => {
+  await prepareIntroAssets({ terrain: readyTerrain, sun, quality, closeView, textureUrl: new URL('moon-albedo-4k.jpg', document.baseURI).href }, assets => {
     if (over || skipping) return;
     if (assets.moon && assets.moon !== shownMoon) { moon = imageCanvas(assets.moon, assets.moonN); shownMoon = assets.moon; }
     if (assets.land && assets.land !== shownLand) {
@@ -385,6 +401,12 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
       shownLand = assets.land;
     }
     if (assets.complete && !assets.land) terrainUnavailable = true;
+    if (assets.close && assets.close !== shownClose) {
+      closeApproach = imageCanvas(assets.close, assets.closeN, 'approach');
+      closeLand = imageCanvas(assets.close, assets.closeN, true);
+      shownClose = assets.close;
+      el.dataset.closeResolution = String(assets.closeN);
+    }
     el.dataset.assets = assets.stage;
   });
 }

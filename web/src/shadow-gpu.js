@@ -66,8 +66,7 @@ void main() {
   color=vec4((vec3(14,14,18)+vec3(226,220,205)*brightness)/255.0,1);
 }`;
 
-export function createGPUShadow(terrain) {
-  const canvas = document.createElement('canvas');
+export function createGPUShadow(terrain, canvas = document.createElement('canvas')) {
   const gl = canvas.getContext('webgl2', { alpha: true, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
   if (!gl) return null;
   let program, texture;
@@ -91,7 +90,7 @@ export function createGPUShadow(terrain) {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, terrain.n, terrain.n, 0, gl.RED, gl.FLOAT, Float32Array.from(terrain.h, h => h / 1000));
     const uniforms = Object.fromEntries(['sun','view','resolution','terrainHalf','pixelKm','hmax'].map(name => [name, gl.getUniformLocation(program,name)]));
     gl.uniform1f(uniforms.terrainHalf, terrain.half); gl.uniform1f(uniforms.pixelKm, terrain.px); gl.uniform1f(uniforms.hmax, terrain.hmax);
-    canvas.dataset.renderer = 'webgl2';
+    if (canvas.dataset) canvas.dataset.renderer = 'webgl2';
     return { canvas,
       render({ sun, view, size, id }) {
         if (gl.isContextLost()) throw new Error('Shadow GPU context lost');
@@ -99,7 +98,7 @@ export function createGPUShadow(terrain) {
         if (canvas.width !== width || canvas.height !== size) { canvas.width = width; canvas.height = size; }
         gl.viewport(0,0,width,size); gl.useProgram(program);
         gl.uniform3fv(uniforms.sun,sun); gl.uniform3f(uniforms.view,view.cx,view.cy,view.half); gl.uniform2f(uniforms.resolution,width,size);
-        gl.drawArrays(gl.TRIANGLES,0,3); canvas.dataset.frame = String(id);
+        gl.drawArrays(gl.TRIANGLES,0,3); if (canvas.dataset) canvas.dataset.frame = String(id);
       },
       dispose() { gl.deleteTexture(texture); gl.deleteProgram(program); shaders.forEach(s => gl.deleteShader(s)); gl.getExtension('WEBGL_lose_context')?.loseContext(); },
     };
