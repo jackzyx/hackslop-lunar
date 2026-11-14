@@ -156,15 +156,16 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   el.append(reticle);
   const clock = createIntroClock();
   const key = (ev) => {
-    if (el.hidden || (ev.key !== "Escape" && (sceneAnimation || !["Enter", " "].includes(ev.key)))) return;
+    if (el.hidden) return;
     ev.preventDefault();
+    ev.stopImmediatePropagation();
     dismiss();
   };
   const finish = () => {
     if (over) return;
     over = true;
     cancelAnimationFrame(raf);
-    removeEventListener("keydown", key);
+    removeEventListener("keydown", key, true);
     skip.onclick = null;
     stopIntro = undefined;
     el.hidden = true;
@@ -305,7 +306,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
     targetObserver = new ResizeObserver(layoutChanged);
     targetObserver.observe(surface);
   };
-  addEventListener("keydown", key);
+  addEventListener("keydown", key, true);
   skip.onclick = dismiss;
   stopIntro = finish;
   loadEarthImage().then(image => {

@@ -34,7 +34,22 @@
       <p class="stars-line"><b>✦ STARS //</b><span></span></p>
       <button type="button" class="skip">Skip intro</button>
     </div>
-    <script>document.querySelector('#intro .skip').addEventListener('click',function(){const intro=document.getElementById('intro');if(intro.dataset.phase)return;intro.dataset.bootSkipped='true';intro.hidden=true;});</script>
+    <script>
+      const introSkip = document.querySelector('#intro .skip');
+      introSkip.addEventListener('click', () => {
+        const intro = document.getElementById('intro');
+        if (intro.dataset.phase) return;
+        intro.dataset.bootSkipped = 'true';
+        intro.hidden = true;
+      });
+      addEventListener('keydown', event => {
+        const intro = document.getElementById('intro');
+        if (intro.hidden || intro.dataset.phase) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        introSkip.click();
+      }, true);
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
