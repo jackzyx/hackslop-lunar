@@ -3,6 +3,7 @@ import { mapView, mapViewport, toMap, R_KM } from "../terrain/shadow.js";
 import { prepareIntroAssets, stopIntroAssetPreparation } from './intro-assets.js';
 import { spherePixels } from './intro-pixels.js';
 import { siteLabel } from '../lib/site-label.js';
+import { cameraProgress, reticleState, reticleCorners } from './reticle.js';
 
 const RAD = Math.PI / 180, AU = 149.6e6, MOON_DIST = 384400, R_SUN = 696000, R_EARTH = 6371;
 
@@ -59,7 +60,7 @@ function camera(t, pos, finalHalf = 170) {
   let k = 0;
   while (t >= keys[k + 1][0]) k++;
   const [t0, a, w0] = keys[k], [t1, b, w1] = keys[k + 1];
-  const x = (t - t0) / (t1 - t0), e = x * x * (3 - 2 * x);
+  const e = cameraProgress(t, t0, t1);
   const w = w0 * Math.pow(w1 / w0, e), f = (w - w1) / (w0 - w1); // log zoom; the target stays on screen
   const A = pos[a], B = pos[b];
   return [[B[0] + (A[0] - B[0]) * f, B[1] + (A[1] - B[1]) * f], w];
@@ -147,6 +148,12 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
 
   let raf = 0, over = false, landing, sceneAnimation, snapshot, snapshotSource, layoutChanged, targetObserver, decorations;
   const markers = [], handoffAnimations = [];
+  const reticle = document.createElement('div');
+  reticle.className = 'intro-reticle';
+  reticle.setAttribute('aria-hidden', 'true');
+  const corners = Array.from({ length: 4 }, () => document.createElement('i'));
+  reticle.append(...corners);
+  el.append(reticle);
   const clock = createIntroClock();
   const key = (ev) => {
     if (el.hidden || (ev.key !== "Escape" && (sceneAnimation || !["Enter", " "].includes(ev.key)))) return;
@@ -166,6 +173,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
     sceneAnimation?.cancel();
     handoffAnimations.forEach(animation => animation.cancel());
     markers.forEach(marker => marker.remove());
+    reticle.remove();
     decorations?.remove();
     snapshot?.remove();
     targetObserver?.disconnect();
@@ -260,6 +268,16 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
         { transform: `translate(-50%, -50%) scale(${12 / (11 * scale)})`, backgroundColor: AMBER, borderColor: '#000' },
         { transform: 'translate(-50%, -50%) scale(1)', backgroundColor: pinStyle.fill, borderColor: pinStyle.stroke },
       ], timing));
+      corners.forEach((corner, part) => {
+        if (part % 2 !== index) return;
+        const sx = part === 0 || part === 3 ? -1 : 1, sy = part < 2 ? -1 : 1;
+        const endX = x + sx * 13 * scale - (sx > 0 ? 12 : 0);
+        const endY = y + sy * 13 * scale - (sy > 0 ? 12 : 0);
+        handoffAnimations.push(corner.animate([
+          { transform: corner.style.transform, opacity: 1 },
+          { transform: `translate3d(${endX}px, ${endY}px, 0)`, opacity: 0 },
+        ], timing));
+      });
     });
     if (map) {
       decorations = document.createElement('div');
@@ -424,14 +442,13 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
       });
     }
 
-    // Target reticle on the camera's aim point.
-    g.strokeStyle = "rgba(255,176,0,0.55)"; g.lineWidth = 1.5;
-    const c = [W / 2, H / 2], q = 46, l = 12;
-    g.beginPath();
-    for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
-      g.moveTo(c[0] + sx * q, c[1] + sy * (q - l)); g.lineTo(c[0] + sx * q, c[1] + sy * q); g.lineTo(c[0] + sx * (q - l), c[1] + sy * q);
-    }
-    g.stroke();
+    const aim = reticleState(t, { sun: ps, earth: pe, moon: pm, landing: S(pos.landing) }, { earth: re, moon: rm, landing: 24 });
+    const sitePoints = picks.map(site => { const [x, y] = toMap(site.lat, site.lon); return S([pos.moon[0] + x, pos.moon[1] + y]); });
+    reticle.dataset.state = aim.split > 0 ? 'split' : aim.locked ? 'locked' : 'acquiring';
+    reticle.dataset.target = aim.target;
+    reticleCorners(aim, sitePoints).forEach((point, index) => {
+      corners[index].style.transform = `translate3d(${point.x}px, ${point.y}px, 0)`;
+    });
 
     let cur = LINES[0];
     for (const l of LINES) if (t >= l[0]) cur = l;

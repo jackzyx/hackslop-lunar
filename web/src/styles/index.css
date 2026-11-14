@@ -275,6 +275,13 @@ code { font-size: 0.9em; color: var(--accent-foreground); }
 .intro[data-phase="revealing"] .skip { visibility: hidden; }
 body:has(.intro[data-phase="revealing"]) .shell .mapwrap > * { visibility: hidden; }
 .intro-site-marker { position: absolute; z-index: 3; pointer-events: none; will-change: transform; }
+.intro-reticle { position: absolute; inset: 0; z-index: 3; pointer-events: none; color: var(--primary); }
+.intro-reticle i { position: absolute; top: 0; left: 0; width: 12px; height: 12px; border: 0 solid currentColor; opacity: .6; will-change: transform, opacity; }
+.intro-reticle i:nth-child(1) { border-top-width: 1.5px; border-left-width: 1.5px; }
+.intro-reticle i:nth-child(2) { border-top-width: 1.5px; border-right-width: 1.5px; }
+.intro-reticle i:nth-child(3) { border-bottom-width: 1.5px; border-right-width: 1.5px; }
+.intro-reticle i:nth-child(4) { border-bottom-width: 1.5px; border-left-width: 1.5px; }
+.intro-reticle[data-state="locked"] i, .intro-reticle[data-state="split"] i { opacity: 1; filter: drop-shadow(0 0 3px rgb(255 176 0 / .5)); }
 .intro-site-marker :is(i, span) { transform-origin: top left; will-change: transform; }
 .intro-site-marker i { position: absolute; width: 12px; height: 12px; transform: translate(-50%, -50%); border: 2px solid #000; border-radius: 50%; background: #ffb000; }
 .intro-site-marker span { position: absolute; white-space: nowrap; font: 600 14px var(--font-mono); color: #ffd98a; line-height: 1; text-shadow: -1px -1px #000, 1px -1px #000, -1px 1px #000, 1px 1px #000; }
