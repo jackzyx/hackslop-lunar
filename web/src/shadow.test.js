@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { sunVector, toMap, localSun, mapViewport, shadeView, TERRAIN } from "./shadow.js";
+import { sunVector, toMap, localSun, mapViewport, MIN_MAP_HALF, shadeView, TERRAIN, transformMapViewport } from "./shadow.js";
 
 const near = (a, b, tol) => assert.ok(Math.abs(a - b) < tol, `${a} vs ${b}`);
 const flat = (fill = 0) => ({ ...TERRAIN, h: new Int16Array(TERRAIN.n ** 2).fill(fill), hmax: fill / 1000 });
@@ -51,6 +51,26 @@ test("the wide whole-region map leaves room to pan on both axes", () => {
   assert.equal(view.cx, 20);
   assert.equal(view.cy, -25);
   assert.ok(view.cx + view.half * view.aspect < TERRAIN.half - TERRAIN.px);
+});
+
+test("zoom keeps the same terrain point under the cursor or moving pinch midpoint", () => {
+  const view = mapViewport({ cx: 40, cy: -60, half: 60 }, 1.6, true);
+  const from = { x: 1.2, y: -0.4 };
+  for (const to of [from, { x: 0.8, y: 0.3 }]) {
+    const zoomed = transformMapViewport(view, 0.5, from, to, true);
+    assert.equal(zoomed.half, 30);
+    near(zoomed.cx + to.x * zoomed.half, view.cx + from.x * view.half, 1e-9);
+    near(zoomed.cy + to.y * zoomed.half, view.cy + from.y * view.half, 1e-9);
+  }
+});
+
+test("zoom stops at the minimum and at the available terrain", () => {
+  const center = { x: 0, y: 0 };
+  const view = mapViewport({ cx: 100, cy: 80, half: 45 }, 2, true);
+  assert.equal(transformMapViewport(view, 0.01, center, center, true).half, MIN_MAP_HALF);
+  const wide = transformMapViewport(view, 100, center, center, true);
+  assert.equal(wide.half * wide.aspect, TERRAIN.half - TERRAIN.px);
+  assert.equal(wide.cx, 0);
 });
 
 test("a 2 km wall shadows the ground behind it, not in front", () => {
