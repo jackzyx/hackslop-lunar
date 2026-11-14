@@ -130,12 +130,6 @@
 }
 .date:hover { border-color: var(--primary); }
 .date::-webkit-calendar-picker-indicator { filter: invert(70%) sepia(90%) saturate(900%) hue-rotate(2deg); cursor: pointer; }
-.pill {
-  font: inherit; font-size: 12px; letter-spacing: 0.1em; padding: 5px 10px; border: 1px solid var(--input);
-  color: var(--muted-foreground); background: transparent; cursor: pointer;
-}
-.pill.ok { border-color: var(--nominal); color: var(--nominal); text-shadow: 0 0 8px rgb(140 255 122 / 0.45); }
-.pill:hover { background: var(--accent); }
 .mock { background: var(--primary); color: var(--primary-foreground); font-weight: 800; font-size: 12px; padding: 4px 8px; letter-spacing: 0.1em; }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
@@ -194,7 +188,7 @@
 /* sized to the screen height too, so the whole console fits a 1280x720 projector */
 .mapwrap { position: relative; width: min(100%, calc(100vh - 328px)); min-width: min(100%, 300px); margin: 0 auto; aspect-ratio: 1; border: 1px solid var(--border); }
 .map-hud { position: absolute; z-index: 1; padding: 2px 6px; background: rgb(0 0 0 / 0.72); font-size: 10px; letter-spacing: 0.1em; color: var(--foreground); pointer-events: none; }
-.map-hud.tl { top: 6px; left: 6px; } .map-hud.br { bottom: 6px; right: 6px; color: var(--muted-foreground); }
+.map-hud.br { bottom: 6px; right: 6px; color: var(--muted-foreground); }
 .mapwrap canvas, .mapwrap svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .mapwrap canvas { background: #000; }
 .mapwrap svg text { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; fill: var(--foreground); stroke: #000; stroke-width: 3px; paint-order: stroke; }

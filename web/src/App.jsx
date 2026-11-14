@@ -4,7 +4,6 @@ import { terrainFrom } from "@/shadow.js";
 import { playIntro } from "@/intro.js";
 import { narrate } from "@/narrator.js";
 import { data, sites, vis, sunAt, t0, H, DAY, iso, fmtDate, reducedMotion } from "@/lib/data.js";
-import { fmtDeg, worst, done, validation } from "@/lib/validation.js";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import SiteCard from "@/components/SiteCard";
@@ -61,10 +60,7 @@ export default function App() {
           </label>
           <Button variant="outline" size="sm" onClick={() => intro()}>✦ STARS INTRO</Button>
           {data.mock && <span className="mock" title="Every number on this screen is a placeholder until real data replaces it">MOCK DATA</span>}
-          <button type="button" className={`pill ${done.length ? "ok" : ""}`} onClick={showValidation}
-            title={done.length ? `Sun and Earth angles, worst of ${done.length} site and body rows; pass mark ${validation.pass_deg}°` : ""}>
-            {done.length ? `✓ WITHIN ${fmtDeg(worst)} OF NASA JPL HORIZONS` : "HORIZONS CHECK: NOT YET RUN"}
-          </button>
+          <Button type="button" variant="link" size="sm" onClick={showValidation}>Validation</Button>
         </div>
       </header>
 
@@ -80,13 +76,13 @@ export default function App() {
       <p className="stars-say" aria-live="off"><b>✦ STARS //</b><span>{said}<i className="cursor" aria-hidden="true" /></span></p>
 
       <main className="console">
-        <SiteCard n={1} st={stats[0]} i0={i0} onPick={(id) => setPicks([id, picks[1]])} />
+        <SiteCard n={1} st={stats[0]} onPick={(id) => setPicks([id, picks[1]])} />
         <ShadowMap picks={picks} i0={i0} when={when} zoom={zoom} onZoom={() => setZoom(!zoom)} terrain={terrain} terrainErr={terrainErr} />
-        <SiteCard n={2} st={stats[1]} i0={i0} onPick={(id) => setPicks([picks[0], id])} />
+        <SiteCard n={2} st={stats[1]} onPick={(id) => setPicks([picks[0], id])} />
       </main>
 
-      <DetailTabs picks={picks} i0={i0} tab={tab} onTab={setTab} />
-      <p className="foot">Half sunlight = 360 of 720 hours. Verdicts test delays of 0 to {MAX_DELAY_D} days from the planned date. Landing at 00:00 UTC. Mast height 2 m. Hover the charts for detail.</p>
+      <DetailTabs stats={stats} i0={i0} tab={tab} onTab={setTab} />
+      <p className="foot">Half sunlight = 360 of 720 hours. Verdicts test delays of 0 to {MAX_DELAY_D} days from the planned date. Landing at 00:00 UTC. Hover the charts for detail.</p>
     </div>
   );
 }

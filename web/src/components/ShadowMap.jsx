@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { shadeView, paint } from "@/shadow.js";
-import { data, sunAt } from "@/lib/data.js";
+import { sunAt } from "@/lib/data.js";
 import { mapView, mapOverlay } from "@/lib/charts.js";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,6 @@ export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terr
     return () => cancelAnimationFrame(raf);
   }, [terrain, i0, picks[0], view.cx, view.cy, view.half]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const e = data.ephemeris.sites[picks[0]];
   return (
     <Card className="hud mapcard">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -32,7 +31,6 @@ export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terr
         <canvas ref={cv} width={MAP} height={MAP} />
         <svg viewBox={`0 0 ${MAP} ${MAP}`} role="img" aria-label="Map of the lunar south pole: sunlit ground and shadows at landing, with the chosen sites"
           dangerouslySetInnerHTML={{ __html: mapOverlay(view, picks, i0, MAP) }} />
-        <span className="map-hud tl">SUN @ SITE 1 · AZ {e.sun_az[i0].toFixed(1)}° · EL {e.sun_el[i0].toFixed(1)}°</span>
         <span className="map-hud br">LOLA 500 M · MOON_ME</span>
       </div>
       <p className="caption">
