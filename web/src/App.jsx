@@ -1,5 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { windowMetrics, verdictDelay, MAX_DELAY_D } from "@/domain/metrics.js";
+import { addCustomSite, removeCustomSite, restoreCustomSites } from "@/lib/custom-sites.js";
 import { initialTerrain } from '@/terrain/startup.js';
 import { narrate } from "@/domain/narrator.js";
 import { data, sites, vis, t0, H, DAY, iso, fmtDate, reducedMotion, loadPlannerData } from "@/lib/data.js";
@@ -99,6 +100,18 @@ function Planner({ hidden }) {
   const [tab, setTab] = useState("skylines");
   const [terrain, setTerrain] = useState(null);
   const [terrainErr, setTerrainErr] = useState(null);
+  const [customKey, setCustomKey] = useState(0); // bumps when custom sites are added or removed
+
+  // A click on the map: build the site, show it as site 2. Returns an error message or null.
+  const placeSite = (lat, lon) => {
+    try { const id = addCustomSite(terrain, lat, lon); setPicks([picks[0], id]); setCustomKey((k) => k + 1); return null; }
+    catch (e) { return e.message; }
+  };
+  const removeSite = (id) => {
+    removeCustomSite(id);
+    setPicks((p) => p.map((x, k) => (x === id ? (["A", "B", "C"].find((s) => s !== p[1 - k])) : x)));
+    setCustomKey((k) => k + 1);
+  };
 
   const dateMin = iso(t0 + MAX_DELAY_D * DAY);
   const dateMax = iso(t0 + data.ephemeris.count * H - (MAX_DELAY_D + 30) * DAY);
@@ -110,7 +123,7 @@ function Planner({ hidden }) {
   const said = narrate(delay, stats.map((s) => ({ name: sites[s.id].name, now: s.m.sunlit, onTime: s.onTime, d: s.d })));
 
   useEffect(() => {
-    initialTerrain().then(setTerrain).catch(err => setTerrainErr(err.message));
+    initialTerrain().then((t) => { restoreCustomSites(t); setTerrain(t); setCustomKey((k) => k + 1); }).catch(err => setTerrainErr(err.message));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const showValidation = () => { setTab("validation"); requestAnimationFrame(() => document.getElementById("details")?.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth" })); };
@@ -156,12 +169,12 @@ function Planner({ hidden }) {
         <p className="stars-say" aria-live="off"><b>✦ STARS //</b><span>{said}<i className="cursor" aria-hidden="true" /></span></p>
 
         <main className="console" id="compare-main" tabIndex={-1}>
-          <SiteCard n={1} st={stats[0]} onPick={(id) => setPicks([id, picks[1]])} />
-          <ShadowMap picks={picks} i0={i0} when={when} zoom={zoom} onZoom={() => setZoom(!zoom)} terrain={terrain} terrainErr={terrainErr} interacting={interacting} />
-          <SiteCard n={2} st={stats[1]} onPick={(id) => setPicks([picks[0], id])} />
+          <SiteCard n={1} st={stats[0]} onPick={(id) => setPicks([id, picks[1]])} onRemove={removeSite} />
+          <ShadowMap picks={picks} i0={i0} when={when} zoom={zoom} onZoom={() => setZoom(!zoom)} terrain={terrain} terrainErr={terrainErr} interacting={interacting} onPlace={placeSite} />
+          <SiteCard n={2} st={stats[1]} onPick={(id) => setPicks([picks[0], id])} onRemove={removeSite} />
         </main>
 
-        <DetailTabs picks={picks} i0={detailIndex} tab={tab} onTab={setTab} />
+        <DetailTabs picks={picks} i0={detailIndex} tab={tab} onTab={setTab} customKey={customKey} terrain={terrain} iPlanned={iPlanned} dateMax={dateMax} onLand={(d) => { setDate(d); setDelay(0); }} />
         <p className="foot">Half sunlight = 360 of 720 hours. Verdicts test delays of 0 to {MAX_DELAY_D} days from the planned date. Landing at 00:00 UTC. Hover the charts for detail.</p>
       </div>
   );

@@ -64,6 +64,7 @@ export function loadPlannerData() {
 
 const visCache = {};
 export const vis = (id) => (visCache[id] ??= visibility(sites[id].horizon, data.ephemeris.sites[id]));
+export const forgetVis = (id) => { delete visCache[id]; };
 // Sun unit vector (MOON_ME) at hour i, from one site's row; the same over the whole region.
 export const sunAt = (id, i) => { const e = data.ephemeris.sites[id]; return sunVector(sites[id].lat, sites[id].lon, e.sun_az[i], e.sun_el[i]); };
 

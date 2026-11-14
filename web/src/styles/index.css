@@ -243,6 +243,14 @@ html:has(#intro:not([hidden])) { --scrollbar-opacity: 0; transition: none; }
 .mapwrap canvas, .mapwrap svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .mapwrap[data-pan] { cursor: grab; touch-action: none; user-select: none; }
 .mapwrap[data-pan="dragging"] { cursor: grabbing; }
+.mapwrap[data-pan="ready"]:hover, .mapwrap[data-placing] { cursor: none; }
+.mapwrap svg.crosshair { pointer-events: none; z-index: 2; }
+.crosshair .ch-line { stroke: rgb(255 176 0 / 0.45); stroke-width: 0.7; stroke-dasharray: 3 3; fill: none; }
+.crosshair .ch-mark { stroke: var(--primary); stroke-width: 1.4; fill: none; }
+.crosshair text { font-size: 10px; }
+.crosshair[data-bad] .ch-mark { stroke: var(--critical); }
+.crosshair[data-bad] .ch-line { stroke: rgb(255 90 60 / 0.5); }
+.mapwrap[data-placing] { outline: 1px solid var(--primary); }
 .shadow-surface { position:absolute; inset:0; }
 .mapwrap canvas { background: #000; }
 .mapwrap svg text { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; fill: var(--foreground); stroke: #000; stroke-width: 3px; paint-order: stroke; }
@@ -256,6 +264,7 @@ html:has(#intro:not([hidden])) { --scrollbar-opacity: 0; transition: none; }
 .mapwrap .pin-label { font-size: 10.5px; font-weight: 600; fill: #ffd98a; }
 .mapwrap .scale { fill: none; stroke: var(--foreground); stroke-width: 1.5; }
 .caption { font-size: 13px; line-height: 1.4; }
+.link-btn { color: var(--primary); text-decoration: underline; cursor: pointer; }
 
 /* ---------- details: tabs under the console */
 .details { margin-top: 18px; scroll-margin-top: 12px; }

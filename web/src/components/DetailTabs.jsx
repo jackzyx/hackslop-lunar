@@ -1,6 +1,9 @@
 import { memo, useMemo, useState } from "react";
-import { WINDOW_H, maskAt, windowMetrics } from "@/domain/metrics.js";
-import { data, sites, vis, t0, H, fmtTime, latLon, dur } from "@/lib/data.js";
+import { WINDOW_H, maskAt, windowMetrics, visibility } from "@/domain/metrics.js";
+import { data, sites, vis, t0, H, DAY, iso, fmtDate, fmtTime, latLon, dur } from "@/lib/data.js";
+import { dailyWindows, bestDays, GOALS } from "@/domain/best-days.js";
+import { methodCheck } from "@/domain/custom-site.js";
+import { Button } from "@/components/ui/button";
 import { TL, P, panorama, skylineY, yRange } from "@/lib/charts.js";
 import VisibilityTimeline from '@/components/VisibilityTimeline';
 import { validation, fmtDeg, worst } from "@/lib/validation.js";
@@ -78,19 +81,74 @@ function SiteDetail({ n, id, i0, yr, bind, guide }) {
   );
 }
 
-function DetailTabs({ picks, i0, tab, onTab }) {
+// Best 00:00 UTC landing days in the 12 months from the planned date, per goal, for one site.
+function BestDays({ n, id, iPlanned, dateMax, onLand }) {
+  const days = Math.min(365, Math.floor((Date.parse(`${dateMax}T00:00:00Z`) - (t0 + iPlanned * H)) / DAY) + 1);
+  const rows = useMemo(() => dailyWindows(vis(id), iPlanned, days), [id, iPlanned, days]);
+  return (
+    <Card className="hud detail">
+      <h3 className="hud-title">SITE {n} · {sites[id].name.toUpperCase()}</h3>
+      <p className="hud-label">Best landing days · 12 months from {fmtDate(t0 + iPlanned * H, { year: "numeric" })} · 30-day windows</p>
+      <Table className="hud-table">
+        <TableHeader><TableRow><TableHead>GOAL</TableHead><TableHead>LAND</TableHead><TableHead>SUN</TableHead><TableHead>EARTH</TableHead><TableHead /></TableRow></TableHeader>
+        <TableBody>
+          {Object.entries(GOALS).flatMap(([goal, { label }]) => bestDays(rows, goal).map((r, k) => {
+            const day = iso(t0 + r.i * H);
+            return <TableRow key={goal + r.d}>
+              <TableCell>{k === 0 ? label.toUpperCase() : ""}</TableCell>
+              <TableCell>{fmtDate(t0 + r.i * H, { weekday: "short", year: "numeric" })}</TableCell>
+              <TableCell>{Math.round(r.sunlit)} h</TableCell><TableCell>{Math.round(r.earth)} h</TableCell>
+              <TableCell><Button type="button" variant="outline" size="xs" onClick={() => onLand(day)} aria-label={`Plan landing on ${day}`}>LAND</Button></TableCell>
+            </TableRow>;
+          }))}
+        </TableBody>
+      </Table>
+      <p className="caption">“Best of both” maximises the weaker of sunlight and Earth hours. Earth = line of sight, not a radio link. LAND sets the planned date (slip back to 0).</p>
+    </Card>
+  );
+}
+
+function MethodCheck({ terrain }) {
+  const rows = useMemo(() => {
+    if (!terrain) return null;
+    const shipped = data.sites.filter((s) => !s.custom && s.terrain_modelled !== false).map((s) => ({ ...s, table: data.ephemeris.sites[s.id] }));
+    return methodCheck(terrain, shipped, visibility, windowMetrics, WINDOW_H);
+  }, [terrain]);
+  if (!rows) return <p className="caption">Custom-site check runs once the terrain has loaded.</p>;
+  return (
+    <section className="grid gap-2 pt-3">
+      <h3 className="hud-title">CUSTOM-SITE METHOD CHECK</h3>
+      <p className="caption">Each curated site rebuilt from its coordinates alone, the way custom sites are: horizon from the 500 m map terrain in the browser, Sun and Earth angles from the nearest other site. Compared with the curated numbers (SPICE angles, 80 m terrain horizon), 30-day windows every 7 days over the whole table.</p>
+      <Table className="hud-table">
+        <TableHeader><TableRow><TableHead>SITE</TableHead><TableHead>FROM POLE</TableHead><TableHead>HORIZON RMS</TableHead><TableHead>MAX ANGLE ERROR</TableHead><TableHead>SUNLIGHT MAX |Δ|</TableHead><TableHead>MEAN Δ</TableHead></TableRow></TableHeader>
+        <TableBody>{rows.map((r) => <TableRow key={r.id}>
+          <TableCell>{r.name}</TableCell><TableCell>{r.km.toFixed(0)} km</TableCell><TableCell>{r.maskRms.toFixed(2)}°</TableCell>
+          <TableCell>{fmtDeg(r.angleMax)}</TableCell><TableCell>{Math.round(r.sunlitMax)} h</TableCell><TableCell>{r.sunlitMean >= 0 ? "+" : "−"}{Math.abs(r.sunlitMean).toFixed(0)} h</TableCell>
+        </TableRow>)}</TableBody>
+      </Table>
+      <p className="caption">Angles agree with SPICE. The coarser terrain is the weak point: on narrow ridges and peaks it misses nearby relief and overstates sunlight, so treat custom-site sunlight as a screening estimate.</p>
+    </section>
+  );
+}
+
+function DetailTabs({ picks, i0, tab, onTab, terrain, iPlanned, dateMax, onLand }) {
   const [bind, tipEl, guide] = useTip(), yr = useMemo(() => yRange(picks), [picks]), v = validation;
   const illumination = v.checks.find((c) => c.id === "V4");
   return (
     <Tabs value={tab} onValueChange={onTab} className="details" id="details">
       <TabsList variant="line" className="hud-tabs">
         <TabsTrigger value="skylines">SKYLINES + 30 DAYS</TabsTrigger>
+        <TabsTrigger value="best">BEST LANDING DAYS</TabsTrigger>
         <TabsTrigger value="validation">VALIDATION</TabsTrigger>
         <TabsTrigger value="limits">NOT MODELLED</TabsTrigger>
       </TabsList>
 
       <TabsContent value="skylines" className="grid gap-4 md:grid-cols-2">
         {picks.map((id, c) => <SiteDetail key={c} n={c + 1} id={id} i0={i0} yr={yr} bind={bind} guide={guide} />)}
+      </TabsContent>
+
+      <TabsContent value="best" className="grid gap-4 md:grid-cols-2">
+        {tab === "best" && picks.map((id, c) => <BestDays key={c} n={c + 1} id={id} iPlanned={iPlanned} dateMax={dateMax} onLand={onLand} />)}
       </TabsContent>
 
       <TabsContent value="validation">
@@ -119,6 +177,7 @@ function DetailTabs({ picks, i0, tab, onTab }) {
           </Table>
           <p className="caption">Pass mark {v.pass_deg}°. Reference: JPL Horizons, topocentric site on the Moon, airless, frame MOON_ME, correction LT+S. {v.queried ? `Queried ${v.queried}.` : "Not yet queried."}</p>
           <ul className="checks">{v.checks.filter((c) => c !== illumination).map((c) => <li key={c.id}><span className="hud-label">{c.id}</span> {c.label}: {c.result ?? "not yet run"}</li>)}</ul>
+          {tab === "validation" && <MethodCheck terrain={terrain} />}
         </Card>
       </TabsContent>
 
@@ -130,7 +189,7 @@ function DetailTabs({ picks, i0, tab, onTab }) {
             <li>No power or thermal model</li>
             <li>No radio link budget: Earth contact is line of sight only</li>
             <li>No slopes or landing hazards</li>
-            <li>Curated sites only, no custom coordinates</li>
+            <li>Custom sites: horizon from the 500 m map terrain, lower fidelity than the curated sites (see Validation)</li>
           </ul>
         </Card>
       </TabsContent>

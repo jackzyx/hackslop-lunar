@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const STATUS = { good: "NOMINAL", warning: "MARGINAL", critical: "CRITICAL" };
 
-export default function SiteCard({ n, st, onPick }) {
+export default function SiteCard({ n, st, onPick, onRemove }) {
   const s = sites[st.id], { m, d } = st;
   const g = grade(m.sunlit), shown = useCountUp(m.sunlit);
   const kind = s.kind && s.kind.toLowerCase() !== s.name.toLowerCase() ? s.kind : null; // the site type, unless the name says it
@@ -33,6 +33,7 @@ export default function SiteCard({ n, st, onPick }) {
         </SelectContent>
       </Select>
       <p className="mission">{mission}</p>
+      {s.custom && <p className="caption">{Math.abs(s.lat).toFixed(3)}°S {s.lon.toFixed(2)}°E · ground {s.ground_m} m · lower-fidelity horizon, see Validation · <button type="button" className="link-btn" onClick={() => onRemove(s.id)}>Remove</button></p>}
       {s.terrain_modelled === false && <p className="caption">Smooth-sphere horizon · Terrain not modelled</p>}
 
       <div className={`big ${g}`}>

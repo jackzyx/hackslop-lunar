@@ -86,7 +86,7 @@ export function paint(b, px) {
   }
 }
 
-function heightAt(t, x, y) {
+export function heightAt(t, x, y) {
   const c = (x + t.half) / t.px - 0.5, r = (t.half - y) / t.px - 0.5;
   if (!(c >= 0 && r >= 0 && c < t.n - 1 && r < t.n - 1)) return NaN;
   const c0 = c | 0, r0 = r | 0, fc = c - c0, fr = r - r0, i = r0 * t.n + c0, h = t.h;
