@@ -53,6 +53,11 @@ TIERS = {
         # (The *_COG.TIF links on the PGDA 69 page return "Not Found"; use the plain TIFs.)
         (f"{ILLUM}/AVGVISIB_85S_060M_201608.TIF", "illum"),
         (f"{ILLUM}/AVGVISIB_85S_060M_201608_EARTH.TIF", "illum"),
+        (f"{ILLUM}/LPSR_85S_060M_201608.TIF", "illum"),
+        # 75-90 S at 120 m: covers sites between 80 S (our DEM edge) and 85 S.
+        (f"{ILLUM}/AVGVISIB_75S_120M_201608.TIF", "illum"),
+        (f"{ILLUM}/AVGVISIB_75S_120M_201608_EARTH.TIF", "illum"),
+        (f"{ILLUM}/LPSR_75S_120M_201608.TIF", "illum"),
         # LRO NAC real vs. LOLA-simulated pair (stretch: photo vs software vs table)
         (f"{PGDA}/M139356343LE_20MPP.TIF", "nac"),
         (f"{PGDA}/M139356343_20MPP_MODEL.TIF", "nac"),
