@@ -10,6 +10,7 @@ import ShadowMap from "@/components/ShadowMap";
 import DetailTabs from "@/components/DetailTabs";
 import About from "@/components/About";
 import LandingDatePicker from "@/components/LandingDatePicker";
+import AmbientStars from '@/components/AmbientStars';
 import { currentPage, routeUrl } from "@/lib/routes.js";
 
 export default function App() {
@@ -68,6 +69,8 @@ export default function App() {
   const slip = delay === 0 ? "ON TIME" : delay > 0 ? `SLIP +${n} D` : `EARLY −${n} D`;
 
   return (
+    <>
+    <AmbientStars />
     <div className="shell">
       <nav className="site-nav" aria-label="Main navigation">
         <a className="nav-wordmark" href={compareHref} onClick={followRoute}>SUN SHADE</a>
@@ -121,5 +124,6 @@ export default function App() {
         <p className="foot">Half sunlight = 360 of 720 hours. Verdicts test delays of 0 to {MAX_DELAY_D} days from the planned date. Landing at 00:00 UTC. Hover the charts for detail.</p>
       </div>
     </div>
+    </>
   );
 }
