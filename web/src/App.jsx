@@ -13,9 +13,6 @@ import DetailTabs from "@/components/DetailTabs";
 import About from "@/components/About";
 import LandingDatePicker from "@/components/LandingDatePicker";
 import AmbientStars from '@/components/AmbientStars';
-import Stars from "@/components/Stars";
-import { DEFAULT_PREFS } from "@/domain/screening.js";
-import { checkPatch } from "@/stars/actions.js";
 import { currentPage, isPolicyPage, pageForPath, routeUrl } from "@/lib/routes.js";
 
 function focusPage(page) {
@@ -102,8 +99,6 @@ function Planner({ hidden }) {
   const [tab, setTab] = useState("skylines");
   const [terrain, setTerrain] = useState(null);
   const [terrainErr, setTerrainErr] = useState(null);
-  const [prefs, setPrefs] = useState(DEFAULT_PREFS);
-  const [undoStack, setUndoStack] = useState([]);
 
   const dateMin = iso(t0 + MAX_DELAY_D * DAY);
   const dateMax = iso(t0 + data.ephemeris.count * H - (MAX_DELAY_D + 30) * DAY);
@@ -117,26 +112,6 @@ function Planner({ hidden }) {
   useEffect(() => {
     initialTerrain().then(setTerrain).catch(err => setTerrainErr(err.message));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // STARS may change only these fields, only through checkPatch, and each change can be undone
-  // field by field (later manual changes to other fields are kept).
-  const current = { date, delay, picks, prefs, zoom };
-  const setters = { date: setDate, delay: setDelay, picks: setPicks, prefs: setPrefs, zoom: setZoom };
-  const starsApply = (patch) => {
-    const errors = checkPatch(patch, { siteIds: data.sites.map((s) => s.id), dateMin, dateMax });
-    if (errors.length) return errors;
-    setUndoStack((u) => [...u.slice(-19), Object.fromEntries(Object.keys(patch).map((k) => [k, current[k]]))]);
-    for (const [k, v] of Object.entries(patch)) setters[k](v);
-    return [];
-  };
-  const starsUndo = () => {
-    const prev = undoStack.at(-1);
-    if (!prev) return;
-    for (const [k, v] of Object.entries(prev)) setters[k](v);
-    setUndoStack((u) => u.slice(0, -1));
-  };
-  const starsFocus = () => { setZoom(true); requestAnimationFrame(() => document.getElementById("compare-main")?.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth", block: "center" })); };
-  const starsCtx = { sites: data.sites, vis, count: data.ephemeris.count, t0, iPlanned, delay, picks, prefs, dateMin, dateMax };
 
   const showValidation = () => { setTab("validation"); requestAnimationFrame(() => document.getElementById("details")?.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth" })); };
   const n = Math.abs(delay);
@@ -178,6 +153,8 @@ function Planner({ hidden }) {
           <output htmlFor="slip" className="slipout glow">{slip} · LANDS {when.toUpperCase()}</output>
         </section>
 
+        <p className="stars-say" aria-live="off"><b>✦ STARS //</b><span>{said}<i className="cursor" aria-hidden="true" /></span></p>
+
         <main className="console" id="compare-main" tabIndex={-1}>
           <SiteCard n={1} st={stats[0]} onPick={(id) => setPicks([id, picks[1]])} />
           <ShadowMap picks={picks} i0={i0} when={when} zoom={zoom} onZoom={() => setZoom(!zoom)} terrain={terrain} terrainErr={terrainErr} interacting={interacting} />
@@ -186,7 +163,6 @@ function Planner({ hidden }) {
 
         <DetailTabs picks={picks} i0={detailIndex} tab={tab} onTab={setTab} />
         <p className="foot">Half sunlight = 360 of 720 hours. Verdicts test delays of 0 to {MAX_DELAY_D} days from the planned date. Landing at 00:00 UTC. Hover the charts for detail.</p>
-        <Stars ctx={starsCtx} stateKey={JSON.stringify([date, delay, picks, prefs])} live={said} onApply={starsApply} onUndo={starsUndo} canUndo={undoStack.length > 0} onFocus={starsFocus} />
       </div>
   );
 }
