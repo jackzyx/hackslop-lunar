@@ -31,6 +31,12 @@ keeps this shape:
 | `sites[]` | `id`, `name`, `kind`, `mission` (mission or programme label from Story's site list, or `null`), `lat`, `lon` (deg, east-positive), `mast_m`, `az_step_deg` (0.5), `horizon` (720 skyline elevations in deg, azimuth 0, 0.5 ... 359.5 clockwise from north) |
 | `ephemeris` | `start_utc`, `step_s` (3600), `count`, `frame` (`MOON_ME`), and `sites[id]` = `{sun_az, sun_el, earth_az, earth_el}`, each `count` values in deg (az clockwise from north) |
 
+The validation table and the header line read `src/validation.json` (Science writes it;
+`null` shows as "not yet measured"): `queried` (date string), `pass_deg` (0.01), `rows[]` =
+`{site, body, max_del_deg, max_daz_cos_deg, hours, start, stop}` (deg, ISO dates), and
+`checks[]` = `{id, label, result}` (result is a short sentence, e.g. "0.087° dip, within 0.001°").
+The header shows the worst row as "within X° of JPL Horizons", so never type numbers into the HTML.
+
 The date picker is limited so that planned date ± 60 days plus the 30-day window stays
 inside the table. When the hourly 2025-2030 table arrives (≈ 52,600 rows) switch to the
 binary format in the `lunar-ephemeris` skill and fetch it instead of importing JSON.
