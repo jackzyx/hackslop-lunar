@@ -107,11 +107,11 @@ export function clippedImage(imageWidth, imageHeight, x, y, width, height, viewp
     left, top, right - left, bottom - top];
 }
 
-export function terrainHandoff(width, height, size, target) {
-  const x = (width - size) / 2, y = (height - size) / 2;
+export function terrainHandoff(width, height, size, target, aspect = 1) {
+  const x = (width - size * aspect) / 2, y = (height - size) / 2;
   return {
     x, y,
-    scaleX: target.width / size,
+    scaleX: target.width / (size * aspect),
     scaleY: target.height / size,
     tx: target.left - x,
     ty: target.top - y,
@@ -168,6 +168,9 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
     }
   };
   const placeTerrain = (source, width, height, size) => {
+    const aspect = source.width / source.height;
+    const actualHalf = zoom ? view.half : Math.min(view.half, 248 / Math.max(1, aspect));
+    const shownHeight = size * actualHalf / view.half, shownWidth = shownHeight * aspect;
     if (!snapshot) {
       snapshot = document.createElement('canvas');
       snapshot.className = 'intro-terrain-copy';
@@ -182,9 +185,10 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
       snapshotSource = source;
     }
     Object.assign(snapshot.style, {
-      left: `${(width - size) / 2}px`, top: `${(height - size) / 2}px`,
-      width: `${size}px`, height: `${size}px`,
+      left: `${(width - shownWidth) / 2}px`, top: `${(height - shownHeight) / 2}px`,
+      width: `${shownWidth}px`, height: `${shownHeight}px`,
     });
+    return shownHeight;
   };
   const reveal = () => {
     if (over || skipping) return;
@@ -213,9 +217,9 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
       return;
     }
     const size = draw(END);
-    placeTerrain(liveCanvas, W, H, size);
+    const shownHeight = placeTerrain(liveCanvas, W, H, size);
     const transformTo = (rect) => {
-      const { scaleX, scaleY, tx, ty } = terrainHandoff(W, H, size, rect);
+      const { scaleX, scaleY, tx, ty } = terrainHandoff(W, H, shownHeight, rect, liveCanvas.width / liveCanvas.height);
       return { transform: ['translate(0px, 0px) scale(1, 1)', `translate(${tx}px, ${ty}px) scale(${scaleX}, ${scaleY})`] };
     };
     layoutChanged = () => {

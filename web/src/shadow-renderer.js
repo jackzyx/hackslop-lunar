@@ -13,10 +13,10 @@ export function createShadowRenderer(terrain, mount) {
     } catch {
       canvas.dataset.renderError = 'true';
     }
-    if (worker) worker.onmessage = ({ data: { pixels, size, id } }) => {
+    if (worker) worker.onmessage = ({ data: { pixels, size, width, id } }) => {
       if (disposed) return;
-      canvas.width = size; canvas.height = size;
-      ctx.putImageData(new ImageData(pixels,size,size),0,0); canvas.dataset.frame = String(id);
+      canvas.width = width; canvas.height = size;
+      ctx.putImageData(new ImageData(pixels,width,size),0,0); canvas.dataset.frame = String(id);
       busy = false;
       if (pending) { const request = pending; pending = null; renderer.render(request); }
     };

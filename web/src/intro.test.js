@@ -70,6 +70,17 @@ test("Sun longitude: 0 deg at the March 2026 equinox, 90 at the June solstice", 
   near(angDiff(sunLongitude(Date.UTC(2026, 5, 21, 8, 24)), 90), 0, 0.1);
 });
 
+test('wide map handoff preserves its aspect ratio while shrinking', () => {
+  const target = { left: 680, top: 290, width: 1040, height: 650 };
+  const aspect = target.width / target.height;
+  const h = terrainHandoff(1920,1080,1200,target,aspect);
+  near(h.scaleX,h.scaleY,1e-9);
+  near(h.x+h.tx,target.left,1e-9);
+  near(h.y+h.ty,target.top,1e-9);
+  near(1200*aspect*h.scaleX,target.width,1e-9);
+  near(1200*h.scaleY,target.height,1e-9);
+});
+
 test("scene: Moon->Earth points up and the Sun sits where the polar map puts it", () => {
   const ms = Date.UTC(2026, 10, 20);
   for (const ss of [0, 37, 90, 180, -90]) {

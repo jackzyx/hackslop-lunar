@@ -11,7 +11,7 @@ precision highp int;
 uniform sampler2D heights;
 uniform vec3 sun;
 uniform vec3 view;
-uniform float size;
+uniform vec2 resolution;
 uniform float terrainHalf;
 uniform float pixelKm;
 uniform float hmax;
@@ -34,7 +34,7 @@ float fraction(float el, float horizon) {
   return 1.0 - (acos(h)-h*sqrt(1.0-h*h))/3.141592653589793;
 }
 void main() {
-  vec2 p = view.xy + (gl_FragCoord.xy / size * 2.0 - 1.0) * view.z;
+  vec2 p = view.xy + (gl_FragCoord.xy - resolution / 2.0) * (2.0 * view.z / resolution.y);
   if(!inside(p)) { color=vec4(0); return; }
   float h0=height(p), rho=length(p), u=rho/(2.0*R);
   float sc=2.0*u/(1.0+u*u), cc=(1.0-u*u)/(1.0+u*u);
@@ -89,15 +89,16 @@ export function createGPUShadow(terrain) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, terrain.n, terrain.n, 0, gl.RED, gl.FLOAT, Float32Array.from(terrain.h, h => h / 1000));
-    const uniforms = Object.fromEntries(['sun','view','size','terrainHalf','pixelKm','hmax'].map(name => [name, gl.getUniformLocation(program,name)]));
+    const uniforms = Object.fromEntries(['sun','view','resolution','terrainHalf','pixelKm','hmax'].map(name => [name, gl.getUniformLocation(program,name)]));
     gl.uniform1f(uniforms.terrainHalf, terrain.half); gl.uniform1f(uniforms.pixelKm, terrain.px); gl.uniform1f(uniforms.hmax, terrain.hmax);
     canvas.dataset.renderer = 'webgl2';
     return { canvas,
       render({ sun, view, size, id }) {
         if (gl.isContextLost()) throw new Error('Shadow GPU context lost');
-        if (canvas.width !== size) { canvas.width = size; canvas.height = size; }
-        gl.viewport(0,0,size,size); gl.useProgram(program);
-        gl.uniform3fv(uniforms.sun,sun); gl.uniform3f(uniforms.view,view.cx,view.cy,view.half); gl.uniform1f(uniforms.size,size);
+        const width = Math.max(1, Math.round(size * (view.aspect ?? 1)));
+        if (canvas.width !== width || canvas.height !== size) { canvas.width = width; canvas.height = size; }
+        gl.viewport(0,0,width,size); gl.useProgram(program);
+        gl.uniform3fv(uniforms.sun,sun); gl.uniform3f(uniforms.view,view.cx,view.cy,view.half); gl.uniform2f(uniforms.resolution,width,size);
         gl.drawArrays(gl.TRIANGLES,0,3); canvas.dataset.frame = String(id);
       },
       dispose() { gl.deleteTexture(texture); gl.deleteProgram(program); shaders.forEach(s => gl.deleteShader(s)); gl.getExtension('WEBGL_lose_context')?.loseContext(); },

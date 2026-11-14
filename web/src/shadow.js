@@ -68,17 +68,18 @@ function heightAt(t, x, y) {
   return ((h[i] * (1 - fc) + h[i + 1] * fc) * (1 - fr) + (h[i + t.n] * (1 - fc) + h[i + t.n + 1] * fc) * fr) / 1000;
 }
 
-// Brightness 0..1 for size x size pixels covering the square view {cx, cy, half} (km), row 0 at
+// Brightness 0..1 for size x height pixels. `half` is the vertical half-span in km;
+// the horizontal extent follows the aspect ratio, with equal km per pixel on both axes. Row 0 is at
 // the top; NaN outside the terrain. Brightness = visible share of the Sun's disc x slope shading.
 // shortcut: marches a straight map line with map distance as ground distance (both off by < 0.6 %
 // at 250 km from the pole); fine for a picture, the site numbers come from the horizon masks.
-export function shadeView(t, sun, view, size) {
-  const out = new Float32Array(size * size), step = (2 * view.half) / size, R2 = 2 * R_KM;
+export function shadeView(t, sun, view, size, height = size) {
+  const out = new Float32Array(size * height), step = (2 * view.half) / height, R2 = 2 * R_KM;
   const tanLoOf = (sinEl, cosEl) => Math.tan(Math.atan2(sinEl, cosEl) - 0.2665 * RAD);
-  for (let j = 0; j < size; j++) {
+  for (let j = 0; j < height; j++) {
     const y = view.cy + view.half - (j + 0.5) * step;
     for (let i = 0; i < size; i++) {
-      const x = view.cx - view.half + (i + 0.5) * step, h0 = heightAt(t, x, y);
+      const x = view.cx + (i + 0.5 - size / 2) * step, h0 = heightAt(t, x, y);
       if (Number.isNaN(h0)) { out[j * size + i] = NaN; continue; }
       const s0 = localSun(sun, x, y), el = Math.atan2(s0.sinEl, s0.cosEl);
       const tanHi = Math.tan(el + 0.2665 * RAD), tanLo = tanLoOf(s0.sinEl, s0.cosEl);

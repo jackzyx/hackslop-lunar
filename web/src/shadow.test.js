@@ -31,6 +31,14 @@ test("smooth sphere: curvature never casts a shadow, Sun below the horizon is da
   assert.ok(down.every((v) => v <= 0.1), "all dark when the Sun is down"); // shadow keeps a faint relief, max 0.1
 });
 
+test('wide terrain renders extend the view without stretching its centre', () => {
+  const terrain = flat(), sun = sunVector(-88, 120, 200, 3), view = { cx: 60, cy: -40, half: 30 };
+  const square = shadeView(terrain, sun, view, 8);
+  const wide = shadeView(terrain, sun, view, 16, 8);
+  assert.equal(wide.length, 128);
+  for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) near(wide[y * 16 + x + 4], square[y * 8 + x], 1e-6);
+});
+
 test("a 2 km wall shadows the ground behind it, not in front", () => {
   const t = flat();
   for (let r = 0; r < t.n; r++) for (let c = 520; c < 524; c++) t.h[r * t.n + c] = 2000; // wall at x = 10..12 km

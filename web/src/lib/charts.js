@@ -79,15 +79,16 @@ export function yRange(ids) {
 }
 
 // --- map: the square view (km on the polar map) and its HUD overlay
-export function mapOverlay(view, picks, i0, size) {
-  const toPx = ([x, y]) => [((x - view.cx + view.half) / (2 * view.half)) * size, ((view.cy + view.half - y) / (2 * view.half)) * size];
-  const inView = ([x, y], m = 10) => x > -m && x < size + m && y > -m && y < size + m;
-  const kmPx = size / (2 * view.half), pole = toPx([0, 0]);
+export function mapOverlay(view, picks, i0, size, height = size) {
+  const kmPx = height / (2 * view.half);
+  const toPx = ([x, y]) => [size / 2 + (x - view.cx) * kmPx, height / 2 - (y - view.cy) * kmPx];
+  const inView = ([x, y], m = 10) => x > -m && x < size + m && y > -m && y < height + m;
+  const pole = toPx([0, 0]);
   const km = [1, 2, 5, 10, 20, 50, 100].filter((d) => d <= view.half / 2).pop();
   let g = "";
 
   // Polar grid: rings every `km` from the pole, meridians every 30 deg (0 deg = Earth-facing, up).
-  const far = Math.hypot(Math.abs(view.cx) + view.half, Math.abs(view.cy) + view.half), off = Math.hypot(view.cx, view.cy);
+  const far = Math.hypot(Math.abs(view.cx) + view.half * size / height, Math.abs(view.cy) + view.half), off = Math.hypot(view.cx, view.cy);
   const toward = off > 1 ? [view.cx / off, view.cy / off] : [0, 1]; // ring labels sit on the line toward the view centre
   for (let r = km; r <= far; r += km) {
     g += `<circle class="ring" cx="${pole[0].toFixed(1)}" cy="${pole[1].toFixed(1)}" r="${(r * kmPx).toFixed(1)}"/>`;
@@ -120,6 +121,6 @@ export function mapOverlay(view, picks, i0, size) {
       `<text class="pin-label" x="${Math.min(size - 80, Math.max(80, x))}" y="${y + (above ? -20 : 30)}" text-anchor="middle">${k + 1} · ${site.name.toUpperCase()}${lit ? "" : " · SUN HIDDEN"}</text>`;
   }
   const len = km * kmPx;
-  g += `<path class="scale" d="M14,${size - 14}h${len.toFixed(1)}M14,${size - 18}v8M${(14 + len).toFixed(1)},${size - 18}v8"/><text x="14" y="${size - 24}">${km} KM</text>`;
+  g += `<path class="scale" d="M14,${height - 14}h${len.toFixed(1)}M14,${height - 18}v8M${(14 + len).toFixed(1)},${height - 18}v8"/><text x="14" y="${height - 24}">${km} KM</text>`;
   return g;
 }

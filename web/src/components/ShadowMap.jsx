@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createShadowRenderer } from "@/shadow-renderer.js";
 import { sites, sunAt } from "@/lib/data.js";
 import { mapView } from "@/shadow.js";
@@ -11,7 +11,20 @@ const MAP = 360; // canvas pixels; CSS scales it to the panel
 // Real terrain with the shadows at the landing instant (shadow.js), lon 0 up, 90 E right.
 // The Sun direction comes from the first chosen site's row of the same table the cards use.
 export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terrainErr, interacting = false }) {
-  const surface = useRef(null), renderer = useRef(null), view = mapView(picks.map(id => sites[id]), zoom);
+  const surface = useRef(null), renderer = useRef(null), [aspect, setAspect] = useState(1);
+  const base = mapView(picks.map(id => sites[id]), zoom);
+  // Whole-region views stay inside the available DEM instead of exposing empty
+  // strips at the sides of a wide panel. Close-ups retain their selected-site fit.
+  const view = { ...base, half: zoom ? base.half : Math.min(base.half, 248 / Math.max(1, aspect)), aspect };
+  const mapWidth = MAP * aspect;
+  useEffect(() => {
+    const observer = new ResizeObserver(entries => {
+      const { width, height } = entries[0].contentRect;
+      if (width > 0 && height > 0) setAspect(Math.round(width / height * 10000) / 10000);
+    });
+    observer.observe(surface.current);
+    return () => observer.disconnect();
+  }, []);
   useEffect(() => {
     if (!terrain) return;
     renderer.current = createShadowRenderer(terrain, surface.current);
@@ -19,7 +32,7 @@ export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terr
   }, [terrain]);
   useEffect(() => {
     renderer.current?.request({ sun: sunAt(picks[0], i0), view, size: interacting ? 256 : 512, interacting, id: i0 });
-  }, [terrain, i0, picks[0], view.cx, view.cy, view.half, interacting]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [terrain, i0, picks[0], view.cx, view.cy, view.half, aspect, interacting]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Card className="hud mapcard">
@@ -29,8 +42,8 @@ export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terr
       </div>
       <div className="mapwrap">
         <div className="shadow-surface" id="landing-terrain" data-terrain-error={terrainErr ? true : undefined} ref={surface} />
-        <svg viewBox={`0 0 ${MAP} ${MAP}`} role="img" aria-label="Map of the lunar south pole: sunlit ground and shadows at landing, with the chosen sites"
-          dangerouslySetInnerHTML={{ __html: mapOverlay(view, picks, i0, MAP) }} />
+        <svg viewBox={`0 0 ${mapWidth} ${MAP}`} role="img" aria-label="Map of the lunar south pole: sunlit ground and shadows at landing, with the chosen sites"
+          dangerouslySetInnerHTML={{ __html: mapOverlay(view, picks, i0, mapWidth, MAP) }} />
         <span className="map-hud br">LOLA 500 M · MOON_ME</span>
       </div>
       <p className="caption">

@@ -158,8 +158,8 @@
 .console { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.25fr); gap: 14px; align-items: start; }
 /* both site cards stack in the left column; the map takes the right column across both rows */
 .console > .mapcard { grid-column: 2; grid-row: 1 / span 2; align-self: stretch; }
-/* the map grows to the height of the two stacked cards, square, up to the column width */
-.console > .mapcard .mapwrap { flex: 1 1 0; width: auto; max-width: 100%; min-height: 300px; align-self: center; }
+/* Fill the whole panel; the renderer and grid share its measured aspect ratio. */
+.console > .mapcard .mapwrap { flex: 1 1 0; width: 100%; max-width: 100%; min-height: 300px; align-self: stretch; aspect-ratio: auto; margin: 0; }
 .site { gap: 6px; }
 .status { font-size: 12px; font-weight: 700; letter-spacing: 0.16em; }
 .status.good { color: var(--nominal); } .status.warning { color: var(--primary); } .status.critical { color: var(--critical); }
@@ -365,10 +365,11 @@ body:has(.intro[data-phase="revealing"]) .mapwrap > * { visibility: hidden; }
 @media (max-width: 1100px) {
   .console { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .console > .mapcard { grid-column: 1 / -1; grid-row: auto; order: 3; }
-  .console > .mapcard .mapwrap { flex: none; width: min(100%, 620px); align-self: auto; }
-  .mapwrap { width: min(100%, 620px); }
+  .console > .mapcard .mapwrap { flex: none; width: 100%; min-height: 0; aspect-ratio: 16 / 10; align-self: stretch; }
+  .mapwrap { width: 100%; }
 }
 @media (max-width: 760px) {
+  .console > .mapcard .mapwrap { aspect-ratio: 1; }
   .console { grid-template-columns: minmax(0, 1fr); }
   .tools { margin-left: 0; }
   .brand { font-size: 20px; }

@@ -1,7 +1,15 @@
 # Long Shadow web app
 
+The navigation map fills the full width of its panel. A ResizeObserver shares the
+panel aspect ratio with the terrain renderer and SVG overlay, so the wide desktop
+view reveals more ground without stretching craters or distance rings. The whole
+region view fits within the DEM extent to avoid empty side strips. Tablets use a
+wide map and phones keep a square map. GPU and worker rendering both support the
+same rectangular projection.
+
 Shadow-map performance: WebGL2 renders the terrain ray march on the GPU. It draws
-at 256 × 256 while the delay slider is held, then resolves to 512 × 512 on release.
+at 256 px high while the delay slider is held, then resolves to 512 px high on release;
+the width follows the panel aspect ratio.
 Requests are coalesced to animation frames. If WebGL2 is unavailable or its context
 is lost, a Web Worker draws a 144 px interaction preview and a 360 px final image,
 keeping the UI thread free. The fallback keeps only the newest queued request.
