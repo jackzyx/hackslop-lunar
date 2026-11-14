@@ -1,9 +1,11 @@
 ---
 name: relief-print
-description: Turn a LOLA heightmap into a watertight, printable STL of the lunar south pole on its spherical cap (1 mm = 1 km, vertical exaggeration k = 3, 150 mm disc, 3 mm base) with trimesh/numpy, plus slicer settings, test coupon and finishing. Use for anything about the 3D-printed relief, mesh generation, STL, slicing or print failures.
+description: DROPPED Sat 14 Nov (software only, reference only). Turn a LOLA heightmap into a watertight, printable STL of the lunar south pole on its spherical cap (1 mm = 1 km, vertical exaggeration k = 3, 150 mm disc, 3 mm base) with trimesh/numpy, plus slicer settings, test coupon and finishing. Use for anything about the 3D-printed relief, mesh generation, STL, slicing or print failures.
 ---
 
 # Relief print (Hardware)
+
+> **Dropped Sat 14 Nov 10:15: software only.** Reference only, do not build.
 
 Context: `context/06-hardware.md`. Heightmap comes from Science (skill `lola-dem`) as a
 16-bit PNG + JSON sidecar by **Fri 20:45**. Gate: **full print running Fri 23:30**.

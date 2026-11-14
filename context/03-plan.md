@@ -1,5 +1,10 @@
 # The plan (distilled from the 31-page plan, `source/HackAthlone_2026_challenge_pick_and_build_plan.pdf`)
 
+> **Sat 14 Nov 10:15: hardware dropped, software only.** Everything below about the print,
+> table, lamp, stepper, webcam and rig is cut, and the schedule's Hardware column no
+> longer applies (Davit is on Web). The shadow map is in the app (`web/src/shadow.js`).
+> Current owners are in `CLAUDE.md`.
+
 ## Decision
 
 Build **Challenge 11, Lunar Landing Site Navigator**, as a web tool with a physical
@@ -27,10 +32,10 @@ webcam de-rotated in software.
 
 **Pitch.** Long Shadow shows, for any lunar south pole site and date, how many hours
 of sunlight and Earth contact you get and what a launch slip does to them, on screen
-and on a scale model of the real terrain turning under a fixed Sun.
+over the real terrain.
 
-**Wow moment.** A judge slips the landing date by a few days. The table turns, a
-ridge shadow crosses the site pin, the sunlight bar collapses. Pick the neighbouring
+**Wow moment.** A judge slips the landing date by a few days. On the shadow map a
+ridge shadow crosses the site pin, and the sunlight number collapses. Pick the neighbouring
 site and it stays lit.
 
 **Hooks (verified 9 Nov).**
@@ -96,7 +101,7 @@ software vs table · second closer print of Shackleton and the connecting ridge.
 7. Stepper (table stays hand-turned).
 8. The 240 m far-field tier.
 
-**Never cut:** Horizons validation table, two-site slip comparison, the print, the video.
+**Never cut:** Horizons validation table, two-site slip comparison, the shadow map, the video.
 
 ### Gates
 

@@ -1,9 +1,12 @@
 ---
 name: shadow-map
-description: Render a top-down lunar south pole shadow map in the browser (the "virtual table") by marching each heightmap pixel toward the Sun, matched to the printed relief, and de-rotate the overhead webcam view beside it. Use for the software shadow map, the webcam overlay, or the software-only fallback demo.
+description: Render a top-down lunar south pole shadow map in the browser (the "virtual table") by marching each heightmap pixel toward the Sun, built in web/src/shadow.js. Use for the software shadow map.
 ---
 
 # Shadow map ("virtual table") and webcam view (Web)
+
+> Built Sat 14 Nov: `web/src/shadow.js`, terrain from `scripts/export_terrain.py` (500 m, +/- 250 km).
+> Hardware is dropped: ignore the print-matching and webcam parts below.
 
 Purpose: the right-hand panel the webcam view is compared against, and the full
 fallback demo if the hardware dies (`context/08-risks.md`).

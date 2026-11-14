@@ -8,15 +8,15 @@ All times are Irish time (GMT, UTC+0).
 ## The product in one breath
 
 For any lunar south pole site and date, show how many hours of sunlight and Earth
-contact you get, and what a launch slip does to them. Show it on screen, and on a
-3D-printed relief of the real LOLA terrain that turns under a fixed lamp (a "lunar
-heliodon"). The wow moment: slip the date, the table turns, a ridge shadow crosses
-the site pin, and the sunlight bar collapses. Pick the neighbouring site and it stays lit.
+contact you get, and what a launch slip does to them, on screen over the real LOLA
+terrain. The wow moment: slip the date, a ridge shadow crosses the site pin on the
+shadow map, and the sunlight number collapses. Pick the neighbouring site and it stays lit.
 
 ## Rules that override convenience
 
-1. **Software first.** The web app must fully answer the challenge with the hardware
-   unplugged. Hardware is capped at about a third of team hours. One owner.
+1. **Software only** (decided Sat 14 Nov 10:15). No print, turntable, lamp or rig.
+   `context/06-hardware.md`, `hardware/` and the `relief-print` and `twin-rig` skills
+   are kept for reference only; do not build from them.
 2. **Validity is on screen.** Agreement with JPL Horizons, one published result
    reproduced (Mazarico et al. 2011), and a plain list of what is not modelled.
    Never put a number in the pitch that the software did not compute.
@@ -25,7 +25,7 @@ the site pin, and the sunlight bar collapses. Pick the neighbouring site and it 
    site vector before taking directions (matters for Earth, up to 0.26 deg).
    UTC is not TDB (69 s, about 0.0097 deg of Sun motion).
 4. **Never cut:** the Horizons validation table, the two-site slip comparison,
-   the print, the video. Cut order for everything else is in `context/03-plan.md`.
+   the shadow map, the video. Cut order for everything else is in `context/03-plan.md`.
 5. **Commit every hour.** One `main` branch that always deploys. Small PRs or direct
    commits by owner area to avoid conflicts (see Ownership).
 6. **Rules compliance:** keep `context/references.md` updated from hour one (every
@@ -48,16 +48,17 @@ the site pin, and the sunlight bar collapses. Pick the neighbouring site and it 
 | Concept, scope (MVP / target / stretch), cut order, gates, roles, schedule | `context/03-plan.md` |
 | Frames, algorithms, formulas, validation V1-V8, debugging table, uncertainties | `context/04-science.md` |
 | Every dataset and kernel: URL, size, use, projection | `context/05-data.md` |
-| Rig geometry, bill of materials, print settings, firmware protocol | `context/06-hardware.md` |
+| Hardware (dropped Sat 14 Nov, reference only) | `context/06-hardware.md` |
 | 3-minute pitch, 30-second video, 7 slides, Q&A, People's Choice | `context/07-pitch.md` |
-| Risk register, software-only fallback demo, red team | `context/08-risks.md` |
+| Risk register, the software-only demo, red team | `context/08-risks.md` |
 | Competing public repos and their features | `context/09-competitors.md` |
 | Space Apps submission checklist | `context/10-submission.md` |
 | References log (cite everything) | `context/references.md` |
 | Original plan PDF and participation kit | `context/source/` |
 
 Project skills live in `.claude/skills/` (ephemeris, Horizons validation, LOLA DEM,
-horizon mask, shadow map, relief print, twin rig, pitch video, submission, gate check).
+horizon mask, shadow map, pitch video, submission, gate check; relief print and twin rig
+are dropped).
 Subagents in `.claude/agents/`: `science-red-team` (hunts frame/sign/unit errors) and
 `judge` (asks the hard questions a lunar judge would).
 
@@ -82,7 +83,6 @@ Subagents in `.claude/agents/`: `science-red-team` (hunts frame/sign/unit errors
 | Ephemeris table, demo-site pick, Mazarico check; owns all the maths and reviews masks | Science | Jack | Nicolas | `science/`, `data/` outputs |
 | Horizon masks for the demo sites, Horizons validation | Science | Nicolas | Jack | `science/`, `data/horizons/` |
 | App, deployment | Web | Davit | Nicolas | `web/` |
-| Print, table, lamp, camera mount | Hardware | Davit | none | `hardware/` |
 | Pitch, video edit, project page, references, submission | Story | Nicolas | Davit (filming) | `context/07-pitch.md`, `context/references.md`, `media/` |
 
 Hourly rhythm: work :00-:55, review :55-:00 with everyone awake (done, blocked, next).

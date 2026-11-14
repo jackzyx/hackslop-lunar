@@ -30,7 +30,6 @@ https://www.spaceappschallenge.org/resources/project-submission-guide/
 ## Repo (public, open source)
 - [ ] LICENSE file (MIT unless the team decides otherwise).
 - [ ] README: what it is, live link, how to run offline, how to rebuild data, validation numbers, limits, data attribution, AI disclosure.
-- [ ] STL of the relief + print settings + rig build guide ("print your own south pole").
 - [ ] **Remove `context/` (internal strategy) before making the repo public**, or move the public-safe parts to `docs/`.
 - [ ] No secrets, no large data files (data/ is gitignored).
 
@@ -41,6 +40,5 @@ https://www.spaceappschallenge.org/resources/project-submission-guide/
 
 ## Live final (Sun from 11:30)
 - [ ] Laptop charged, app running **offline**, video stored locally.
-- [ ] Rig packed on one carry board, 60 s setup drill done twice, hood, torch, spare print.
-- [ ] Webcam to projector tested (HDMI/USB-C adapters).
+- [ ] Laptop to projector tested (HDMI/USB-C adapters), 60 s setup drill done twice.
 - [ ] Assume we present first.

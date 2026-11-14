@@ -1,9 +1,11 @@
 ---
 name: twin-rig
-description: The physical twin rig (lunar heliodon) - lamp height and table angle from the ephemeris, Arduino/AccelStepper firmware for a 28BYJ-48 or NEMA 17 turntable, the ASCII line protocol, and the browser WebSerial client bound to the date slider. Use for firmware, WebSerial, stepper, calibration, alignment or "table to X, lamp to Y" work.
+description: DROPPED Sat 14 Nov (software only, reference only). The physical twin rig (lunar heliodon) - lamp height and table angle from the ephemeris, Arduino/AccelStepper firmware for a 28BYJ-48 or NEMA 17 turntable, the ASCII line protocol, and the browser WebSerial client bound to the date slider. Use for firmware, WebSerial, stepper, calibration, alignment or "table to X, lamp to Y" work.
 ---
 
 # Twin rig: firmware + WebSerial (Hardware + Web, integrate Sat 16:00)
+
+> **Dropped Sat 14 Nov 10:15: software only.** Reference only, do not build.
 
 Context: `context/06-hardware.md` (geometry, BOM, protocol, alignment).
 

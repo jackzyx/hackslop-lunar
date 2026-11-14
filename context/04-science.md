@@ -53,7 +53,7 @@ Precompute in Python, ship static files: hourly ephemeris 2025-2030 as a binary
 (Float32 az/el per body per hour, or sub-solar/sub-Earth vectors to evaluate per site
 in JS), masks as JSON (720 floats per site per mast height). The browser does the rest.
 
-## Why the table casts correct shadows
+## Why the table casts correct shadows (hardware dropped Sat 14 Nov: reference only)
 
 Stretching height by k maps straight rays to straight rays. A shadow edge stays on the
 same terrain if the light direction is stretched too. Exact for parallel light:
@@ -88,9 +88,9 @@ table zero mark and the lamp. Sign: check against the shadow direction on day on
 | V3 Resolution | Same site, masks from 80 m and 240 m DEMs | Report the RMS difference: that is the stated horizon uncertainty |
 | V4 Published result | Mazarico et al. 2011: a point near Shackleton's rim is sunlit continuously ~240 days a year, ~1.5 days longest total darkness | Same order at our best rim site; explain the gap by resolution and exact location |
 | V5 Mission events | Blue Ghost Mission 1 (Mare Crisium) ran until lunar sunset on 16 Mar 2025. IM-2: lighting at target vs 250 m away, from a 20 m window | Sunset date matches. IM-2 is qualitative |
-| V6 Table vs software | Fix lamp height, turn the table, note the angle where 3 pins go dark | Within 5 deg (~10 h of lunar time) |
-| V7 Permanent shadow | Sweep the lamp across the full year at all table angles | Shackleton floor never lights, matching the PGDA PSR outline |
-| V8 (stretch) | Real LROC NAC frame from PGDA 90, its acquisition time from the LROC archive, our render, a photo of the table | Three-panel figure |
+| V6 Table vs software | Dropped with the hardware (Sat 14 Nov) | |
+| V7 Permanent shadow | Sweep the Sun across the full year in the shadow map (the lamp version is dropped) | Shackleton floor never lights, matching the PGDA PSR outline |
+| V8 (stretch) | Real LROC NAC frame from PGDA 90, its acquisition time from the LROC archive, our render | Two-panel figure |
 
 ## Debugging the ephemeris
 
@@ -114,7 +114,7 @@ table zero mark and the lamp. Sign: check against the shadow direction on day on
 - **Mast height changes the answer.** State the height used on every number.
 - **Local vertical** assumes a 1737.4 km sphere.
 - **Not assessed:** slopes, hazards, landing safety.
-- **The table.** 1 mm = 1 km, nothing under ~400 m survives the 0.4 mm nozzle. At 3 m
+- **The table** (dropped Sat 14 Nov). 1 mm = 1 km, nothing under ~400 m survives the 0.4 mm nozzle. At 3 m
   the lamp spreads 1.4 deg in azimuth and 0.04 deg in true elevation across the model.
   The lamp's disc is not the Sun's. It is a teaching instrument and a regional cross-check.
 
