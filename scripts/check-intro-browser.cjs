@@ -56,10 +56,17 @@ const replay = page => page.evaluate(async () => {
     assert.equal(await page.locator('.intro-site-marker').count(), 0, 'handoff markers must be removed after revealing the real map');
     assert.equal(await page.locator('.intro-reticle').count(), 0, 'crosshair must be removed after the transition');
     assert.equal(await page.locator('.shell .mapwrap .bracket').count(), 2, 'the map must retain both site brackets after the handoff');
+    for (const key of ['Escape', 'a', 'ArrowDown', 'Shift']) {
+      await replay(page);
+      await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'playing');
+      await page.keyboard.press(key);
+      await page.waitForFunction(() => document.querySelector('#intro').hidden);
+    }
     await replay(page);
-    await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'playing');
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => document.querySelector('#intro').hidden);
+    await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'revealing');
+    await page.keyboard.press('q');
+    assert.equal(await page.locator('#intro').isVisible(), false, 'any key must also interrupt the map handoff');
+    assert.equal(await page.locator('.intro-reticle').count(), 0);
     // Starting another run while one is active must not cancel the new run.
     await replay(page);
     await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'playing');

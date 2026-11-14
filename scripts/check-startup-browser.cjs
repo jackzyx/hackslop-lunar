@@ -11,7 +11,7 @@ const base = process.env.TEST_URL || 'http://127.0.0.1:5174/';
   assert.equal(colors.html,'rgb(5, 4, 3)');assert.equal(colors.body,'rgb(5, 4, 3)');assert.equal(colors.intro,'rgb(0, 0, 0)');
   assert.ok(await bare.locator('#intro-boot').isVisible());
   await bare.screenshot({path:'.slide-tools/first-paint-dark.png'});
-  await bare.getByRole('button',{name:/skip intro/i}).click();assert.equal(await bare.locator('#intro').isVisible(),false);
+  await bare.keyboard.press('x');assert.equal(await bare.locator('#intro').isVisible(),false);
   const page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   let released=false;
