@@ -10,9 +10,9 @@ Read this page first. Ten minutes. Then open your role's section of
       confirmed registrations get a place. Every team member checks their own.
 - [ ] Team created on spaceappschallenge.org (max 6), Challenge 11 selected.
 - [ ] Laptop with **Chrome or Edge** (WebSerial does not work in Firefox or Safari).
-- [ ] Run `scripts/setup.sh` at home on a good connection. It installs Python
-      packages and fetches kernels and the core DEMs (~0.75 GB). Then
-      `python scripts/check_env.py` must print all OK. Copy `data/` to a USB stick.
+- [ ] Run `scripts/setup.sh` (Windows: `py scripts\setup.py`) on a good connection.
+      It installs Python packages and fetches kernels and the core DEMs (~0.75 GB,
+      about 15 min, resumable). Then `check_env.py` must end with ALL REQUIRED CHECKS PASSED.
 - [ ] Photo ID, chargers, extension lead (4 sockets), sleeping bag.
 - [ ] Hardware "Bring" list in `06-hardware.md` (torch 500+ lm, tripod/stand,
       3 m tape, black foam board, primer, 400 grit paper, lazy Susan bearing,
@@ -66,6 +66,9 @@ source .venv/bin/activate
 python scripts/check_env.py      # all green before you start
 scripts/fetch_data.sh core       # (re)fetch DEMs only, resumable
 ```
+
+Windows: `py scripts\setup.py`, then `.venv\Scripts\python scripts\check_env.py`;
+`.venv\Scripts\python scripts\fetch_data.py core` re-fetches one tier.
 
 ## Open questions to close on Friday night
 

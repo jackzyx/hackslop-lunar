@@ -41,7 +41,7 @@ if os.path.exists(mk):
     except Exception as e:  # noqa: BLE001
         report("FAIL", "SPICE", str(e))
 else:
-    report("FAIL", "SPICE meta-kernel missing", "run scripts/fetch_data.sh kernels")
+    report("FAIL", "SPICE meta-kernel missing", "run python scripts/fetch_data.py kernels")
 
 # DEMs
 expect = {
@@ -55,7 +55,7 @@ try:
     for rel, (w, res) in expect.items():
         p = os.path.join(DATA, rel)
         if not os.path.exists(p):
-            report("FAIL", rel, "missing: run scripts/fetch_data.sh core")
+            report("FAIL", rel, "missing: run python scripts/fetch_data.py core")
             continue
         try:
             with rasterio.open(p) as s:
@@ -74,7 +74,7 @@ psr = os.path.join(DATA, "psr", "LPSR_80S_20MPP_ADJ_1km2.SHP")
 report("OK" if os.path.exists(psr) else "WARN", "PSR shapefile", "" if os.path.exists(psr) else "missing (core tier)")
 for rel in ("illum/AVGVISIB_85S_060M_201608.TIF", "nac/M139356343LE_20MPP.TIF"):
     report("OK" if os.path.exists(os.path.join(DATA, rel)) else "WARN", rel,
-           "" if os.path.exists(os.path.join(DATA, rel)) else "optional: scripts/fetch_data.sh extra")
+           "" if os.path.exists(os.path.join(DATA, rel)) else "optional: python scripts/fetch_data.py extra")
 
 print("\nALL REQUIRED CHECKS PASSED" if ok else "\nSOME REQUIRED CHECKS FAILED")
 sys.exit(0 if ok else 1)

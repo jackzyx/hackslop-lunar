@@ -15,12 +15,20 @@ say otherwise. `context/` is internal: remove it before the repo goes public.
 ```bash
 git clone <this repo> && cd HackAthlone-Lunar
 scripts/setup.sh                 # Python venv + packages, SPICE kernels, core LOLA DEMs (~0.75 GB)
-source .venv/bin/activate
-python scripts/check_env.py      # must end with ALL REQUIRED CHECKS PASSED
+.venv/bin/python scripts/check_env.py   # must end with ALL REQUIRED CHECKS PASSED
 ```
 
-Needs Python 3.11+, Node 20+, git, and Chrome or Edge (WebSerial). Copy `data/` to a USB stick.
-Windows: use WSL2, or create the venv by hand and run `bash scripts/fetch_data.sh` from Git Bash.
+Windows (PowerShell or cmd, no WSL needed):
+
+```bat
+py scripts\setup.py
+.venv\Scripts\python scripts\check_env.py
+```
+
+Needs 64-bit Python 3.11-3.14 (python.org installer, tick "Add python.exe to PATH"),
+Node 20+, git, and Chrome or Edge. The download is about 15 min from NASA's servers and
+resumes if you run the same command again. `scripts/fetch_data.py [kernels|core|extra|big]`
+fetches one tier.
 
 ## Read next
 

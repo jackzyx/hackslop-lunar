@@ -63,7 +63,9 @@ Subagents in `.claude/agents/`: `science-red-team` (hunts frame/sign/unit errors
 
 ## Environment
 
-- Python 3.11+ venv in `.venv` (`scripts/setup.sh` creates it from `requirements.txt`).
+- Python 3.11+ venv in `.venv` (`scripts/setup.sh`, or `py scripts\setup.py` on Windows,
+  creates it from `requirements.txt`). Two teammates are on Windows: keep scripts in Python,
+  not bash, and use `pathlib` paths.
 - Node 20+ for the web app (Vite). WebSerial needs desktop Chrome or Edge.
 - Data lives in `data/` and is **never committed** (gitignored). Fetch with
   `scripts/fetch_data.sh` (kernels + core DEMs, ~0.75 GB). SPICE meta-kernel:

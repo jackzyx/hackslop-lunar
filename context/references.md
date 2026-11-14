@@ -30,3 +30,4 @@ project ineligible. Format: what, who, link, what we used it for.
 - [tool, what it was used for, by whom; keep this honest and current]
 - Claude Code: environment setup, data-fetch scripts, context documents (13 Nov, before the event).
 - Claude Code (Claude Opus 5.5): web app mockup in `web/` (screen layout, SVG charts, metrics functions and tests, mock-data generator), Fri 13 Nov 22:40-23:30. All data in it is invented placeholder data.
+- Claude Code (Claude Opus 5.5): cross-platform setup and data download (`scripts/setup.py`, `scripts/fetch_data.py`) so Windows laptops work, Sat 14 Nov 09:00-09:30.
