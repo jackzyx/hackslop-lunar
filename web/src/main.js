@@ -12,6 +12,7 @@ const vis = (id) => (visCache[id] ??= visibility(sites[id].horizon, data.ephemer
 const state = { date: "2026-11-20", delay: 0, picks: ["A", "B"], zoom: true };
 
 const $ = (s) => document.querySelector(s);
+$(".badge").hidden = !data.mock;
 const tip = $("#tip");
 const iso = (ms) => new Date(ms).toISOString().slice(0, 10);
 const fmtDate = (ms, o) => new Date(ms).toLocaleDateString("en-IE", { timeZone: "UTC", day: "numeric", month: "short", ...o });
@@ -253,12 +254,12 @@ function render() {
 // --- validation table: Science writes src/validation.json; null = not measured yet
 function renderValidation() {
   const v = validation, done = v.rows.filter((r) => r.max_del_deg != null && r.max_daz_cos_deg != null);
-  const f = (x) => (x == null ? "–" : `${x.toFixed(4)}°`);
+  const f = (x) => (x == null ? "-" : `${x.toFixed(6)}°`);
   $("#val-rows").innerHTML = v.rows.map((r) =>
     `<tr><td>${r.site}</td><td>${r.body}</td><td>${f(r.max_del_deg)}</td><td>${f(r.max_daz_cos_deg)}</td><td>${r.hours ?? "–"}</td><td>${r.start ? `${r.start} to ${r.stop}` : "–"}</td></tr>`).join("");
   const worst = Math.max(...done.flatMap((r) => [r.max_del_deg, r.max_daz_cos_deg]));
   $("#val-link").textContent = !done.length ? "Sun and Earth angles vs JPL Horizons: not yet measured"
-    : `Sun and Earth angles within ${worst.toFixed(4)}° of JPL Horizons (pass mark ${v.pass_deg}°)${done.length < v.rows.length ? `, ${done.length} of ${v.rows.length} rows so far` : ""}`;
+    : `Sun and Earth angles within ${worst.toFixed(6)}° of JPL Horizons (pass mark ${v.pass_deg}°)${done.length < v.rows.length ? `, ${done.length} of ${v.rows.length} rows so far` : ""}`;
   $("#val-ref").textContent = `Reference: JPL Horizons, topocentric site on the Moon, airless, frame MOON_ME, correction LT+S. ${v.queried ? `Queried ${v.queried}.` : "Not yet queried."}`;
   $("#val-note").hidden = !!v.queried;
   $("#val-checks").innerHTML = v.checks.map((c) => `<li>${c.label} (${c.id}): ${c.result ?? "not yet run"}</li>`).join("");
