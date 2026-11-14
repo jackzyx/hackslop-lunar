@@ -3,25 +3,27 @@ import "./styles/index.css";
 import { playIntro } from './intro/intro.js';
 import { initialTerrain } from './terrain/startup.js';
 import { loadPlannerData } from './lib/data.js';
-import { currentPage, migrateLegacyRoute } from './lib/routes.js';
+import { currentPage, isPolicyPage, migrateLegacyRoute } from './lib/routes.js';
 
 // No StrictMode: it runs effects twice in dev, which would start two intro animations at once.
 migrateLegacyRoute();
-const terrainReady = initialTerrain().catch(() => null);
+const page = currentPage();
+const policyPage = isPolicyPage(page);
+const terrainReady = policyPage ? null : initialTerrain().catch(() => null);
 const overlay = document.getElementById('intro');
 let appReady;
-const loadApp = () => appReady ??= Promise.all([import('./App.jsx'), loadPlannerData()]).then(([{ default: App }]) => {
+const loadApp = () => appReady ??= Promise.all([import('./App.jsx'), policyPage ? null : loadPlannerData().catch(() => null)]).then(([{ default: App }]) => {
   createRoot(document.getElementById('root')).render(<App />);
   return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 }).catch(error => {
   overlay.hidden = true;
-  document.querySelector('.planner-loading').textContent = 'Could not load the planner. Refresh to try again.';
+  document.querySelector('.planner-loading').textContent = 'Could not load Sun Shade. Refresh to try again.';
   console.error(error);
 });
 overlay.querySelector('.skip').addEventListener('click', () => {
   if (overlay.dataset.bootSkipped === 'true') loadApp();
 });
-if (currentPage() === 'about' || matchMedia('(prefers-reduced-motion: reduce)').matches || overlay.dataset.bootSkipped === 'true') {
+if (page !== 'compare' || matchMedia('(prefers-reduced-motion: reduce)').matches || overlay.dataset.bootSkipped === 'true') {
   loadApp();
   overlay.hidden = true;
 } else {
@@ -29,7 +31,7 @@ if (currentPage() === 'about' || matchMedia('(prefers-reduced-motion: reduce)').
     if (!response.ok) throw new Error('Intro scene unavailable');
     return response.json();
   }).then(scene => {
-    if (currentPage() !== 'about' && overlay.dataset.bootSkipped !== 'true') {
+    if (currentPage() === 'compare' && overlay.dataset.bootSkipped !== 'true') {
       if (scene.appModule) {
         const preload = document.createElement('link');
         preload.rel = 'modulepreload';

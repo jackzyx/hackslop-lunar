@@ -22,8 +22,21 @@
       @keyframes boot-orbit{to{transform:rotate(360deg)}}
       @media(prefers-reduced-motion:reduce){#intro-boot svg{animation:none}}
     </style>
-    <link rel="preload" href="./terrain_500m.bin" as="fetch" crossorigin="anonymous" />
-    <link rel="preload" href="./moon-albedo-4k.jpg" as="fetch" crossorigin="anonymous" fetchpriority="low" />
+    <script>
+      if (/\/(privacy|terms)$/.test(location.pathname)) {
+        document.documentElement.dataset.policyPage = '';
+      } else {
+        for (const [href, fetchPriority] of [['./terrain_500m.bin', 'auto'], ['./moon-albedo-4k.jpg', 'low']]) {
+          const link = document.createElement('link');
+          link.rel = 'preload';
+          link.href = href;
+          link.as = 'fetch';
+          link.crossOrigin = 'anonymous';
+          link.fetchPriority = fetchPriority;
+          document.head.append(link);
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"><p class="planner-loading" role="status">Loading planner…</p></div>
@@ -36,6 +49,10 @@
     </div>
     <script>
       const introSkip = document.querySelector('#intro .skip');
+      if ('policyPage' in document.documentElement.dataset) {
+        document.getElementById('intro').hidden = true;
+        document.querySelector('.planner-loading').textContent = 'Loading page.';
+      }
       introSkip.addEventListener('click', () => {
         const intro = document.getElementById('intro');
         if (intro.dataset.phase) return;

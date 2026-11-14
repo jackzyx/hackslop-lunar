@@ -37,8 +37,8 @@ The shared navigation switches between **Compare sites** (`/compare`) and
 uses the same amber HUD theme, real terrain rendering, scroll reveals and a
 searchable public bibliography (`/about#about-sources`). Its animations can be paused
 and respect reduced-motion preferences.
-When hosting the build, serve `index.html` for direct requests to `/about` and
-`/compare`, keeping the requested URL. Vite and the bundled `serve.py` support this.
+When hosting the build, serve `index.html` for direct requests to `/about`,
+`/compare`, `/privacy`, and `/terms`, keeping the requested URL. Vite and the bundled `serve.py` support this.
 Public source entries live in `src/lib/sources.js`; keep them in sync with the
 project reference log when data, imagery or tools change.
 
