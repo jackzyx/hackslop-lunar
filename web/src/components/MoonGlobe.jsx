@@ -147,8 +147,16 @@ export default function MoonGlobe({ paused }) {
     };
     texture.src = new URL('moon-albedo-4k.jpg', document.baseURI).href;
 
+    const elevation = new Image();
+    elevation.onload = () => {
+      renderer?.setElevation(elevation);
+      requestFrame();
+    };
+    if (renderer) elevation.src = new URL('moon-elevation.jpg', document.baseURI).href;
+
     return () => {
       texture.onload = null;
+      elevation.onload = null;
       requestDraw.current = null;
       clearTimeout(touchRelease.current);
       if (frame !== null) cancelAnimationFrame(frame);

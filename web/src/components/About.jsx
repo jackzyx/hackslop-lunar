@@ -4,7 +4,7 @@ import { sourceGroups } from '@/lib/sources.js';
 import { Button } from '@/components/ui/button';
 import MoonGlobe from '@/components/MoonGlobe';
 
-export default function About({ onCompare }) {
+export default function About({ compareHref, onCompare, onCompareLink }) {
   const root = useRef(null), [query, setQuery] = useState(''), [paused, setPaused] = useState(false);
   useEffect(() => {
     if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -59,6 +59,6 @@ export default function About({ onCompare }) {
       </details>)}
       {count === 0 && <p>No sources match that search. <button onClick={() => setQuery('')}>Show all sources</button></p>}
     </section>
-    <footer className="about-footer"><span>Sun Shade · NASA Space Apps / HackAthlone 2026</span><button onClick={() => setPaused(!paused)} aria-pressed={paused}>{paused ? 'Resume animations' : 'Pause animations'}</button><a href="#compare" onClick={onCompare}>Back to the comparison ↑</a></footer>
+    <footer className="about-footer"><span>Sun Shade · NASA Space Apps / HackAthlone 2026</span><button onClick={() => setPaused(!paused)} aria-pressed={paused}>{paused ? 'Resume animations' : 'Pause animations'}</button><a href={compareHref} onClick={onCompareLink}>Back to the comparison ↑</a></footer>
   </main>;
 }

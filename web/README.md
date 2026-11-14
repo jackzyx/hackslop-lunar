@@ -32,11 +32,13 @@ scenes, and checks keyboard updates, pointer release and worker fallback. Chrome
 is used on Windows; `CHROME_PATH` and `TEST_URL` can override the browser and URL.
 `node scripts/bench-slider.cjs` repeats the slider drag benchmark on port 5174.
 
-The shared navigation switches between **Compare sites** (`#compare`) and
-**About** (`#about`) without resetting the selected date or sites. The About page
+The shared navigation switches between **Compare sites** (`/compare`) and
+**About** (`/about`) without resetting the selected date or sites. The About page
 uses the same amber HUD theme, real terrain rendering, scroll reveals and a
-searchable public bibliography (`#about-sources`). Its animations can be paused
+searchable public bibliography (`/about#about-sources`). Its animations can be paused
 and respect reduced-motion preferences.
+When hosting the build, serve `index.html` for direct requests to `/about` and
+`/compare`, keeping the requested URL. Vite and the bundled `serve.py` support this.
 Public source entries live in `src/lib/sources.js`; keep them in sync with the
 project reference log when data, imagery or tools change.
 

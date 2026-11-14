@@ -30,6 +30,7 @@ export const sourceGroups = [
     ['Original Blue Marble image', 'Western Hemisphere, 2048 × 2048 TIFF. Converted to a small WebP for the intro Earth marker; land, oceans, sea ice and clouds from NASA’s Blue Marble composite.', 'https://assets.science.nasa.gov/content/dam/science/esd/eo/content-feature/bluemarble/images/globe_west_2048.tif'],
     ['NASA CGI Moon Kit', 'NASA’s Scientific Visualization Studio / Ernie Wright. LROC mosaic with LOLA polar albedo fill. Globe texture is visual context, not scientific terrain input.', 'https://svs.gsfc.nasa.gov/4720/'],
     ['Original lunar texture', '4096 × 2048 TIFF, converted locally to JPEG. Credit NASA SVS; source LROC data from NASA / GSFC / Arizona State University.', 'https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/lroc_color_poles_4k.tif'],
+    ['Global lunar elevation preview', 'NASA SVS / Ernie Wright, from Lunar Orbiter Laser Altimeter data. The About globe exaggerates terrain slopes to make crater relief visible.', 'https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/ldem_3_8bit.jpg'],
     ['Geist and Geist Mono', 'Vercel / Basement.studio. SIL Open Font License; bundled locally through Fontsource.', 'https://vercel.com/font'],
     ['React', 'Meta and contributors. MIT; interface and state.', 'https://react.dev'],
     ['Vite', 'Evan You and contributors. MIT; development server and static build.', 'https://vite.dev'],

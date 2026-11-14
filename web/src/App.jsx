@@ -10,9 +10,10 @@ import ShadowMap from "@/components/ShadowMap";
 import DetailTabs from "@/components/DetailTabs";
 import About from "@/components/About";
 import LandingDatePicker from "@/components/LandingDatePicker";
+import { currentPage, routeUrl } from "@/lib/routes.js";
 
 export default function App() {
-  const [page, setPage] = useState(() => location.hash.startsWith('#about') ? 'about' : 'compare');
+  const [page, setPage] = useState(currentPage);
   const [date, setDate] = useState("2026-11-20");
   const [delay, setDelay] = useState(0);
   const [interacting, setInteracting] = useState(false);
@@ -23,9 +24,9 @@ export default function App() {
   const [terrainErr, setTerrainErr] = useState(null);
 
   useEffect(() => {
-    const onHash = () => setPage(location.hash.startsWith('#about') ? 'about' : 'compare');
-    addEventListener('hashchange', onHash);
-    return () => removeEventListener('hashchange', onHash);
+    const onPopState = () => setPage(currentPage());
+    addEventListener('popstate', onPopState);
+    return () => removeEventListener('popstate', onPopState);
   }, []);
   useEffect(() => {
     document.title = page === 'about' ? 'About Sun Shade' : 'Sun Shade';
@@ -37,7 +38,17 @@ export default function App() {
     });
     return () => cancelAnimationFrame(raf);
   }, [page]);
-  const showCompare = () => { location.hash = 'compare'; };
+  const navigate = (nextPage) => {
+    const path = routeUrl(nextPage);
+    if (location.pathname !== path || location.hash) history.pushState(null, '', path + location.search);
+    setPage(nextPage);
+  };
+  const followRoute = (event) => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    navigate(event.currentTarget.pathname === routeUrl('about') ? 'about' : 'compare');
+  };
+  const compareHref = routeUrl('compare');
 
   const dateMin = iso(t0 + MAX_DELAY_D * DAY);
   const dateMax = iso(t0 + data.ephemeris.count * H - (MAX_DELAY_D + 30) * DAY);
@@ -59,10 +70,10 @@ export default function App() {
   return (
     <div className="shell">
       <nav className="site-nav" aria-label="Main navigation">
-        <a className="nav-wordmark" href="#compare">SUN SHADE</a>
-        <div><a href="#compare" aria-current={page === 'compare' ? 'page' : undefined}>Compare sites</a><a href="#about" aria-current={page === 'about' ? 'page' : undefined}>About</a></div>
+        <a className="nav-wordmark" href={compareHref} onClick={followRoute}>SUN SHADE</a>
+        <div><a href={compareHref} onClick={followRoute} aria-current={page === 'compare' ? 'page' : undefined}>Compare sites</a><a href={routeUrl('about')} onClick={followRoute} aria-current={page === 'about' ? 'page' : undefined}>About</a></div>
       </nav>
-      {page === 'about' && <About onCompare={showCompare} />}
+      {page === 'about' && <About compareHref={compareHref} onCompare={() => navigate('compare')} onCompareLink={followRoute} />}
       <div hidden={page === 'about'}>
         <header className="top">
           <div className="min-w-0 flex-1 basis-80">

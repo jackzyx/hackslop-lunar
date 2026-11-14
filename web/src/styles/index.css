@@ -312,6 +312,7 @@ body:has(.intro[data-phase="revealing"]) .shell .mapcard > :not(.mapwrap) { anim
 .site-nav a[aria-current], .site-nav a:hover { color:var(--sun); }
 .site-nav a:focus-visible, .about-page a:focus-visible, .about-page button:focus-visible, .about-page summary:focus-visible { outline:2px solid var(--primary); outline-offset:5px; }
 .about-page { max-width:1240px; margin:0 auto; color:#dec7a0; font-family:var(--font-sans); }
+#about-main:focus-visible { outline:none; }
 .about-page h1, .about-page h2, .about-page h3 { color:var(--foreground); font-weight:550; letter-spacing:-.035em; }
 .about-page h1 { font-size:clamp(42px,5vw,76px); line-height:1.06; margin:0 0 28px; }
 .about-page h1 em { color:var(--sun); font-style:normal; }

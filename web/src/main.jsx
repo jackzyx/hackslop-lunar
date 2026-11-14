@@ -3,8 +3,10 @@ import "./styles/index.css";
 import { playIntro } from './intro/intro.js';
 import { initialTerrain } from './terrain/startup.js';
 import { loadPlannerData } from './lib/data.js';
+import { currentPage, migrateLegacyRoute } from './lib/routes.js';
 
 // No StrictMode: it runs effects twice in dev, which would start two intro animations at once.
+migrateLegacyRoute();
 const terrainReady = initialTerrain().catch(() => null);
 const overlay = document.getElementById('intro');
 let appReady;
@@ -19,7 +21,7 @@ const loadApp = () => appReady ??= Promise.all([import('./App.jsx'), loadPlanner
 overlay.querySelector('.skip').addEventListener('click', () => {
   if (overlay.dataset.bootSkipped === 'true') loadApp();
 });
-if (location.hash.startsWith('#about') || matchMedia('(prefers-reduced-motion: reduce)').matches || overlay.dataset.bootSkipped === 'true') {
+if (currentPage() === 'about' || matchMedia('(prefers-reduced-motion: reduce)').matches || overlay.dataset.bootSkipped === 'true') {
   loadApp();
   overlay.hidden = true;
 } else {
@@ -27,7 +29,7 @@ if (location.hash.startsWith('#about') || matchMedia('(prefers-reduced-motion: r
     if (!response.ok) throw new Error('Intro scene unavailable');
     return response.json();
   }).then(scene => {
-    if (!location.hash.startsWith('#about') && overlay.dataset.bootSkipped !== 'true') {
+    if (currentPage() !== 'about' && overlay.dataset.bootSkipped !== 'true') {
       if (scene.appModule) {
         const preload = document.createElement('link');
         preload.rel = 'modulepreload';

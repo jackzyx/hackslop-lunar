@@ -7,6 +7,7 @@ import functools
 import http.server
 import pathlib
 import webbrowser
+from urllib.parse import urlsplit
 
 PORT = 8000
 
@@ -14,6 +15,11 @@ PORT = 8000
 class Handler(http.server.SimpleHTTPRequestHandler):
     # Windows can map .js to text/plain in its registry; browsers refuse module scripts served that way.
     extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map, ".js": "text/javascript"}
+
+    def translate_path(self, path):
+        if urlsplit(path).path in ("/about", "/compare"):
+            path = "/index.html"
+        return super().translate_path(path)
 
 
 if __name__ == "__main__":
