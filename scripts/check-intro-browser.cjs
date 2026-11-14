@@ -18,6 +18,8 @@ const replay = page => page.evaluate(async () => {
     await page.goto(base + '#compare');
     await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'playing');
     await page.waitForFunction(() => document.querySelector('#intro').dataset.earth === 'nasa-blue-marble');
+    await page.waitForFunction(() => document.querySelector('.intro-reticle')?.dataset.state === 'locked');
+    assert.equal(await page.locator('.intro-reticle i').count(), 4);
     await page.evaluate(() => {
       window.preparationTasks = [];
       window.preparationObserver = new PerformanceObserver(list => window.preparationTasks.push(...list.getEntries().map(e => e.duration)));
@@ -42,6 +44,8 @@ const replay = page => page.evaluate(async () => {
     await page.screenshot({ path: '.slide-tools/intro-smooth.png' });
     const names = await page.locator('.intro-site-marker span').allTextContents();
     await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'revealing');
+    assert.equal(await page.locator('.intro-reticle').getAttribute('data-state'), 'split');
+    assert.ok(await page.locator('.intro-reticle i').first().evaluate(el => el.getAnimations().some(animation => animation.effect.getKeyframes().some(frame => frame.opacity === '0'))), 'crosshair corners should fade during the website handoff');
     assert.deepEqual(await page.locator('.intro-site-marker span').allTextContents(), names, 'site labels must survive the handoff');
     assert.deepEqual(await page.locator('.shell .mapwrap .pin-label').allTextContents(), names, 'intro and map must use the same site labels');
     assert.ok(await page.locator('.shell .details').evaluate(el => el.getAnimations().length > 0), 'graphs should fade in during the handoff');
@@ -50,6 +54,7 @@ const replay = page => page.evaluate(async () => {
     await page.screenshot({ path: '.slide-tools/intro-handoff.png' });
     await page.waitForFunction(() => document.querySelector('#intro').hidden, { timeout: 20000 });
     assert.equal(await page.locator('.intro-site-marker').count(), 0, 'handoff markers must be removed after revealing the real map');
+    assert.equal(await page.locator('.intro-reticle').count(), 0, 'crosshair must be removed after the transition');
     await replay(page);
     await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'playing');
     await page.keyboard.press('Escape');
