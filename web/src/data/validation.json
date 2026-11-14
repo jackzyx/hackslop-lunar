@@ -66,7 +66,8 @@
     {
       "id": "V3",
       "label": "Horizon from 80 m vs 240 m terrain, RMS",
-      "result": null
+      "result": "RMS skyline difference was 0.900° at Connecting Ridge (89.46° S, 222.50° E) and 0.091° at Shackleton Rim (89.77° S, 188.10° E). Both LOLA DEMs used bilinear sampling at pixel centers, a 2 m mast above the local surface, and the same 720 azimuths and ray distances out to 280 km within their shared coverage.",
+      "source": "https://pgda.gsfc.nasa.gov/products/90"
     },
     {
       "id": "V4",
@@ -76,6 +77,13 @@
       "method": "We used SP-04 as a comparison point because the abstract gives no coordinates for its duration claim. We sampled the solar disc hourly at ground level for 18.6 years starting 2020-01-01 UTC, using DE440 SPICE and updated 240 m LOLA terrain sampled at pixel centers. The planner's 80 m terrain calculation at the same point gave 165.21 days with any sunlight and 10.92 days of total darkness.",
       "source": "https://doi.org/10.1016/j.icarus.2010.10.030",
       "mapCrossCheck": "NASA PGDA 69 average-illumination cross-check. Across 18.6 years of hourly surface-level samples, average solar illumination was within 4.2 percentage points of NASA at 7 of 8 sites. Malapert Massif was 23.0% model vs 4.6% NASA. Shackleton Floor was 0.0% in both."
+    },
+    {
+      "id": "V7",
+      "label": "Shackleton Floor permanent shadow",
+      "status": "pass",
+      "result": "Pass. At Shackleton Floor (89.67° S, 129.80° E), 0 of 8,760 hourly samples in 2026 UTC showed direct sunlight in the 500 m terrain shadow map's CPU calculation or the planner's 2 m mast horizon model. The pin lies inside NASA PGDA 90's 20 m permanently shadowed region outline.",
+      "source": "https://pgda.gsfc.nasa.gov/products/90"
     }
   ]
 }
