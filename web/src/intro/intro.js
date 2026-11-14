@@ -38,6 +38,11 @@ export function introResolution(width, height, dpr = 1) {
     half: Math.min(170, 230 / Math.hypot(1, long / short)) };
 }
 
+export function introTerrainView(view) {
+  const available = Math.max(1, 248 - Math.max(Math.abs(view.cx), Math.abs(view.cy)));
+  return { cx: view.cx, cy: view.cy, half: Math.min(view.half * 4, available) };
+}
+
 function camera(t, pos, finalHalf = 170) {
   const keys = KEYS.map((key, i) => i === KEYS.length - 1 ? [key[0], key[1], finalHalf] : key);
   const last = keys[keys.length - 1];
@@ -122,7 +127,8 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   const quality = introResolution(innerWidth, innerHeight, devicePixelRatio || 1);
   const pos = scene(ms, sun), T = 250;
   const view = { ...mapView(picks, zoom), ...center };
-  const closeView = { cx: view.cx, cy: view.cy, half: view.half * 2 };
+  const closeView = introTerrainView(view);
+  quality.closeTerrain = Math.max(768, Math.min(1536, Math.ceil(768 * closeView.half / (view.half * 2))));
   pos.landing = [pos.moon[0] + view.cx, pos.moon[1] + view.cy];
   let moon = imageCanvas(spherePixels(sun, 256, null), 256), land, landApproach;
   let shownMoon, shownLand, shownClose, closeLand, closeApproach, terrainUnavailable = false, elapsed = 0;

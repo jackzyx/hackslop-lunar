@@ -15,7 +15,7 @@ export function stopIntroAssetPreparation() {
 }
 
 export function prepareIntroAssets({ terrain, sun, quality, textureUrl, closeView }, onProgress) {
-  const key = `${sun.join(',')}/${quality.sphere}/${quality.terrain}/${JSON.stringify(closeView)}`;
+  const key = `${sun.join(',')}/${quality.sphere}/${quality.terrain}/${quality.closeTerrain}/${JSON.stringify(closeView)}`;
   if (cached?.key === key && cached.terrain === terrain) {
     cached.onProgress = onProgress;
     if (cached.assets) onProgress?.(cached.assets);

@@ -15,7 +15,7 @@ self.onmessage = async ({ data: { terrain, sun, quality, textureUrl, closeView }
   // Render the landing region directly, before waiting for the globe texture.
   // Enlarging a crop of the 500 km overview cannot retain this detail.
   if (terrain && closeView) {
-    let closeN = 768, close;
+    let closeN = quality.closeTerrain ?? 768, close;
     let gpu;
     try {
       gpu = createGPUShadow(terrain, new OffscreenCanvas(closeN, closeN));

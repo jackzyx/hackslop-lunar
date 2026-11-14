@@ -1,10 +1,19 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { sunLongitude, scene, introResolution, createIntroClock, clippedImage, terrainBlend, terrainHandoff } from "./intro.js";
+import { sunLongitude, scene, introResolution, introTerrainView, createIntroClock, clippedImage, terrainBlend, terrainHandoff } from "./intro.js";
 
 const RAD = Math.PI / 180;
 const near = (a, b, tol) => assert.ok(Math.abs(a - b) < tol, `${a} vs ${b}`);
 const angDiff = (a, b) => Math.abs(((a - b + 540) % 360) - 180);
+
+test('intro detail covers a wider landing region without exceeding available terrain', () => {
+  assert.deepEqual(introTerrainView({ cx: 10, cy: -20, half: 12 }), { cx: 10, cy: -20, half: 48 });
+  for (const view of [{ cx: 0, cy: 0, half: 170 }, { cx: 220, cy: -30, half: 12 }]) {
+    const detail = introTerrainView(view);
+    assert.ok(Math.abs(detail.cx) + detail.half <= 248);
+    assert.ok(Math.abs(detail.cy) + detail.half <= 248);
+  }
+});
 
 test('terrain uses a soft approach edge, with full contrast only after covering every corner', () => {
   const approach = terrainBlend(400, 960, 540, 1920, 1080, 500);
