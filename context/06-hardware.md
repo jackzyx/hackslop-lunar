@@ -1,5 +1,7 @@
 # Hardware: the lunar heliodon
 
+> **Dropped Sat 14 Nov 10:15: software only.** Kept for reference; nothing here is built.
+
 Owner: Hardware. Skills: `relief-print`, `twin-rig`. Cap: 1/3 of team hours.
 Build hardware only if all five hold: (1) it expresses the challenge's physics, not a
 control surface; (2) a motor-free version works by Sat 18:00; (3) the software answers

@@ -1,12 +1,14 @@
 import data from "./mock-data.json";
+import validation from "./validation.json";
 import { visibility, windowMetrics, verdictDelay, grade, maskAt, WINDOW_H, MAX_DELAY_D } from "./metrics.js";
+import { terrainFrom, shadeView, sunVector, toMap } from "./shadow.js";
 
-const H = 3600e3, DAY = 86400e3, rad = Math.PI / 180;
+const H = 3600e3, DAY = 86400e3;
 const t0 = Date.parse(data.ephemeris.start_utc);
 const sites = Object.fromEntries(data.sites.map((s) => [s.id, s]));
 const visCache = {};
 const vis = (id) => (visCache[id] ??= visibility(sites[id].horizon, data.ephemeris.sites[id]));
-const state = { date: "2026-11-20", delay: 0, picks: ["A", "B"] };
+const state = { date: "2026-11-20", delay: 0, picks: ["A", "B"], zoom: true };
 
 const $ = (s) => document.querySelector(s);
 const tip = $("#tip");
@@ -113,28 +115,57 @@ function yRange(ids) {
   return [Math.floor(lo - 1), Math.ceil(hi + 0.5)];
 }
 
-// --- schematic polar map: 0 deg longitude up, east to the right.
-// shortcut: radius grows as sqrt(distance from pole) so neighbouring sites separate;
-// replace with the true-scale LOLA hillshade plus a zoom inset once Science ships it.
-function polarMap() {
-  const c = 200, maxCo = 6;
-  const rOf = (co) => 180 * Math.sqrt(co / maxCo);
-  const pt = (lat, lon) => { const r = rOf(90 + lat); return [c + r * Math.sin(lon * rad), c - r * Math.cos(lon * rad)]; };
-  let g = "";
-  for (const co of [0.5, 1, 2, 4, 6]) g += `<circle class="grid-ring" cx="${c}" cy="${c}" r="${rOf(co)}"/><text x="${c + 4}" y="${c - rOf(co) + 14}">${90 - co}° S</text>`;
-  [[0, "0°"], [90, "90° E"], [180, "180°"], [270, "90° W"]].forEach(([lon, label]) => {
-    const [x, y] = pt(-90 + maxCo, lon), lx = c + 196 * Math.sin(lon * rad), ly = c - 196 * Math.cos(lon * rad);
-    g += `<line class="grid" x1="${c}" y1="${c}" x2="${x}" y2="${y}"/><text x="${lx.toFixed(1)}" y="${(ly + 5).toFixed(1)}" text-anchor="middle">${label}</text>`;
-  });
-  const pickX = state.picks.map((id) => pt(sites[id].lat, sites[id].lon)[0]);
-  for (const site of data.sites) {
-    const [x, y] = pt(site.lat, site.lon), k = state.picks.indexOf(site.id);
-    const left = k >= 0 && x < pickX[1 - k]; // label on the side away from the other picked site
-    g += k < 0
-      ? `<circle class="pin" cx="${x}" cy="${y}" r="4"/><text x="${x + 7}" y="${y + 4}">${site.id}</text>`
-      : `<circle class="pin-on" cx="${x}" cy="${y}" r="7"/><text class="ink" x="${x + (left ? -11 : 11)}" y="${y + 5}" text-anchor="${left ? "end" : "start"}">${site.name}</text>`;
+// --- sunlight map: real terrain, shadows at the landing instant (shadow.js). 0 deg lon up, 90 E right.
+// The Sun direction comes from the first chosen site's row of the same table the cards use.
+const MAP = 360, ctx = $("#shade").getContext("2d"), img = ctx.createImageData(MAP, MAP);
+let terrain = null, mapFrame = 0;
+fetch("terrain_500m.bin")
+  .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(`HTTP ${r.status}`))))
+  .then((b) => { terrain = terrainFrom(b); render(); })
+  .catch((err) => ($("#map-cap").textContent = `Terrain did not load (${err.message}).`));
+$("#zoom").onclick = () => { state.zoom = !state.zoom; render(); };
+
+function mapView() {
+  if (!state.zoom) return { cx: 0, cy: 0, half: 170 };
+  const [a, b] = state.picks.map((id) => toMap(sites[id].lat, sites[id].lon));
+  const half = Math.min(170, Math.max(12, 0.7 * Math.hypot(a[0] - b[0], a[1] - b[1]) + 8));
+  return { cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, half };
+}
+
+function drawMap(i0, when) {
+  const view = mapView(), id = state.picks[0], e = data.ephemeris.sites[id];
+  const toPx = ([x, y]) => [((x - view.cx + view.half) / (2 * view.half)) * MAP, ((view.cy + view.half - y) / (2 * view.half)) * MAP];
+  if (terrain) {
+    const b = shadeView(terrain, sunVector(sites[id].lat, sites[id].lon, e.sun_az[i0], e.sun_el[i0]), view, MAP), px = img.data;
+    for (let k = 0; k < b.length; k++) {
+      const v = b[k], o = 4 * k;
+      if (Number.isNaN(v)) { px[o + 3] = 0; continue; }
+      px[o] = 14 + 226 * v; px[o + 1] = 14 + 220 * v; px[o + 2] = 18 + 205 * v; px[o + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
   }
-  return g;
+  const inView = ([x, y]) => x > -10 && x < MAP + 10 && y > -10 && y < MAP + 10;
+  let g = "";
+  const pole = toPx([0, 0]);
+  if (inView(pole)) g += `<path class="scale" d="M${pole[0] - 6},${pole[1]}h12M${pole[0]},${pole[1] - 6}v12"/><text x="${pole[0] + 9}" y="${pole[1] - 6}">Pole</text>`;
+  const pickY = state.picks.map((id) => toPx(toMap(sites[id].lat, sites[id].lon))[1]);
+  const chosenLast = [...data.sites].sort((a, b) => state.picks.includes(a.id) - state.picks.includes(b.id));
+  for (const site of chosenLast) {
+    const p = toPx(toMap(site.lat, site.lon)), k = state.picks.indexOf(site.id);
+    if (!inView(p)) continue;
+    if (k < 0) { g += `<circle class="pin-dark" cx="${p[0]}" cy="${p[1]}" r="3"/><text x="${p[0] + 6}" y="${p[1] + 4}">${site.id}</text>`; continue; }
+    // Upper chosen site labelled above its pin, lower one below, so close pairs never collide.
+    const lit = vis(site.id).sun[i0] > 0, above = pickY[k] <= pickY[1 - k];
+    g += `<circle class="${lit ? "pin-lit" : "pin-dark"}" cx="${p[0]}" cy="${p[1]}" r="7"/>` +
+      `<text x="${Math.min(MAP - 75, Math.max(75, p[0]))}" y="${p[1] + (above ? -12 : 22)}" text-anchor="middle">${site.name}${lit ? "" : " (Sun hidden)"}</text>`;
+  }
+  const km = [1, 2, 5, 10, 20, 50, 100].filter((d) => d <= view.half / 2).pop(), len = (km / (2 * view.half)) * MAP;
+  g += `<path class="scale" d="M14,${MAP - 14}h${len.toFixed(1)}"/><text x="14" y="${MAP - 20}">${km} km</text>`;
+  $("#map").innerHTML = g;
+  $("#zoom").textContent = state.zoom ? "Show the whole region" : "Close-up on the two sites";
+  $("#map-cap").textContent = terrain
+    ? `Real NASA terrain, 500 m detail. Light = sunlit, black = shadow, at landing ${when}, 00:00 UTC. 0° longitude (the Earth-facing side) at the top.`
+    : "Loading terrain…";
 }
 
 // --- site columns
@@ -142,7 +173,10 @@ const cols = [...document.querySelectorAll(".site")].map((el, c) => {
   el.innerHTML = `<select aria-label="Site ${c + 1}">${data.sites.map((s) => `<option value="${s.id}">${s.name} · ${s.kind}</option>`).join("")}</select>
     <p class="mission"></p>
     <div class="head"><span class="big"></span><span class="status"></span></div>
-    <p class="sub"></p><p class="sunline"></p><p class="verdict"></p><dl class="nums"></dl>
+    <p class="sub"></p>
+    <div class="hbar sun"><span>Sunlight</span><i class="track"><i class="fill"></i></i><b></b></div>
+    <div class="hbar earth"><span>Earth in view</span><i class="track"><i class="fill"></i></i><b></b></div>
+    <p class="sunline"></p><p class="verdict"></p><dl class="nums"></dl>
     <svg class="timeline" viewBox="0 0 600 84" role="img" aria-label="Sun and Earth over the 30 days"></svg>
     <svg class="pano" viewBox="0 0 600 186" role="img" aria-label="Skyline all around the site with the Sun and Earth paths"></svg>`;
   const col = { q: (s) => el.querySelector(s) };
@@ -178,6 +212,11 @@ function renderCol(col, id, i0, iPlanned, yr) {
   big.innerHTML = `${Math.round(m.sunlit)}<small> of ${WINDOW_H} h</small>`;
   col.q(".status").textContent = STATUS[g];
   col.q(".sub").textContent = `sunlight in the 30 days after landing (${Math.round((m.sunlit / WINDOW_H) * 100)} %)`;
+  // Sun and Earth bars: same 720 h scale, updated in place so the width change animates on a slip.
+  for (const [cls, h] of [["sun", m.sunlit], ["earth", m.earth]]) {
+    col.q(`.hbar.${cls} .fill`).style.width = `${((h / WINDOW_H) * 100).toFixed(1)}%`;
+    col.q(`.hbar.${cls} b`).textContent = `${Math.round(h)} h`;
+  }
   col.q(".mission").textContent = sites[id].mission ?? "Mission: pending Story's site list";
   // Solar elevation and its margin over the skyline in the Sun's direction, at the landing instant.
   const e = data.ephemeris.sites[id], el = e.sun_el[i0], margin = el - maskAt(sites[id].horizon, e.sun_az[i0]);
@@ -186,7 +225,7 @@ function renderCol(col, id, i0, iPlanned, yr) {
   const d = verdictDelay(v, iPlanned);
   col.q(".verdict").textContent =
     d === null ? `Holds through a ${MAX_DELAY_D}-day delay` : d === 0 ? "Under half sunlight even on time" : `Falls below half sunlight with a ${d}-day delay`;
-  const nums = [["Longest dark gap", dur(m.darkGap)], ["Earth in view", `${m.earth} h`], nextEvent(m)];
+  const nums = [["Longest dark gap", dur(m.darkGap)], nextEvent(m)];
   col.q(".nums").innerHTML = nums.map(([k, val]) => `<div><dt>${k}</dt><dd>${val}</dd></div>`).join("");
   col.q(".timeline").innerHTML = timeline(v, i0);
   col.q(".pano").innerHTML = panorama(sites[id].horizon, data.ephemeris.sites[id], i0, yr);
@@ -199,8 +238,24 @@ function render() {
   $("#delay-out").textContent = state.delay === 0 ? `On time · lands ${when}` : `${state.delay > 0 ? "+" : "−"}${days} · lands ${when}`;
   const yr = yRange(state.picks);
   cols.forEach((col, c) => renderCol(col, state.picks[c], i0, iPlanned, yr));
-  $("#map").innerHTML = polarMap();
+  cancelAnimationFrame(mapFrame); // the map takes ~0.1 s: draw once per frame while the slider moves
+  mapFrame = requestAnimationFrame(() => drawMap(i0, when));
 }
+
+// --- validation table: Science writes src/validation.json; null = not measured yet
+function renderValidation() {
+  const v = validation, done = v.rows.filter((r) => r.max_del_deg != null && r.max_daz_cos_deg != null);
+  const f = (x) => (x == null ? "–" : `${x.toFixed(4)}°`);
+  $("#val-rows").innerHTML = v.rows.map((r) =>
+    `<tr><td>${r.site}</td><td>${r.body}</td><td>${f(r.max_del_deg)}</td><td>${f(r.max_daz_cos_deg)}</td><td>${r.hours ?? "–"}</td><td>${r.start ? `${r.start} to ${r.stop}` : "–"}</td></tr>`).join("");
+  const worst = Math.max(...done.flatMap((r) => [r.max_del_deg, r.max_daz_cos_deg]));
+  $("#val-link").textContent = !done.length ? "Sun and Earth angles vs JPL Horizons: not yet measured"
+    : `Sun and Earth angles within ${worst.toFixed(4)}° of JPL Horizons (pass mark ${v.pass_deg}°)${done.length < v.rows.length ? `, ${done.length} of ${v.rows.length} rows so far` : ""}`;
+  $("#val-ref").textContent = `Reference: JPL Horizons, topocentric site on the Moon, airless, frame MOON_ME, correction LT+S. ${v.queried ? `Queried ${v.queried}.` : "Not yet queried."}`;
+  $("#val-note").hidden = !!v.queried;
+  $("#val-checks").innerHTML = v.checks.map((c) => `<li>${c.label} (${c.id}): ${c.result ?? "not yet run"}</li>`).join("");
+}
+renderValidation();
 
 $("#foot").textContent = `Half sunlight = 360 of 720 hours. Verdicts test delays of 0 to ${MAX_DELAY_D} days from the planned date. Landing at 00:00 UTC. Mast height 2 m. Hover the charts for detail.`;
 render();

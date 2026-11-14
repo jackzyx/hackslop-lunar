@@ -5,7 +5,7 @@ moment it is used. Space Apps requires full citation; missing references can mak
 project ineligible. Format: what, who, link, what we used it for.
 
 ## NASA data
-- LOLA south pole DEMs and PSR maps: Barker, M. K. et al. (2023), "A New View of the Lunar South Pole from LOLA", PGDA product 90, https://pgda.gsfc.nasa.gov/products/90, doi:10.60903/gsfcpgda-lola-spole; paper doi:10.3847/PSJ/acf3e1. Used for: horizon masks, relief print, polar map, PSR overlay.
+- LOLA south pole DEMs and PSR maps: Barker, M. K. et al. (2023), "A New View of the Lunar South Pole from LOLA", PGDA product 90, https://pgda.gsfc.nasa.gov/products/90, doi:10.60903/gsfcpgda-lola-spole; paper doi:10.3847/PSJ/acf3e1. Used for: horizon masks, relief print, in-app shadow map (500 m, scripts/export_terrain.py), PSR overlay.
 - LOLA site DEMs: Barker, M. K. et al. (2021), PSS 203, 105119, doi:10.1016/j.pss.2020.105119, PGDA product 78, https://pgda.gsfc.nasa.gov/products/78. Used for: (stretch) lander-scale horizons.
 - Lunar polar illumination: Mazarico, E. et al. (2011), Icarus 211, 1066-1081, doi:10.1016/j.icarus.2010.10.030, PGDA product 69, https://pgda.gsfc.nasa.gov/products/69. Used for: V4 benchmark.
 - NAIF SPICE generic kernels (naif0012.tls, pck00011.tpc, de440s.bsp, moon_pa_de440_200625.bpc, moon_de440_250416.tf), NASA/JPL NAIF, https://naif.jpl.nasa.gov/pub/naif/generic_kernels/. Acton, C. H. (1996), PSS 44, 65-70. Used for: Sun and Earth directions.
@@ -41,3 +41,6 @@ project ineligible. Format: what, who, link, what we used it for.
 - Claude Code (Claude Opus 5.5): web app mockup in `web/` (screen layout, SVG charts, metrics functions and tests, mock-data generator), Fri 13 Nov 22:40-23:30. All data in it is invented placeholder data.
 - Claude Code (Claude Opus 5.5): cross-platform setup and data download (`scripts/setup.py`, `scripts/fetch_data.py`) so Windows laptops work, Sat 14 Nov 09:00-09:30.
 - Claude Code (Claude Opus 5.5): relief STL script `hardware/make_relief.py` (LOLA 80 m DEM to 150 mm print on its spherical cap), added the PGDA 69 PSR and 75 S maps to the download, hackspace parts request, Sat 14 Nov 09:40-10:05. Requested by Davit.
+- Claude Code (Claude Opus 5.5): in-app shadow map of the real terrain (`web/src/shadow.js`, its tests, `scripts/export_terrain.py`), replacing the hardware table demo; site-card additions (N of 720 h, Sun elevation over the skyline, mission line), Sat 14 Nov 10:15-10:40. Requested by Davit.
+- Claude Code (Claude Opus 5.5): docs rewritten for the software-only plan (CLAUDE.md, README, context 03/04/06/07/08/10, the shadow-map, relief-print and twin-rig skills), Sat 14 Nov 10:30. Requested by Davit.
+- Claude Code (Claude Opus 5.5): Sun and Earth bars on the site cards, validation table read from `web/src/validation.json`, GitHub Pages workflow, Sat 14 Nov 10:45. Requested by Davit.
