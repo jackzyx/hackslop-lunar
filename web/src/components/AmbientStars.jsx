@@ -10,7 +10,6 @@ export default function AmbientStars({ page }) {
     if (!context) return;
     if (!pageConstellations.current.has(page)) pageConstellations.current.set(page, createConstellations());
     const constellations = pageConstellations.current.get(page);
-    const constellationTopLimit = page === 'compare' ? 48 : 138;
     const intro = document.getElementById('intro');
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     const pointer = { x: 0, y: 0, active: false };
@@ -24,7 +23,7 @@ export default function AmbientStars({ page }) {
       context.clearRect(0, 0, width, height);
       const activePointer = motion.matches ? null : pointer;
       drawStars(context, stars, width, height, time, dt, activePointer, motion.matches);
-      drawConstellations(context, constellations, width, height, time, activePointer, constellationTopLimit);
+      drawConstellations(context, constellations, width, height, time, activePointer);
     }
     function tick(now) {
       frame = requestAnimationFrame(tick);

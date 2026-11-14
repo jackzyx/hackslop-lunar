@@ -68,18 +68,19 @@ export function createConstellations(month = new Date().getUTCMonth(), random = 
     const side = index === 0 ? firstSide : -firstSide;
     return {
       ...pattern,
-      x: .5 + side * (.18 + random() * .09),
-      y: .13 + random() * .08,
+      x: .5 + side * random() * .5,
+      y: random(),
       rotation: (random() - .5) * .55,
     };
   });
 }
 
-export function drawConstellations(context, constellations, width, height, time, pointer, topLimit) {
+export function drawConstellations(context, constellations, width, height, time, pointer) {
   const size = Math.min(104, width * .22, height * .19);
+  const inset = Math.min(size * .6 + 2, width / 2, height / 2);
   for (const pattern of constellations) {
-    const x = pattern.x * width;
-    const y = Math.min(pattern.y * height, topLimit);
+    const x = inset + pattern.x * (width - 2 * inset);
+    const y = inset + pattern.y * (height - 2 * inset);
     const distance = pointer?.active ? Math.hypot(x - pointer.x, y - pointer.y) : Infinity;
     const highlight = Math.max(0, 1 - distance / (size * .8));
 
