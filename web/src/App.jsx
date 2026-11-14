@@ -90,7 +90,7 @@ export default function App() {
 
         <section className="hud panel slipbar">
           <label htmlFor="slip" className="hud-label shrink-0">LAUNCH SLIP</label>
-          <div className="flex-1">
+          <div className="slip-track">
             <Slider
               id="slip"
               aria-label="Launch delay in days"

@@ -70,7 +70,7 @@
 
 @layer base {
   * { @apply border-border outline-ring/50; }
-  html { font-family: var(--font-mono); font-size: 16px; }
+  html { font-family: var(--font-mono); font-size: 16px; scrollbar-gutter: stable; }
   body {
     @apply text-foreground;
     margin: 0;
@@ -134,8 +134,8 @@
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
 /* launch slip: the one control that drives the demo */
-.slipbar { display: flex; flex-direction: row; align-items: center; gap: 20px; padding: 12px 18px; }
-.slipout { font-size: 20px; font-weight: 600; letter-spacing: 0.06em; color: var(--primary); min-width: 25ch; text-align: right; font-variant-numeric: tabular-nums; }
+.slipbar { display: grid; grid-template-columns: max-content minmax(0, 1fr) auto; align-items: center; gap: 20px; padding: 12px 18px; }
+.slipout { width: 40ch; font-size: 20px; font-weight: 600; letter-spacing: 0.06em; color: var(--primary); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ticks { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--muted-foreground); letter-spacing: 0.08em; }
 [data-slot="slider-track"] {
   height: 10px !important; border-radius: 0; background:
@@ -373,9 +373,9 @@ body:has(.intro[data-phase="revealing"]) .mapwrap > * { visibility: hidden; }
   .console { grid-template-columns: minmax(0, 1fr); }
   .tools { margin-left: 0; }
   .brand { font-size: 20px; }
-  .slipbar { flex-wrap: wrap; padding: 12px 14px; gap: 10px; }
-  .slipbar > .flex-1 { flex-basis: 100%; order: 3; }
-  .slipout { min-width: 0; text-align: left; font-size: 16px; }
+  .slipbar { grid-template-columns: max-content minmax(0, 1fr); padding: 12px 14px; gap: 10px; }
+  .slip-track { grid-column: 1 / -1; grid-row: 2; }
+  .slipout { width: auto; text-align: left; font-size: 16px; white-space: normal; }
   .stars-say { flex-direction: column; gap: 4px; }
   .stars-say span { font-size: 16px; }
   .big > span:first-child { font-size: 56px; }
