@@ -4,6 +4,8 @@ import { TL } from '@/lib/charts.js';
 import { t0, H, fmtDate } from '@/lib/data.js';
 
 const scale = (TL.x1 - TL.x0) / WINDOW_H;
+const wheelPixelsPerStep = 40;
+const daysPerStep = 2;
 function intervals(values) {
   const result = [];
   let start = null;
@@ -29,11 +31,10 @@ export default function VisibilityTimeline({ visibility, i0, onShiftDate, ...eve
       event.preventDefault();
       const direction = Math.sign(event.deltaY);
       if (Math.sign(distance) !== direction) resetDistance();
-      distance += event.deltaMode === 0 ? event.deltaY : direction * 100;
-      const days = Math.trunc(distance / 100);
-      if (days !== 0) {
-        distance -= days * 100;
-        shiftDate(days);
+      distance += event.deltaMode === 0 ? event.deltaY : direction * wheelPixelsPerStep;
+      if (Math.abs(distance) >= wheelPixelsPerStep) {
+        distance %= wheelPixelsPerStep;
+        shiftDate(direction * daysPerStep);
       }
     };
     timeline.addEventListener('wheel', onWheel, { passive: false });
@@ -56,7 +57,7 @@ export default function VisibilityTimeline({ visibility, i0, onShiftDate, ...eve
       <g className="timeline-bar">
         <rect className="track" x={TL.x0} y={row.y} width={TL.x1 - TL.x0} height="20" />
         <g clipPath={`url(#${clip})`}>
-          <g className="visibility-strip" style={{ transform: `translateX(${-i0 * scale}px)` }}>
+          <g transform={`translate(${-i0 * scale} 0)`}>
             {row.runs.map(([a, b]) => <rect key={a} className={row.cls} x={TL.x0 + a * scale} y={row.y} width={(b - a) * scale} height="20" />)}
           </g>
         </g>

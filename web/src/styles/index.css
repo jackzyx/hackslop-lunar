@@ -181,8 +181,6 @@ html:has(#intro:not([hidden])) { --scrollbar-opacity: 0; transition: none; }
 .landing-calendar button:disabled { opacity: .25; cursor: default; }
 .calendar-footer { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px; font-size: 10px; color: var(--muted-foreground); }
 .calendar-footer strong { color: var(--primary); font-weight: 500; }
-.visibility-strip { transition: transform 180ms linear; }
-@media (prefers-reduced-motion: reduce) { .visibility-strip { transition: none; } }
 @media (max-width: 760px) { .landing-calendar { left: 0; right: auto; } }
 .mock { background: var(--primary); color: var(--primary-foreground); font-weight: 800; font-size: 12px; padding: 4px 8px; letter-spacing: 0.1em; }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
@@ -303,6 +301,12 @@ html:has(#intro:not([hidden])) { --scrollbar-opacity: 0; transition: none; }
 }
 .hud-tabs [data-slot="tabs-trigger"][data-state="active"] { color: var(--primary); text-shadow: var(--glow); }
 .hud-tabs [data-slot="tabs-trigger"]::after { background: var(--primary) !important; }
+.skyline-panels:not([hidden]) { display: flex; flex-wrap: wrap; gap: 1rem; }
+.skyline-panels > .detail {
+  flex: 1 1 min(100%, 24rem);
+  min-width: 0;
+  max-width: max(24rem, calc((100% - 1rem) / 2));
+}
 .detail svg { display: block; width: 100%; height: auto; }
 .details svg text { font-family: var(--font-mono); font-size: 12px; fill: var(--muted-foreground); }
 .details svg text.ink { fill: var(--foreground); }

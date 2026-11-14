@@ -145,7 +145,7 @@ function DetailTabs({ picks, i0, tab, onTab, terrain, iPlanned, dateMax, onLand,
         <TabsTrigger value="limits">NOT MODELLED</TabsTrigger>
       </TabsList>
 
-      <TabsContent value="skylines" className="grid gap-4 md:grid-cols-2">
+      <TabsContent value="skylines" className="skyline-panels">
         {picks.map((id, c) => <SiteDetail key={c} n={c + 1} id={id} i0={i0} yr={yr} bind={bind} guide={guide} onShiftDate={onShiftDate} />)}
       </TabsContent>
 

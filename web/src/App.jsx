@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { windowMetrics, verdictDelay, MAX_DELAY_D } from "@/domain/metrics.js";
 import { addCustomSite, removeCustomSite, restoreCustomSites, customSites, MAX_CUSTOM } from "@/lib/custom-sites.js";
 import { initialTerrain } from '@/terrain/startup.js';
@@ -138,7 +138,6 @@ function Planner({ hidden }) {
   const when = fmtDate(t0 + i0 * H, { weekday: "short", year: "numeric" });
   const plannedStats = useMemo(() => picks.map(id => ({ onTime: windowMetrics(vis(id), iPlanned).sunlit, d: verdictDelay(vis(id), iPlanned) })), [picks, iPlanned]);
   const stats = useMemo(() => picks.map((id, index) => ({ id, m: windowMetrics(vis(id), i0), ...plannedStats[index] })), [picks, i0, plannedStats]);
-  const detailIndex = useDeferredValue(i0);
 
   useEffect(() => {
     initialTerrain().then((t) => { restoreCustomSites(t); setTerrain(t); setCustomKey((k) => k + 1); }).catch(err => setTerrainErr(err.message));
@@ -199,7 +198,7 @@ function Planner({ hidden }) {
           <SiteCard n={2} st={stats[1]} onPick={(id) => setPicks([picks[0], id])} onRemove={removeSite} />
         </main>
 
-        <DetailTabs picks={picks} i0={detailIndex} tab={tab} onTab={setTab} customKey={customKey} terrain={terrain} iPlanned={iPlanned} dateMax={dateMax} onShiftDate={shiftSlip} onLand={(d) => { setDate(d); setDelay(0); }} />
+        <DetailTabs picks={picks} i0={i0} tab={tab} onTab={setTab} customKey={customKey} terrain={terrain} iPlanned={iPlanned} dateMax={dateMax} onShiftDate={shiftSlip} onLand={(d) => { setDate(d); setDelay(0); }} />
         <p className="foot">Half sunlight = 360 of 720 hours. Verdicts test delays of 0 to {MAX_DELAY_D} days from the planned date. Landing at 00:00 UTC. Hover the charts for detail.</p>
       </div>
   );
