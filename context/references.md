@@ -11,6 +11,12 @@ project ineligible. Format: what, who, link, what we used it for.
 - NAIF SPICE generic kernels (naif0012.tls, pck00011.tpc, de440s.bsp, moon_pa_de440_200625.bpc, moon_de440_250416.tf), NASA/JPL NAIF, https://naif.jpl.nasa.gov/pub/naif/generic_kernels/. Acton, C. H. (1996), PSS 44, 65-70. Used for: Sun and Earth directions.
 - JPL Horizons System, https://ssd.jpl.nasa.gov/horizons/. Used for: independent validation (V1).
 - [add: LROC QuickMap screenshots, NAC frames, Artemis III region coordinates, mission site coordinates]
+- Artemis III candidate landing regions (13 regions, Aug 2022): NASA, "NASA Identifies Candidate Regions for Landing Next Americans on Moon", https://www.nasa.gov/feature/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon. Used for: Connecting Ridge, Shackleton Rim, de Gerlache Rim 2, Haworth, Nobile Rim 1, Malapert Massif region coordinates.
+- PGDA Product 78 site DEMs (5 m/pixel): Barker, M. K. et al. (2021), PSS 203, 105119, https://pgda.gsfc.nasa.gov/products/78. Used for: Connecting Ridge (Site 01) and Shackleton Rim (Site 04) centre coordinates, and Malapert Massif (Site 23).
+- Shackleton crater: Wikipedia, https://en.wikipedia.org/wiki/Shackleton_(crater). Used for: Shackleton Floor PSR control-site coordinates (89.67° S, 129.78° E).
+- Chang'e 7 target site (~88.8° S, ~123.4° E near Shackleton rim): Wikipedia, https://en.wikipedia.org/wiki/Chang%27e_7; The Planetary Society, https://www.planetary.org/space-missions/change-7. Used for: linking Shackleton Rim to Chang'e 7.
+- IM-2 (Athena) landing coordinates (84.79° S, 29.20° E at Mons Mouton): Wikipedia, https://en.wikipedia.org/wiki/IM-2; NASA LROC image, https://www.nasa.gov/image-detail/im2-after-landing/. Used for: Mons Mouton site.
+- USRA/LPI Artemis III region coordinates: Lunar and Planetary Institute, https://www.lpi.usra.edu/lunar/surface/. Used for: Haworth and Nobile Rim 1 centre coordinates.
 
 ## Facts used in the pitch
 - IM-2 Athena landing, 6 Mar 2025, ~250 m from target, on its side, ended ~13 h later: Spaceflight Now; SpacePolicyOnline. [add exact URLs]
