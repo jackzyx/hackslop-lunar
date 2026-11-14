@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { MinusIcon, PlusIcon } from "lucide-react";
 import { createShadowRenderer } from "@/shadow-renderer.js";
 import { sites, sunAt } from "@/lib/data.js";
@@ -23,7 +23,7 @@ function gesture(pointers, bounds) {
 
 // Real terrain with the shadows at the landing instant (shadow.js), lon 0 up, 90 E right.
 // The Sun direction comes from the first chosen site's row of the same table the cards use.
-export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terrainErr, mapCenter, interacting = false }) {
+export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terrainErr, interacting = false }) {
   const wrapper = useRef(null), surface = useRef(null), renderer = useRef(null);
   const pointers = useRef(new Map());
   const [aspect, setAspect] = useState(1);
@@ -40,9 +40,6 @@ export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terr
   const preview = interacting || dragging || wheeling;
   const overlay = painted?.view ?? view;
   const mapWidth = MAP * overlay.aspect;
-  useLayoutEffect(() => {
-    mapCenter.current = { cx: view.cx, cy: view.cy, half: view.half };
-  }, [mapCenter, view.cx, view.cy, view.half]);
   useEffect(() => {
     const observer = new ResizeObserver(entries => {
       const { width, height } = entries[0].contentRect;

@@ -22,11 +22,14 @@ if (location.hash.startsWith('#about') || matchMedia('(prefers-reduced-motion: r
     if (!response.ok) throw new Error('Intro scene unavailable');
     return response.json();
   }).then(scene => {
-    if (scene.appModule) {
-      const preload = document.createElement('link'); preload.rel = 'prefetch'; preload.as = 'script';
-      preload.href = new URL(scene.appModule, document.baseURI).href; document.head.append(preload);
-    }
     if (!location.hash.startsWith('#about') && overlay.dataset.bootSkipped !== 'true') {
+      if (scene.appModule) {
+        const preload = document.createElement('link');
+        preload.rel = 'modulepreload';
+        preload.fetchPriority = 'low';
+        preload.href = new URL(scene.appModule, document.baseURI).href;
+        document.head.append(preload);
+      }
       playIntro({ ...scene, terrainReady, onLanding: loadApp });
     } else loadApp();
   }).catch(() => { loadApp(); overlay.hidden = true; });

@@ -10,6 +10,8 @@
       /* Critical first-paint styles: do not wait for the JavaScript CSS bundle. */
       html,body{margin:0;background:#050403;color:#ffbf47;color-scheme:dark}
       [hidden]{display:none!important}
+      .planner-loading{position:fixed;inset:0;display:grid;place-items:center;margin:0;font:14px monospace}
+      body:has(.intro:not([hidden])) .planner-loading{visibility:hidden}
       .intro{position:fixed;inset:0;z-index:50;background:#000}
       .intro canvas{position:absolute;inset:0;width:100%;height:100%}
       .intro .skip{position:absolute;top:16px;right:16px;background:#0a0805;color:#ffbf47;border:1px solid #59400e;padding:6px 12px;font:12px monospace;cursor:pointer}
@@ -24,7 +26,7 @@
     <link rel="preload" href="./moon-albedo-4k.jpg" as="fetch" crossorigin="anonymous" fetchpriority="low" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><p class="planner-loading" role="status">Loading planner…</p></div>
     <!-- STARS intro (src/intro.js). Plain HTML outside React so it covers the page from the first paint. -->
     <div class="intro" id="intro">
       <div id="intro-boot" aria-hidden="true"><svg viewBox="0 0 600 600" fill="none"><circle cx="300" cy="300" r="225" stroke="#ffb000" opacity=".2"/><circle cx="300" cy="300" r="110" stroke="#ffb000" opacity=".3"/><circle cx="300" cy="300" r="12" fill="#fff0c2"/><circle cx="525" cy="300" r="5" fill="#38d4ff"/></svg></div>

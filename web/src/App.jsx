@@ -1,9 +1,8 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { windowMetrics, verdictDelay, MAX_DELAY_D } from "@/metrics.js";
 import { initialTerrain } from '@/startup.js';
-import { playIntro } from "@/intro.js";
 import { narrate } from "@/narrator.js";
-import { data, sites, vis, sunAt, t0, H, DAY, iso, fmtDate, reducedMotion } from "@/lib/data.js";
+import { data, sites, vis, t0, H, DAY, iso, fmtDate, reducedMotion } from "@/lib/data.js";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import SiteCard from "@/components/SiteCard";
@@ -25,7 +24,6 @@ export default function App() {
   const [tab, setTab] = useState("skylines");
   const [terrain, setTerrain] = useState(null);
   const [terrainErr, setTerrainErr] = useState(null);
-  const mapCenter = useRef(null);
 
   useEffect(() => {
     const onHash = () => setPage(location.hash.startsWith('#about') ? 'about' : 'compare');
@@ -51,13 +49,6 @@ export default function App() {
   const detailIndex = useDeferredValue(i0);
   const said = narrate(delay, stats.map((s) => ({ name: sites[s.id].name, now: s.m.sunlit, onTime: s.onTime, d: s.d })));
 
-  // STARS intro for the current landing; latest state through a ref so the button never plays a stale scene.
-  const live = useRef();
-  live.current = { i0, picks, terrain };
-  const intro = () => {
-    const { i0: i, picks: p, terrain: t } = live.current, ms = t0 + i * H;
-    playIntro({ ms, sun: sunAt(p[0], i), terrain: t, terrainReady: t ? undefined : initialTerrain().catch(() => null), zoom, center: mapCenter.current, picks: p.map((id) => sites[id]), when: fmtDate(ms, { year: "numeric" }) });
-  };
   useEffect(() => {
     initialTerrain().then(setTerrain).catch(err => setTerrainErr(err.message));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -81,7 +72,6 @@ export default function App() {
           </div>
           <div className="tools">
             <LandingDatePicker value={date} min={DATE_MIN} max={DATE_MAX} onChange={setDate} />
-            <Button variant="outline" size="sm" onClick={() => intro()}>✦ STARS INTRO</Button>
             {data.mock && <span className="mock" title="Every number on this screen is a placeholder until real data replaces it">MOCK DATA</span>}
             <Button type="button" variant="link" size="sm" onClick={showValidation}>Validation</Button>
           </div>
@@ -113,7 +103,7 @@ export default function App() {
 
         <main className="console" id="compare-main" tabIndex={-1}>
           <SiteCard n={1} st={stats[0]} onPick={(id) => setPicks([id, picks[1]])} />
-          <ShadowMap picks={picks} i0={i0} when={when} zoom={zoom} onZoom={() => setZoom(!zoom)} terrain={terrain} terrainErr={terrainErr} mapCenter={mapCenter} interacting={interacting} />
+          <ShadowMap picks={picks} i0={i0} when={when} zoom={zoom} onZoom={() => setZoom(!zoom)} terrain={terrain} terrainErr={terrainErr} interacting={interacting} />
           <SiteCard n={2} st={stats[1]} onPick={(id) => setPicks([picks[0], id])} />
         </main>
 

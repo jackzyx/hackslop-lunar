@@ -3,7 +3,7 @@
 // longitude (Earth-facing) up, 90 E right. Positions come from the landing date and the same Sun
 // vector the shadow map uses. Sizes and distances are true at every zoom level.
 import { mapView, mapViewport, toMap, R_KM } from "./shadow.js";
-import { prepareIntroAssets } from './intro-assets.js';
+import { prepareIntroAssets, stopIntroAssetPreparation } from './intro-assets.js';
 import { spherePixels } from './intro-pixels.js';
 
 const RAD = Math.PI / 180, AU = 149.6e6, MOON_DIST = 384400, R_SUN = 696000, R_EARTH = 6371;
@@ -134,7 +134,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   const stars = Array.from({ length: 220 }, () => [Math.random(), Math.random(), Math.random() < 0.1 ? 2 : 1, 0.2 + 0.6 * Math.random()]);
   el.hidden = false;
 
-  let raf = 0, over = false, skipping = false, landing, sceneAnimation, snapshot, snapshotSource, layoutChanged, targetObserver;
+  let raf = 0, over = false, landing, sceneAnimation, snapshot, snapshotSource, layoutChanged, targetObserver;
   const clock = createIntroClock();
   const key = (ev) => {
     if (el.hidden || (ev.key !== "Escape" && (sceneAnimation || !["Enter", " "].includes(ev.key)))) return;
@@ -150,6 +150,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
     stopIntro = undefined;
     el.hidden = true;
     el.dataset.phase = 'done';
+    stopIntroAssetPreparation();
     sceneAnimation?.cancel();
     snapshot?.remove();
     targetObserver?.disconnect();
@@ -160,13 +161,8 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   };
   const loadLanding = () => landing ??= Promise.resolve().then(onLanding).catch(finish);
   const dismiss = () => {
-    if (sceneAnimation || !onLanding) {
-      finish();
-    } else if (!skipping) {
-      skipping = true;
-      cancelAnimationFrame(raf);
-      loadLanding().then(finish);
-    }
+    finish();
+    if (onLanding) loadLanding();
   };
   const placeTerrain = (source, width, height, size) => {
     const aspect = source.width / source.height;
@@ -192,7 +188,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
     return shownHeight;
   };
   const reveal = () => {
-    if (over || skipping) return;
+    if (over) return;
     if (el.hidden || matchMedia('(prefers-reduced-motion: reduce)').matches) {
       finish();
       return;
@@ -391,9 +387,9 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   document.getElementById('intro-boot')?.setAttribute('hidden', '');
   raf = requestAnimationFrame(tick);
   const readyTerrain = terrainReady ? await terrainReady : terrain;
-  if (over || skipping) return;
+  if (over) return;
   await prepareIntroAssets({ terrain: readyTerrain, sun, quality, closeView, textureUrl: new URL('moon-albedo-4k.jpg', document.baseURI).href }, assets => {
-    if (over || skipping) return;
+    if (over) return;
     if (assets.moon && assets.moon !== shownMoon) { moon = imageCanvas(assets.moon, assets.moonN); shownMoon = assets.moon; }
     if (assets.land && assets.land !== shownLand) {
       landApproach = imageCanvas(assets.land, assets.landN, 'approach');
