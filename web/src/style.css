@@ -73,9 +73,7 @@ circle.sun.hidden { stroke: var(--sun); } circle.earth.hidden { stroke: var(--ea
 
 .lower { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; }
 #map { width: 100%; max-width: 440px; display: block; margin: 0 auto; }
-.rig { font-size: 30px; font-weight: 700; margin-bottom: 4px; }
 .limits { margin: 0 0 4px; padding-left: 22px; }
-.card h2 + .rig + .note { margin-bottom: 16px; }
 
 #validation { margin-top: 16px; }
 table { border-collapse: collapse; width: 100%; font-size: 16px; font-variant-numeric: tabular-nums; margin: 8px 0; }

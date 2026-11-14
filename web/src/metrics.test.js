@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { maskAt, sunFraction, windowMetrics, verdictDelay, rig, SUN_RADIUS_DEG, WINDOW_H } from "./metrics.js";
+import { maskAt, sunFraction, windowMetrics, verdictDelay, SUN_RADIUS_DEG, WINDOW_H } from "./metrics.js";
 
 test("sunFraction: half disc on the skyline, none below, all above", () => {
   assert.equal(sunFraction(1.0, 1.0), 0.5);
@@ -36,10 +36,4 @@ test("verdictDelay finds the first delay under half sunlight", () => {
   sun.fill(0, 400); // dark from hour 400: window starting at day d has 400 - 24 d lit hours
   assert.equal(verdictDelay({ sun, earth }, 0), 2); // 400 - 48 = 352 < 360
   assert.equal(verdictDelay({ sun: new Float32Array(n).fill(1), earth }, 0), null);
-});
-
-test("rig: 157 mm per degree of sub-solar latitude at 3 m, k = 3", () => {
-  const r = rig(-10, -1);
-  assert.equal(r.tableDeg, 350);
-  assert.ok(Math.abs(r.lampMm - 157.10) < 0.01); // 3000 mm x 3 x tan(1 deg)
 });

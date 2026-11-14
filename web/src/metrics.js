@@ -65,12 +65,3 @@ export function verdictDelay(vis, iPlanned) {
   }
   return null;
 }
-
-// Model table drivers: table angle = sub-solar longitude, lamp height = L k tan(-sub-solar lat).
-// The turning direction of the table is fixed on the rig on Saturday (twin-rig skill).
-export function rig(subLonDeg, subLatDeg, lampDistMm = 3000, k = 3) {
-  return {
-    tableDeg: ((subLonDeg % 360) + 360) % 360,
-    lampMm: lampDistMm * k * Math.tan((-subLatDeg * Math.PI) / 180),
-  };
-}

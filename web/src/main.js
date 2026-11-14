@@ -1,5 +1,5 @@
 import data from "./mock-data.json";
-import { visibility, windowMetrics, verdictDelay, grade, rig, maskAt, WINDOW_H, MAX_DELAY_D } from "./metrics.js";
+import { visibility, windowMetrics, verdictDelay, grade, maskAt, WINDOW_H, MAX_DELAY_D } from "./metrics.js";
 
 const H = 3600e3, DAY = 86400e3, rad = Math.PI / 180;
 const t0 = Date.parse(data.ephemeris.start_utc);
@@ -200,9 +200,6 @@ function render() {
   const yr = yRange(state.picks);
   cols.forEach((col, c) => renderCol(col, state.picks[c], i0, iPlanned, yr));
   $("#map").innerHTML = polarMap();
-  const r = rig(data.rig.subsolar_lon[i0], data.rig.subsolar_lat[i0]);
-  $("#rig").textContent = `Table to ${r.tableDeg.toFixed(1)}°, lamp to ${r.lampMm < 0 ? "−" : "+"}${Math.abs(r.lampMm).toFixed(0)} mm`;
-  $("#rig-note").textContent = `For ${when}, 00:00 UTC. Lamp 3.00 m from the model, heights ×3, lamp height measured from the pole's level.`;
 }
 
 $("#foot").textContent = `Half sunlight = 360 of 720 hours. Verdicts test delays of 0 to ${MAX_DELAY_D} days from the planned date. Landing at 00:00 UTC. Mast height 2 m. Hover the charts for detail.`;
