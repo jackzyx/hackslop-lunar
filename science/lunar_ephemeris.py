@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 import numpy as np
 import spiceypy as sp
 
-from horizon_mask import DEMO_SITES, MAST_M, ROOT, R_MOON_KM, DemSampler, compute_horizon
+from horizon_mask import DEMO_SITES, MAST_M, N_AZ, ROOT, R_MOON_KM, DemSampler, compute_horizon
 
 
 START = datetime(2025, 1, 1)
@@ -25,6 +25,7 @@ SITES = [
     {"id": "F", "name": "Nobile Rim 1", "kind": "crater rim", "mission": "Artemis III region", "lat": -85.30, "lon": 37.4},
     {"id": "G", "name": "Malapert Massif", "kind": "massif", "mission": "Artemis III region; PGDA 78 Site 23", "lat": -85.99, "lon": 359.8},
     {"id": "H", "name": "Mons Mouton (IM-2)", "kind": "plateau", "mission": "IM-2 Athena landing (6 Mar 2025)", "lat": -84.79, "lon": 29.2},
+    {"id": "I", "name": "Apollo 11", "kind": "Equatorial reference", "mission": "Apollo 11 landing site", "lat": 0.674, "lon": 23.473, "terrain_modelled": False},
 ]
 
 
@@ -69,9 +70,14 @@ def build_data():
     sites, ephemerides = [], {}
     for site in SITES:
         lat, lon = site["lat"], site["lon"]
-        mask, ground_h_m = compute_horizon(lat, lon, sampler=dem)
+        if site.get("terrain_modelled", True):
+            mask, ground_h_m = compute_horizon(lat, lon, sampler=dem)
+        else:
+            radius_m = R_MOON_KM * 1000
+            dip = np.rad2deg(np.arccos(radius_m / (radius_m + MAST_M)))
+            mask, ground_h_m = np.full(N_AZ, -dip), 0.0
         sites.append({
-            **{key: site[key] for key in ("id", "name", "kind", "mission", "lat", "lon")},
+            **{key: site[key] for key in ("id", "name", "kind", "mission", "lat", "lon", "terrain_modelled") if key in site},
             "mast_m": MAST_M,
             "az_step_deg": 0.5,
             "horizon": mask.round(3).tolist(),
@@ -86,7 +92,7 @@ def build_data():
 
     return {
         "mock": False,
-        "note": "JPL DE440 SPICE ephemeris (LT+S), with LOLA terrain heights and horizon masks.",
+        "note": "JPL DE440 SPICE ephemeris (LT+S), with LOLA terrain horizons for polar sites and a smooth-sphere horizon for Apollo 11.",
         "sites": sites,
         "ephemeris": {
             "start_utc": START.isoformat(timespec="milliseconds") + "Z",

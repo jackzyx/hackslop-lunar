@@ -23,18 +23,21 @@ function gesture(pointers, bounds) {
 
 // Real terrain with the shadows at the landing instant (shadow.js), lon 0 up, 90 E right.
 // The Sun direction comes from the first chosen site's row of the same table the cards use.
-export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terrainErr, interacting = false }) {
+export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terrain, terrainErr, interacting = false }) {
   const wrapper = useRef(null), surface = useRef(null), renderer = useRef(null);
   const pointers = useRef(new Map());
   const [aspect, setAspect] = useState(null);
   const [dragging, setDragging] = useState(false);
   const [wheeling, setWheeling] = useState(false);
   const [painted, setPainted] = useState(null);
-  const viewKey = zoom ? picks.join(":") : "";
+  const mapPicks = picks.filter(id => sites[id].terrain_modelled !== false);
+  const zoom = closeUp && mapPicks.length > 0;
+  const sunSite = mapPicks[0] ?? "A";
+  const viewKey = zoom ? mapPicks.join(":") : "";
   const [viewport, setViewport] = useState({ key: viewKey, view: null });
   if (viewport.key !== viewKey) setViewport({ key: viewKey, view: null });
 
-  const base = mapView(picks.map(id => sites[id]), zoom);
+  const base = mapView(mapPicks.map(id => sites[id]), zoom);
   const view = mapViewport(viewport.view ?? base, aspect ?? 1, zoom, terrain ?? undefined);
   const maxHalf = mapViewport({ ...base, half: Infinity }, aspect ?? 1, zoom, terrain ?? undefined).half;
   const preview = interacting || dragging || wheeling;
@@ -55,8 +58,8 @@ export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terr
   }, [terrain]);
   useEffect(() => {
     if (aspect === null) return;
-    renderer.current?.request({ sun: sunAt(picks[0], i0), view, size: preview ? 256 : 512, interacting: preview, id: i0 });
-  }, [terrain, i0, picks[0], view.cx, view.cy, view.half, aspect, preview]);
+    renderer.current?.request({ sun: sunAt(sunSite, i0), view, size: preview ? 256 : 512, interacting: preview, id: i0 });
+  }, [terrain, i0, sunSite, view.cx, view.cy, view.half, aspect, preview]);
 
   function changeView(scale, from = CENTER, to = from) {
     setViewport(current => {
@@ -136,7 +139,7 @@ export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terr
           <Button type="button" variant="outline" size="icon-xs" aria-label="Zoom in" disabled={!terrain || view.half <= MIN_MAP_HALF} onClick={() => changeView(0.8)}>
             <PlusIcon aria-hidden="true" className="size-3" />
           </Button>
-          <Button type="button" variant="outline" size="xs" onClick={onZoom}>{zoom ? "WHOLE REGION" : "CLOSE-UP"}</Button>
+          <Button type="button" variant="outline" size="xs" disabled={!mapPicks.length} onClick={onZoom}>{zoom ? "WHOLE REGION" : "CLOSE-UP"}</Button>
         </div>
       </div>
       <div ref={wrapper} className="mapwrap" data-pan={terrain ? (dragging ? "dragging" : "ready") : undefined}
@@ -152,6 +155,7 @@ export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terr
           ? `Real NASA terrain at landing, ${when}, 00:00 UTC. Light = sunlit, black = shadow. Earth-facing side (0°) up.`
           : "Loading terrain…"}
       </p>
+      {mapPicks.length < picks.length && <p className="caption">Apollo 11 is outside the south-pole map coverage.</p>}
     </Card>
   );
 }

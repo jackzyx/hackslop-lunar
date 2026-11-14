@@ -41,6 +41,7 @@ function SiteDetail({ n, id, i0, yr, bind }) {
     <Card className="hud detail">
       <h3 className="hud-title">SITE {n} · {site.name.toUpperCase()}</h3>
       <p className="hud-label">{latLon(site)}</p>
+      {site.terrain_modelled === false && <p className="caption">Smooth-sphere horizon · Terrain not modelled</p>}
       <p className="hud-label">SUN AND EARTH · 30 DAYS FROM LANDING</p>
       <VisibilityTimeline key={id} visibility={v} i0={i0}
         {...bind((x) => {

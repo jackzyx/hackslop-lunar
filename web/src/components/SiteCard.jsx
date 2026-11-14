@@ -33,6 +33,7 @@ export default function SiteCard({ n, st, onPick }) {
         </SelectContent>
       </Select>
       <p className="mission">{mission}</p>
+      {s.terrain_modelled === false && <p className="caption">Smooth-sphere horizon · Terrain not modelled</p>}
 
       <div className={`big ${g}`}>
         <span className="glow" aria-hidden="true">{Math.round(shown)}</span>
