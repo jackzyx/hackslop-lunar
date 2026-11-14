@@ -64,7 +64,7 @@ function imageCanvas(pixels, n, fadeRim = false) {
   const fade = c.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
   // During approach use a broad feather; once terrain fills the viewport use a
   // narrow rim so the finished view retains its full contrast and detail.
-  fade.addColorStop(fadeRim === 'approach' ? 0.35 : 0.94, "#000");
+  fade.addColorStop(fadeRim === 'approach' ? 0.35 : fadeRim === 'regional' ? 0.62 : 0.94, "#000");
   fade.addColorStop(1, "rgba(0,0,0,0)");
   c.globalCompositeOperation = "destination-in";
   c.fillStyle = fade;
@@ -129,7 +129,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   quality.closeTerrain = Math.max(768, Math.min(1536, Math.ceil(768 * closeView.half / (view.half * 2))));
   pos.landing = [pos.moon[0] + view.cx, pos.moon[1] + view.cy];
   let moon = imageCanvas(spherePixels(sun, 256, null), 256), land, landApproach;
-  let shownMoon, shownLand, shownClose, closeLand, terrainUnavailable = false, elapsed = 0;
+  let shownMoon, shownLand, shownClose, closeLand, shownWide, wideLand, wideHalf, wideReadyAt, terrainUnavailable = false, elapsed = 0;
   let assetVersion = 0, drawnVersion = -1, settled = false, drawnWidth = 0, drawnHeight = 0, drawnSize;
   const stars = Array.from({ length: 220 }, () => [Math.random(), Math.random(), Math.random() < 0.1 ? 2 : 1, 0.2 + 0.6 * Math.random()]);
   el.hidden = false;
@@ -345,6 +345,15 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
     if (on(pm, rm)) {
       const moonCrop = moon && clippedImage(moon.width, moon.height, pm[0] - rm, pm[1] - rm, 2 * rm, 2 * rm, W, H);
       if (moonCrop) g.drawImage(moon, ...moonCrop);
+      if (wideLand) {
+        const radius = wideHalf * k;
+        const crop = clippedImage(wideLand.width, wideLand.height, pm[0] - radius, pm[1] - radius, 2 * radius, 2 * radius, W, H);
+        if (crop) {
+          g.globalAlpha = smoothstep(0, 1, (3000 - w) / 1800) * smoothstep(0, 650, performance.now() - wideReadyAt);
+          g.drawImage(wideLand, ...crop);
+          g.globalAlpha = 1;
+        }
+      }
       const blend = terrainBlend(T * k, pm[0], pm[1], W, H, w);
       if (land && blend.opacity > 0) {
         const crop = clippedImage(land.width, land.height, pm[0] - T * k, pm[1] - T * k, 2 * T * k, 2 * T * k, W, H);
@@ -416,7 +425,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
     if (t >= 5.4 && !landing) loadLanding();
     const frame = Math.min(t, END);
     el.dataset.time = frame.toFixed(3);
-    if (frame < 5.4 || !settled || drawnVersion !== assetVersion || drawnWidth !== el.clientWidth || drawnHeight !== el.clientHeight) {
+    if (frame < 5.4 || !settled || drawnVersion !== assetVersion || (wideLand && now - wideReadyAt < 700) || drawnWidth !== el.clientWidth || drawnHeight !== el.clientHeight) {
       drawnSize = draw(frame);
       settled = frame >= 5.4;
       drawnVersion = assetVersion;
@@ -436,9 +445,16 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
   raf = requestAnimationFrame(tick);
   const readyTerrain = terrainReady ? await terrainReady : terrain;
   if (over) return;
-  await prepareIntroAssets({ terrain: readyTerrain, sun, quality, closeView, textureUrl: new URL('moon-albedo-4k.jpg', document.baseURI).href }, assets => {
+  await prepareIntroAssets({ terrain: readyTerrain, sun, quality, closeView, textureUrl: new URL('moon-albedo-4k.jpg', document.baseURI).href, approachUrl: new URL('terrain_approach_1500m.bin', document.baseURI).href }, assets => {
     if (over) return;
     assetVersion++;
+    if (assets.wide && assets.wide !== shownWide) {
+      wideLand = imageCanvas(assets.wide, assets.wideN, 'regional');
+      wideHalf = assets.wideHalf;
+      wideReadyAt = performance.now();
+      shownWide = assets.wide;
+      el.dataset.regionalSpan = String(wideHalf * 2);
+    }
     if (assets.moon && assets.moon !== shownMoon) { moon = imageCanvas(assets.moon, assets.moonN); shownMoon = assets.moon; }
     if (assets.land && assets.land !== shownLand) {
       landApproach = imageCanvas(assets.land, assets.landN, 'approach');

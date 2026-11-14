@@ -31,6 +31,9 @@ const replay = page => page.evaluate(async () => {
       return new Promise(resolve => requestAnimationFrame(() => resolve(+intro.dataset.time - before)));
     });
     assert.ok(jump <= .1, `intro skipped ${jump}s after synthetic stall`);
+    await page.waitForFunction(() => Number(document.querySelector('#intro').dataset.time) >= 4.05);
+    assert.ok(await page.locator('#intro').evaluate(el => Number(el.dataset.regionalSpan) >= 1700), 'wide terrain must be available during the early lunar approach');
+    await page.screenshot({ path: 'docs/intro-regional-blend-preview.png' });
     await page.waitForFunction(() => Number(document.querySelector('#intro').dataset.time) > 5.1);
     assert.ok(await page.locator('#intro').evaluate(el => Number(el.dataset.closeResolution) >= 512), 'localized terrain must be ready during approach, before the live map loads');
     await page.screenshot({ path: 'docs/intro-close-detail-preview.png' });

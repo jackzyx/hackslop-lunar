@@ -1,5 +1,12 @@
 # Sun Shade web app
 
+The intro uses a separate 1,800 km-wide approach DEM from NASA LOLA's 60 S,
+240 m product, averaged to 1.5 km pixels. Rebuild it with
+`python scripts/export_intro_terrain.py`. A wide feather and a short fade blend
+this regional layer into the globe before the existing 500 m terrain and landing
+close-up take over. This is an intro visual; the planner DEM and site metrics
+are unchanged. Preview: `docs/intro-regional-blend-preview.png`.
+
 The navigation map fills the full width of its panel. A ResizeObserver shares the
 panel aspect ratio with the terrain renderer and SVG overlay, so the wide desktop
 view reveals more ground without stretching craters or distance rings. The whole

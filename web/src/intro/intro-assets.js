@@ -14,7 +14,7 @@ export function stopIntroAssetPreparation() {
   entry.resolve(null);
 }
 
-export function prepareIntroAssets({ terrain, sun, quality, textureUrl, closeView }, onProgress) {
+export function prepareIntroAssets({ terrain, sun, quality, textureUrl, approachUrl, closeView }, onProgress) {
   const key = `${sun.join(',')}/${quality.sphere}/${quality.terrain}/${quality.closeTerrain}/${JSON.stringify(closeView)}`;
   if (cached?.key === key && cached.terrain === terrain) {
     cached.onProgress = onProgress;
@@ -68,7 +68,7 @@ export function prepareIntroAssets({ terrain, sun, quality, textureUrl, closeVie
         if (data.complete) { worker.terminate(); entry.worker = null; resolve(assets); }
       };
       worker.onerror = event => { event.preventDefault(); worker.terminate(); entry.worker = null; fallback(); };
-      worker.postMessage({ terrain, sun, quality, textureUrl, closeView });
+      worker.postMessage({ terrain, sun, quality, textureUrl, approachUrl, closeView });
     } catch { fallback(); }
   });
   return entry.promise;
