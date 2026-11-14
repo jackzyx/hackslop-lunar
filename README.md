@@ -1,4 +1,4 @@
-# Long Shadow (working name): HackAthlone 2026, Lunar Landing Site Navigator
+# Sun Shade (working name): HackAthlone 2026, Lunar Landing Site Navigator
 
 NASA Space Apps Challenge 2026, Challenge 11, at HackAthlone (TUS Athlone, 13-15 Nov 2026).
 

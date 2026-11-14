@@ -37,7 +37,7 @@ export default function About({ terrain, i0, site, onCompare }) {
       <div>
         <h1>Find the light<br /><em>when plans change.</em></h1>
         <p className="about-lead">The same landing site can tell a different story on a different day.</p>
-        <p>Long Shadow helps you compare sunlight and Earth visibility at the Moon’s south pole. Choose two sites, move the landing date, and see what the terrain hides.</p>
+        <p>Sun Shade helps you compare sunlight and Earth visibility at the Moon’s south pole. Choose two sites, move the landing date, and see what the terrain hides.</p>
         <div className="about-actions"><Button onClick={onCompare}>COMPARE LANDING SITES →</Button><a href="#about-sources">Explore the sources ↓</a></div>
         {data.mock && <p className="about-status">The current scenario table is marked as demo data. Explore the interface, but do not use its displayed scenarios as mission predictions.</p>}
       </div>
@@ -65,7 +65,7 @@ export default function About({ terrain, i0, site, onCompare }) {
     </section>
 
     <section className="about-sources about-reveal" id="about-sources" aria-labelledby="sources-heading">
-      <div className="about-source-heading"><div><h2 id="sources-heading">Check the sources.</h2><p>The data, imagery, software and references behind Long Shadow. Each entry explains what it contributes.</p></div><a href="https://github.com/jackzyx/hackslop-lunar" target="_blank" rel="noreferrer">View the code ↗</a></div>
+      <div className="about-source-heading"><div><h2 id="sources-heading">Check the sources.</h2><p>The data, imagery, software and references behind Sun Shade. Each entry explains what it contributes.</p></div><a href="https://github.com/jackzyx/hackslop-lunar" target="_blank" rel="noreferrer">View the code ↗</a></div>
       <label className="about-search">Find a source<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Try LOLA, Horizons, imagery or React" /></label>
       <p className="about-source-count" role="status">{count} {count === 1 ? 'source' : 'sources'}{query ? ` matching “${query}”` : ' in the bibliography'}</p>
       {groups.map((group, i) => group.entries.length > 0 && <details className="about-source-group" key={`${group.title}-${Boolean(query)}`} open={Boolean(query) || i === 0}>
@@ -75,6 +75,6 @@ export default function About({ terrain, i0, site, onCompare }) {
       {count === 0 && <p>No sources match that search. <button onClick={() => setQuery('')}>Show all sources</button></p>}
       <div className="about-disclosure"><h3>Built with real data, credited openly.</h3><p>Lunar imagery and relief geometry come from NASA data, not image generation. Bibliography links require an internet connection; the bundled app assets do not.</p><p>The 80 mm STEP/STL relief is an appearance prototype. A motorized turntable is exploratory hardware, not a completed browser feature.</p></div>
     </section>
-    <footer className="about-footer"><span>Long Shadow · NASA Space Apps / HackAthlone 2026</span><button onClick={() => setPaused(!paused)} aria-pressed={paused}>{paused ? 'Resume animations' : 'Pause animations'}</button><a href="#compare" onClick={onCompare}>Back to the comparison ↑</a></footer>
+    <footer className="about-footer"><span>Sun Shade · NASA Space Apps / HackAthlone 2026</span><button onClick={() => setPaused(!paused)} aria-pressed={paused}>{paused ? 'Resume animations' : 'Pause animations'}</button><a href="#compare" onClick={onCompare}>Back to the comparison ↑</a></footer>
   </main>;
 }
