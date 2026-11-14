@@ -2,6 +2,14 @@
 const { chromium } = require('../.slide-tools/node_modules/playwright');
 const assert = require('node:assert/strict');
 const base = process.env.TEST_URL || 'http://127.0.0.1:5174/';
+// Exercise cached playback directly; the planner no longer has a replay button.
+const replay = page => page.evaluate(async () => {
+  const [{ playIntro }, { initialTerrain }, scene] = await Promise.all([
+    import('/src/intro/intro.js'), import('/src/terrain/startup.js'),
+    fetch('/intro-scene.json').then(response => response.json()),
+  ]);
+  void playIntro({ ...scene, terrain: await initialTerrain() });
+});
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || (process.platform === 'win32' ? 'C:/Program Files/Google/Chrome/Application/chrome.exe' : undefined), headless: true });
   try {
@@ -29,12 +37,12 @@ const base = process.env.TEST_URL || 'http://127.0.0.1:5174/';
     await page.waitForFunction(() => Number(document.querySelector('#intro').dataset.time) > 5.8);
     await page.screenshot({ path: '.slide-tools/intro-smooth.png' });
     await page.waitForFunction(() => document.querySelector('#intro').hidden, { timeout: 20000 });
-    await page.getByRole('button', { name: /STARS INTRO/ }).click();
+    await replay(page);
     await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'playing');
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => document.querySelector('#intro').hidden);
     // Starting another run while one is active must not cancel the new run.
-    await page.getByRole('button', { name: /STARS INTRO/ }).click();
+    await replay(page);
     await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'playing');
     await page.evaluate(() => document.querySelector('#intro .skip').click());
     await page.waitForFunction(() => document.querySelector('#intro').hidden);
