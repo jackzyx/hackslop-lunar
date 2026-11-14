@@ -135,7 +135,7 @@ export default function ShadowMap({ picks, i0, when, zoom, onZoom, terrain, terr
           <Button type="button" variant="outline" size="icon-xs" aria-label="Zoom in" disabled={!terrain || view.half <= MIN_MAP_HALF} onClick={() => changeView(0.8)}>
             <PlusIcon aria-hidden="true" className="size-3" />
           </Button>
-          <Button type="button" variant="outline" size="xs" onClick={onZoom}>{zoom ? "WHOLE REGION" : "CLOSE-UP ON THE TWO SITES"}</Button>
+          <Button type="button" variant="outline" size="xs" onClick={onZoom}>{zoom ? "WHOLE REGION" : "CLOSE-UP"}</Button>
         </div>
       </div>
       <div ref={wrapper} className="mapwrap" data-pan={terrain ? (dragging ? "dragging" : "ready") : undefined}
