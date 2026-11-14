@@ -70,7 +70,7 @@
 
 @layer base {
   * { @apply border-border outline-ring/50; }
-  html { font-family: var(--font-mono); font-size: 16px; scrollbar-gutter: stable; }
+  html { font-family: var(--font-mono); font-size: 16px; overflow-y: auto; scrollbar-gutter: stable; }
   body {
     @apply text-foreground;
     margin: 0;
@@ -83,6 +83,8 @@
   }
   ::selection { background: var(--primary); color: var(--primary-foreground); }
 }
+
+html body[data-scroll-locked] { margin-right: 0 !important; }
 
 /* ---------- HUD primitives */
 .glow { text-shadow: var(--glow); }
