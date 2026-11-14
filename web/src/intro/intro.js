@@ -1,7 +1,4 @@
-// STARS intro: one zoom from the inner solar system down to the landing region, for the landing
-// instant. Seen from the south, like the polar map, so the last frame lines up with it: 0 deg
-// longitude (Earth-facing) up, 90 E right. Positions come from the landing date and the same Sun
-// vector the shadow map uses. Sizes and distances are true at every zoom level.
+// Solar-system approach aligned with the south-polar map.
 import { mapView, mapViewport, toMap, R_KM } from "../terrain/shadow.js";
 import { prepareIntroAssets, stopIntroAssetPreparation } from './intro-assets.js';
 import { spherePixels } from './intro-pixels.js';
@@ -15,9 +12,7 @@ export function sunLongitude(ms) {
   return (((280.46 + 0.9856474 * n + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) % 360) + 360) % 360;
 }
 
-// Sun, Earth, Moon on the ecliptic plane (km; x right, y up on screen), seen from the south and
-// turned so the Moon->Earth direction points up. The Moon's place on its orbit comes from the
-// sub-solar longitude (180 = new Moon, 0 = full). shortcut: ignores the 5 deg orbit tilt.
+// Ecliptic positions in km, viewed from the south with Earth up; ignores orbit tilt.
 export function scene(ms, sun) {
   const ls = sunLongitude(ms), ss = Math.atan2(sun[1], sun[0]) / RAD, up = ls - ss;
   const at = (lam, r) => [r * Math.sin((lam - up) * RAD), r * Math.cos((lam - up) * RAD)]; // clockwise from the south

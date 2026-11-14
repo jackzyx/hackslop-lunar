@@ -1,36 +1,12 @@
-// SVG markup for the charts and the map overlay, built from the table's numbers only (no user text).
-// Ported from the pre-React main.js; the class names are styled in index.css.
+// SVG chart and map overlays from computed data.
 import { WINDOW_H, maskAt } from "@/domain/metrics.js";
 import { toMap } from "@/terrain/shadow.js";
-import { data, sites, vis, t0, H, fmtDate } from "@/lib/data.js";
+import { data, sites, vis } from "@/lib/data.js";
 
 const RAD = Math.PI / 180;
 
 // --- one-month strip: Sun visible (any part of the disc) and Earth in view, hour by hour
 export const TL = { x0: 64, x1: 596 };
-const tlx = (h) => TL.x0 + (h / WINDOW_H) * (TL.x1 - TL.x0);
-function runs(arr, i0) {
-  const out = [];
-  let s = -1;
-  for (let k = 0; k <= WINDOW_H; k++) {
-    const on = k < WINDOW_H && arr[i0 + k] > 0;
-    if (on && s < 0) s = k;
-    else if (!on && s >= 0) { out.push([s, k]); s = -1; }
-  }
-  return out;
-}
-export function timeline(v, i0) {
-  const row = (y, label, cls, rs) =>
-    `<text class="ink" x="0" y="${y + 15}">${label}</text><rect class="track" x="${TL.x0}" y="${y}" width="${TL.x1 - TL.x0}" height="20"/>` +
-    rs.map(([a, b]) => `<rect class="${cls}" x="${tlx(a).toFixed(1)}" y="${y}" width="${(tlx(b) - tlx(a)).toFixed(1)}" height="20"/>`).join("");
-  let ticks = "";
-  for (let d = 0; d <= 30; d += 5) {
-    const anchor = d === 0 ? "start" : d === 30 ? "end" : "middle";
-    ticks += `<text x="${tlx(d * 24)}" y="80" text-anchor="${anchor}">${fmtDate(t0 + (i0 + d * 24) * H).toUpperCase()}</text>`;
-  }
-  return row(4, "SUN", "sun", runs(v.sun, i0)) + row(32, "EARTH", "earth", runs(v.earth, i0)) + ticks;
-}
-
 // --- 360 deg horizon panorama with the Sun and Earth paths over the 30 days
 export const P = { x0: 40, x1: 596, y0: 8, y1: 160 };
 const px = (az) => P.x0 + (az / 360) * (P.x1 - P.x0);

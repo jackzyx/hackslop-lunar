@@ -1,7 +1,5 @@
-// Shadow map of the real terrain for one Sun direction. Pure functions, no DOM.
-// Terrain grid (scripts/export_terrain.py): heights in metres on a polar stereographic map
-// (R = 1737.4 km) centred on the pole, row 0 at +y (lon 0 up), +x = 90 E. Map units are km.
-// Sun: unit vector in MOON_ME (x toward lon 0, z north).
+// Polar stereographic terrain, kilometres; stored heights are int16 metres.
+// +y points to longitude 0, +x to 90 E. Sun vector uses the MOON_ME frame.
 import { sunFraction } from "../domain/metrics.js";
 
 export const R_KM = 1737.4;

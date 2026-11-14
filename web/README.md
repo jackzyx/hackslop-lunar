@@ -75,10 +75,19 @@ CRITICAL), Sun and Earth bars, a verdict, longest dark gap, next sunset or Earth
 console, tabs: the skylines and 30-day strips, the JPL Horizons validation, what we do not model.
 Static, no backend, runs offline.
 
-Code: `src/App.jsx` (state and layout), `src/components/` (SiteCard, ShadowMap, DetailTabs, and
-the shadcn components in `ui/`, which we own and restyle), `src/lib/` (data, chart SVG,
-validation formatting), `src/styles/index.css` (theme tokens and HUD styles). The maths stays in plain
-JS with node tests: `metrics.js`, `shadow.js`, `intro.js`, `narrator.js`.
+Code layout:
+
+- `src/App.jsx` and `src/main.jsx`: application state and startup.
+- `src/components/`: page sections and controls; shared primitives in `ui/`.
+- `src/domain/`: visibility metrics and narration, with colocated Node tests.
+- `src/terrain/`: CPU/GPU shadow rendering, worker fallback, and terrain loading.
+- `src/intro/`: camera animation, image preparation, worker, and tests.
+- `src/data/`: generated ephemeris, horizon masks, and validation results.
+- `src/lib/`: shared data access, SVG overlays, and source/validation formatting.
+- `src/styles/`: theme tokens and HUD styles.
+
+Science scripts write directly to `src/data/`. `ephemeris.json` contains the real
+SPICE table; the optional mock generator overwrites it with invented data.
 
 The map's terrain is `public/terrain_500m.bin` (LOLA 80 m DEM averaged to 500 m, ±250 km,
 int16 metres), made by `python scripts/export_terrain.py`. Its Sun direction is rebuilt

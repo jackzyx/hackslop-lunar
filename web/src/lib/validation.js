@@ -1,4 +1,4 @@
-// Science writes src/validation.json; null = not measured yet. Nobody types these numbers by hand.
+// Generated validation results; null means not measured yet.
 import validation from "@/data/validation.json";
 
 export { validation };
