@@ -1,25 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { shadeView, paint } from '@/terrain/shadow.js';
-import { data, sunAt } from '@/lib/data.js';
+import { data } from '@/lib/data.js';
 import { sourceGroups } from '@/lib/sources.js';
 import { Button } from '@/components/ui/button';
+import MoonGlobe from '@/components/MoonGlobe';
 
-function TerrainPortrait({ terrain, i0, site }) {
-  const canvas = useRef(null);
-  useEffect(() => {
-    if (!terrain) return;
-    const ctx = canvas.current.getContext('2d'), pixels = ctx.createImageData(600, 600);
-    paint(shadeView(terrain, sunAt(site, i0), { cx: 0, cy: 0, half: 170 }, 600), pixels.data);
-    ctx.putImageData(pixels, 0, 0);
-  }, [terrain, i0, site]);
-  return <figure className="about-terrain">
-    <div className="about-orbit" aria-hidden="true" />
-    <canvas ref={canvas} width="600" height="600" role="img" aria-label="NASA lunar south-pole terrain shaded for the selected scenario" />
-    <figcaption>NASA LOLA terrain · {data.mock ? 'illustrative demo lighting' : 'selected landing instant'}<br />0° longitude up · 500 m terrain sampling</figcaption>
-  </figure>;
-}
-
-export default function About({ terrain, i0, site, onCompare }) {
+export default function About({ onCompare }) {
   const root = useRef(null), [query, setQuery] = useState(''), [paused, setPaused] = useState(false);
   useEffect(() => {
     if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -41,7 +26,7 @@ export default function About({ terrain, i0, site, onCompare }) {
         <div className="about-actions"><Button onClick={onCompare}>COMPARE LANDING SITES →</Button><a href="#about-sources">Explore the sources ↓</a></div>
         {data.mock && <p className="about-status">The current scenario table is marked as demo data. Explore the interface, but do not use its displayed scenarios as mission predictions.</p>}
       </div>
-      <TerrainPortrait terrain={terrain} i0={i0} site={site} />
+      <MoonGlobe paused={paused} />
     </section>
 
     <section className="about-section about-reveal" aria-labelledby="about-features">
@@ -73,7 +58,6 @@ export default function About({ terrain, i0, site, onCompare }) {
         <ul>{group.entries.map(([title, text, url]) => <li key={url}><a href={url} target="_blank" rel="noreferrer">{title} <span aria-hidden="true">↗</span></a><p>{text}</p></li>)}</ul>
       </details>)}
       {count === 0 && <p>No sources match that search. <button onClick={() => setQuery('')}>Show all sources</button></p>}
-      <div className="about-disclosure"><h3>Built with real data, credited openly.</h3><p>Earth and lunar imagery and relief geometry come from NASA data, not image generation. The intro’s Earth uses NASA’s Blue Marble composite, credited to NASA/GSFC, Reto Stöckli and Robert Simmon. Bibliography links require an internet connection; the bundled app assets do not.</p><p>The 80 mm STEP/STL relief is an appearance prototype. A motorized turntable is exploratory hardware, not a completed browser feature.</p></div>
     </section>
     <footer className="about-footer"><span>Sun Shade · NASA Space Apps / HackAthlone 2026</span><button onClick={() => setPaused(!paused)} aria-pressed={paused}>{paused ? 'Resume animations' : 'Pause animations'}</button><a href="#compare" onClick={onCompare}>Back to the comparison ↑</a></footer>
   </main>;

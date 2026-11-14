@@ -62,7 +62,7 @@ export default function App() {
         <a className="nav-wordmark" href="#compare">SUN SHADE</a>
         <div><a href="#compare" aria-current={page === 'compare' ? 'page' : undefined}>Compare sites</a><a href="#about" aria-current={page === 'about' ? 'page' : undefined}>About</a></div>
       </nav>
-      {page === 'about' && <About terrain={terrain} i0={i0} site={picks[0]} onCompare={showCompare} />}
+      {page === 'about' && <About onCompare={showCompare} />}
       <div hidden={page === 'about'}>
         <header className="top">
           <div className="min-w-0 flex-1 basis-80">
