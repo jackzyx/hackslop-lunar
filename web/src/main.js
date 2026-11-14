@@ -3,6 +3,7 @@ import validation from "./validation.json";
 import { visibility, windowMetrics, verdictDelay, grade, maskAt, WINDOW_H, MAX_DELAY_D } from "./metrics.js";
 import { terrainFrom, shadeView, sunVector, toMap, paint } from "./shadow.js";
 import { playIntro } from "./intro.js";
+import { narrate } from "./narrator.js";
 
 const H = 3600e3, DAY = 86400e3;
 const t0 = Date.parse(data.ephemeris.start_utc);
@@ -12,6 +13,7 @@ const vis = (id) => (visCache[id] ??= visibility(sites[id].horizon, data.ephemer
 const state = { date: "2026-11-20", delay: 0, picks: ["A", "B"], zoom: true };
 
 const $ = (s) => document.querySelector(s);
+$(".badge").hidden = !data.mock;
 const tip = $("#tip");
 const iso = (ms) => new Date(ms).toISOString().slice(0, 10);
 const fmtDate = (ms, o) => new Date(ms).toLocaleDateString("en-IE", { timeZone: "UTC", day: "numeric", month: "short", ...o });
@@ -74,7 +76,7 @@ const P = { x0: 40, x1: 596, y0: 8, y1: 160 };
 const px = (az) => P.x0 + (az / 360) * (P.x1 - P.x0);
 function panorama(mask, e, i0, [lo, hi]) {
   const py = (el) => Math.min(P.y1 + 2, Math.max(P.y0, P.y1 - ((el - lo) / (hi - lo)) * (P.y1 - P.y0)));
-  const step = hi - lo > 8 ? 2 : 1;
+  const step = [1, 2, 5, 10].find((s) => (hi - lo) / s <= 8) ?? 20; // at most ~8 gridlines
   let g = "";
   for (let el = Math.ceil(lo / step) * step; el <= hi; el += step) {
     g += `<line class="${el === 0 ? "axis" : "grid"}" x1="${P.x0}" x2="${P.x1}" y1="${py(el)}" y2="${py(el)}"/><text x="${P.x0 - 6}" y="${py(el) + 4}" text-anchor="end">${el}°</text>`;
@@ -175,16 +177,20 @@ function drawMap(i0, when) {
 
 // --- site columns
 const cols = [...document.querySelectorAll(".site")].map((el, c) => {
-  el.innerHTML = `<select aria-label="Site ${c + 1}">${data.sites.map((s) => `<option value="${s.id}">${s.name} · ${s.kind}</option>`).join("")}</select>
+  el.innerHTML = `<select aria-label="Site ${c + 1}">${data.sites.map((s) => `<option value="${s.id}">${s.name}</option>`).join("")}</select>
     <p class="mission"></p>
     <div class="head"><span class="big"></span><span class="status"></span></div>
     <p class="sub"></p>
     <div class="hbar sun"><span>Sunlight</span><i class="track"><i class="fill"></i></i><b></b></div>
     <div class="hbar earth"><span>Earth in view</span><i class="track"><i class="fill"></i></i><b></b></div>
-    <p class="sunline"></p><p class="verdict"></p><dl class="nums"></dl>
+    <p class="sunline"></p><p class="verdict"></p><dl class="nums"></dl>`;
+  // The month strip and skyline panorama live in a detail card under the hero row.
+  const det = document.querySelectorAll(".detail")[c];
+  det.innerHTML = `<h2 class="detail-name"></h2><h3>Sun and Earth over the 30 days</h3>
     <svg class="timeline" viewBox="0 0 600 84" role="img" aria-label="Sun and Earth over the 30 days"></svg>
+    <h3>Skyline all around the site, with the Sun and Earth paths</h3>
     <svg class="pano" viewBox="0 0 600 186" role="img" aria-label="Skyline all around the site with the Sun and Earth paths"></svg>`;
-  const col = { q: (s) => el.querySelector(s) };
+  const col = { q: (s) => el.querySelector(s) ?? det.querySelector(s) };
   const sel = col.q("select");
   sel.value = state.picks[c];
   sel.onchange = () => { state.picks[c] = sel.value; render(); };
@@ -222,7 +228,9 @@ function renderCol(col, id, i0, iPlanned, yr) {
     col.q(`.hbar.${cls} .fill`).style.width = `${((h / WINDOW_H) * 100).toFixed(1)}%`;
     col.q(`.hbar.${cls} b`).textContent = `${Math.round(h)} h`;
   }
-  col.q(".mission").textContent = sites[id].mission ?? "Mission: pending Story's site list";
+  const s = sites[id], kind = s.kind && s.kind.toLowerCase() !== s.name.toLowerCase() ? s.kind : null; // the site type, unless the name says it
+  col.q(".mission").textContent = [kind, s.mission ?? "Mission: pending Story's site list"].filter(Boolean).join(" · ");
+  col.q(".detail-name").textContent = sites[id].name;
   // Solar elevation and its margin over the skyline in the Sun's direction, at the landing instant.
   const e = data.ephemeris.sites[id], el = e.sun_el[i0], margin = el - maskAt(sites[id].horizon, e.sun_az[i0]);
   const deg = (x) => `${x < 0 ? "−" : ""}${Math.abs(x).toFixed(1)}°`;
@@ -234,6 +242,7 @@ function renderCol(col, id, i0, iPlanned, yr) {
   col.q(".nums").innerHTML = nums.map(([k, val]) => `<div><dt>${k}</dt><dd>${val}</dd></div>`).join("");
   col.q(".timeline").innerHTML = timeline(v, i0);
   col.q(".pano").innerHTML = panorama(sites[id].horizon, data.ephemeris.sites[id], i0, yr);
+  return { name: s.name, now: m.sunlit, onTime: windowMetrics(v, iPlanned).sunlit, d }; // for the narrator
 }
 
 const plannedIndex = () => (Date.parse(state.date + "T00:00:00Z") - t0) / H;
@@ -245,7 +254,7 @@ function render() {
   const n = Math.abs(state.delay), days = `${n} day${n === 1 ? "" : "s"}`;
   $("#delay-out").textContent = state.delay === 0 ? `On time · lands ${when}` : `${state.delay > 0 ? "+" : "−"}${days} · lands ${when}`;
   const yr = yRange(state.picks);
-  cols.forEach((col, c) => renderCol(col, state.picks[c], i0, iPlanned, yr));
+  $("#narrator span").textContent = narrate(state.delay, cols.map((col, c) => renderCol(col, state.picks[c], i0, iPlanned, yr)));
   cancelAnimationFrame(mapFrame); // the map takes ~0.1 s: draw once per frame while the slider moves
   mapFrame = requestAnimationFrame(() => drawMap(i0, when));
 }
@@ -253,12 +262,15 @@ function render() {
 // --- validation table: Science writes src/validation.json; null = not measured yet
 function renderValidation() {
   const v = validation, done = v.rows.filter((r) => r.max_del_deg != null && r.max_daz_cos_deg != null);
-  const f = (x) => (x == null ? "–" : `${x.toFixed(4)}°`);
+  // Two significant figures however small (Horizons agreement is ~0.00003 deg; 4 decimals would print 0).
+  const f = (x) => (x == null ? "–" : x === 0 ? "0°" : `${x.toFixed(Math.max(4, 1 - Math.floor(Math.log10(x))))}°`);
   $("#val-rows").innerHTML = v.rows.map((r) =>
     `<tr><td>${r.site}</td><td>${r.body}</td><td>${f(r.max_del_deg)}</td><td>${f(r.max_daz_cos_deg)}</td><td>${r.hours ?? "–"}</td><td>${r.start ? `${r.start} to ${r.stop}` : "–"}</td></tr>`).join("");
   const worst = Math.max(...done.flatMap((r) => [r.max_del_deg, r.max_daz_cos_deg]));
-  $("#val-link").textContent = !done.length ? "Sun and Earth angles vs JPL Horizons: not yet measured"
-    : `Sun and Earth angles within ${worst.toFixed(4)}° of JPL Horizons (pass mark ${v.pass_deg}°)${done.length < v.rows.length ? `, ${done.length} of ${v.rows.length} rows so far` : ""}`;
+  $("#val-link").classList.toggle("ok", done.length > 0);
+  $("#val-link").textContent = !done.length ? "Check vs NASA JPL Horizons: not yet run"
+    : `✓ Within ${f(worst)} of NASA JPL Horizons${done.length < v.rows.length ? ` (${done.length} of ${v.rows.length} rows)` : ""}`;
+  $("#val-link").title = done.length ? `Sun and Earth angles, worst of ${done.length} site and body rows; pass mark ${v.pass_deg}°` : "";
   $("#val-ref").textContent = `Reference: JPL Horizons, topocentric site on the Moon, airless, frame MOON_ME, correction LT+S. ${v.queried ? `Queried ${v.queried}.` : "Not yet queried."}`;
   $("#val-note").hidden = !!v.queried;
   $("#val-checks").innerHTML = v.checks.map((c) => `<li>${c.label} (${c.id}): ${c.result ?? "not yet run"}</li>`).join("");
