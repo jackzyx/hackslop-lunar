@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Compute terrain horizon masks for lunar south-pole sites from LOLA DEMs.
 
-Algorithm: context/04-science.md §3.  Skill: .claude/skills/horizon-mask/SKILL.md.
-
 For each of 720 azimuths (0.5 deg step, clockwise from North), ray-march outward
 along the great circle to 300 km with adaptive step size (starting at 80 m, growing
 2 % per step).  At each sample, read the LOLA DEM height, build the 3-D point on
@@ -41,7 +39,7 @@ MAST_M = 2.0           # observer mast height (m)
 STEP_0_M = 80.0        # initial step size (m)
 GROWTH_RATE = 1.02     # step size growth per step (2 %)
 
-# 2 demo sites (from context/04-science.md finalised list)
+# 2 demo sites
 DEMO_SITES = [
     {
         "id": "A",

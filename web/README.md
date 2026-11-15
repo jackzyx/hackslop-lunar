@@ -5,7 +5,7 @@ The intro uses a separate 1,800 km-wide approach DEM from NASA LOLA's 60 S,
 `python scripts/export_intro_terrain.py`. A wide feather and a short fade blend
 this regional layer into the globe before the existing 500 m terrain and landing
 close-up take over. This is an intro visual; the planner DEM and site metrics
-are unchanged. Preview: `docs/intro-regional-blend-preview.png`.
+are unchanged.
 
 The navigation map fills the full width of its panel. A ResizeObserver shares the
 panel aspect ratio with the terrain renderer and SVG overlay, so the wide desktop

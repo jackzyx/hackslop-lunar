@@ -9,4 +9,4 @@ Populated by `scripts/fetch_data.sh`. Layout:
 - `nac/` LROC NAC real vs simulated pair (`extra` tier)
 - `horizons/` cached raw Horizons responses (create as needed)
 
-Copy this folder to a USB stick before the event. See `context/05-data.md`.
+Copy this folder to a USB stick to work offline.

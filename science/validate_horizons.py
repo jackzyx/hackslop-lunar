@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 """Validate SPICE lunar topocentric ephemeris against JPL Horizons API (Check V1).
 
-Algorithm & requirements:
-- context/04-science.md §Validation plan V1
-- .claude/skills/horizons-validation/SKILL.md
-
 3 sites:
   1. Near the pole: (0° E, 89.9° S, 0 km)
   2. Mons Mouton region: (29.2° E, 84.79° S, 0 km)

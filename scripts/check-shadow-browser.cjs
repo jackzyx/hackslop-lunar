@@ -38,7 +38,7 @@ const base=process.env.TEST_URL||'http://127.0.0.1:5174/';
  const layout=await p.evaluate(()=>{const card=document.querySelector('.mapcard'),map=document.querySelector('.mapwrap'),circle=map.querySelector('.ring'),style=getComputedStyle(card),ring=circle.getBoundingClientRect();return{contentWidth:card.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight),mapWidth:map.offsetWidth,ringWidth:ring.width,ringHeight:ring.height}});
  assert.ok(Math.abs(layout.contentWidth-layout.mapWidth)<2,JSON.stringify(layout));
  assert.ok(Math.abs(layout.ringWidth-layout.ringHeight)<1,'distance rings must remain circular');
- await p.screenshot({path:'docs/screenshots/map-full-width-preview.png'});
+ await p.screenshot({path:require('node:path').join(require('node:os').tmpdir(),'map-full-width-preview.png')});
  // Force context loss and verify the worker eventually finishes the newest date at full resolution.
  await p.locator('.shadow-surface canvas').evaluate(c=>{
   if(c.dataset.offscreen)c.dispatchEvent(new Event('webglcontextlost',{cancelable:true}));
