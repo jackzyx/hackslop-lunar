@@ -127,7 +127,7 @@ const depthFragment = `#version 300 es
 void main() {}`;
 
 const RAD = Math.PI / 180;
-const FOV = 53;
+export const SURFACE_FOV = 53;
 const STRIP_KM = 40; // shadow map half-width across the Sun's azimuth
 const ease = t => t * t * (3 - 2 * t);
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
@@ -249,7 +249,7 @@ export function createSurfaceRenderer(canvas, { vertices, indices }, sun, earth)
     throw error;
   }
   return {
-    draw({ yaw, pitch, height }) {
+    draw({ yaw, pitch, height, fov = SURFACE_FOV }) {
       const dpr = Math.min(2, devicePixelRatio);
       const width = Math.max(1, Math.round(canvas.clientWidth * dpr));
       const rows = Math.max(1, Math.round(canvas.clientHeight * dpr));
@@ -260,7 +260,7 @@ export function createSurfaceRenderer(canvas, { vertices, indices }, sun, earth)
       const eye = [0, 0, height];
       const forward = [Math.sin(yaw * RAD) * Math.cos(pitch * RAD), Math.cos(yaw * RAD) * Math.cos(pitch * RAD), Math.sin(pitch * RAD)];
       const right = unit(cross(forward, [0, 0, 1])), up = cross(right, forward);
-      const tanHalf = Math.tan(FOV * RAD / 2);
+      const tanHalf = Math.tan(fov * RAD / 2);
       gl.viewport(0, 0, width, rows);
       gl.clear(gl.DEPTH_BUFFER_BIT);
 
@@ -278,7 +278,7 @@ export function createSurfaceRenderer(canvas, { vertices, indices }, sun, earth)
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, shadowMap);
       gl.uniform3fv(ground.uniforms.eye, eye);
-      gl.uniformMatrix4fv(ground.uniforms.mvp, false, viewProjection(eye, eye.map((v, i) => v + forward[i]), width / rows, FOV, Math.max(.0002, height * .015), 650));
+      gl.uniformMatrix4fv(ground.uniforms.mvp, false, viewProjection(eye, eye.map((v, i) => v + forward[i]), width / rows, fov, Math.max(.0002, height * .015), 650));
       gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_INT, 0);
     },
     dispose,

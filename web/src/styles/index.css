@@ -370,6 +370,7 @@ html:has(#intro:not([hidden])) { --scrollbar-opacity: 0; transition: none; }
 .astronaut-scene[data-phase="ready"] canvas { cursor: grab; }
 .astronaut-scene[data-phase="ready"] canvas:active { cursor: grabbing; }
 .astronaut-heading { top: 10px; left: 10px; }
+.astronaut-zoom { position: absolute; right: 10px; bottom: 10px; display: flex; gap: 6px; }
 .astronaut-status {
   position: absolute; inset: auto 12px 12px; width: fit-content; max-width: calc(100% - 24px); margin-inline: auto; padding: 6px 10px;
   text-align: center; background: rgb(0 0 0 / .82); border: 1px solid var(--border); color: var(--foreground); font: 12px var(--font-mono);

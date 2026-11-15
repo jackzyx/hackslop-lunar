@@ -1,5 +1,5 @@
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
-import { ArrowLeftIcon } from 'lucide-react';
+import { ArrowLeftIcon, MinusIcon, PlusIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { loadRegionalTerrain } from '@/terrain/regional-terrain.js';
 import { loadSurfaceTerrain, surfaceFrame, surfaceMesh, surfacePanorama } from '@/terrain/surface-terrain.js';
@@ -7,6 +7,7 @@ import { loadSurfaceTerrain, surfaceFrame, surfaceMesh, surfacePanorama } from '
 export default function AstronautView({ location, terrain, onClose }) {
   const dialog = useRef(null), canvas = useRef(null);
   const draw = useRef(null), drag = useRef(null);
+  const zoom = useRef(null);
   const [phase, setPhase] = useState('loading');
   const [bearing, setBearing] = useState(0);
   const [closing, setClosing] = useState(false);
@@ -52,11 +53,19 @@ export default function AstronautView({ location, terrain, onClose }) {
       cancelAnimationFrame(frame);
       ready = false;
       draw.current = null;
+      zoom.current = null;
       setPhase('error');
     }
+    function wheel(e) {
+      if (!zoom.current || !e.deltaY || e.ctrlKey) return;
+      e.preventDefault();
+      const pixels = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * element.clientHeight : e.deltaY;
+      zoom.current(Math.max(-240, Math.min(240, pixels)) * .0015);
+    }
     element.addEventListener('webglcontextlost', lost);
+    element.addEventListener('wheel', wheel, { passive: false });
     async function start() {
-      const [detail, regional, { createSurfaceRenderer, descentCamera }] = await Promise.all([
+      const [detail, regional, { createSurfaceRenderer, descentCamera, SURFACE_FOV }] = await Promise.all([
         loadSurfaceTerrain(location.x, location.y, signal), loadRegionalTerrain(), import('@/terrain/surface-renderer.js'),
       ]);
       if (controller.signal.aborted) return;
@@ -77,9 +86,15 @@ export default function AstronautView({ location, terrain, onClose }) {
         if (progress < 1) frame = requestAnimationFrame(animate);
         else {
           ready = true;
+          camera.fov = SURFACE_FOV;
+          zoom.current = delta => {
+            camera.fov = Math.max(20, Math.min(80, camera.fov * Math.exp(delta)));
+            repaint();
+          };
           function look(dx, dy) {
-            camera.yaw = (camera.yaw + dx + 360) % 360;
-            camera.pitch = Math.min(82, Math.max(-82, camera.pitch + dy));
+            const sensitivity = camera.fov / SURFACE_FOV;
+            camera.yaw = ((camera.yaw + dx * sensitivity) % 360 + 360) % 360;
+            camera.pitch = Math.min(82, Math.max(-82, camera.pitch + dy * sensitivity));
             setBearing((Math.round(camera.yaw - location.lon) + 360) % 360);
             repaint();
           }
@@ -96,8 +111,10 @@ export default function AstronautView({ location, terrain, onClose }) {
       cancelAnimationFrame(frame);
       observer?.disconnect();
       element.removeEventListener('webglcontextlost', lost);
+      element.removeEventListener('wheel', wheel);
       renderer?.dispose();
       draw.current = null;
+      zoom.current = null;
     };
   }, [location, terrain]);
 
@@ -118,6 +135,11 @@ export default function AstronautView({ location, terrain, onClose }) {
     if (drag.current?.id === e.pointerId) drag.current = null;
   }
   function keyLook(e) {
+    if (zoom.current && ['+', '=', '-'].includes(e.key)) {
+      e.preventDefault();
+      zoom.current(e.key === '-' ? .15 : -.15);
+      return;
+    }
     const arrows = { ArrowLeft: [-5, 0], ArrowRight: [5, 0], ArrowUp: [0, 4], ArrowDown: [0, -4] };
     if (!draw.current || !arrows[e.key]) return;
     e.preventDefault();
@@ -136,16 +158,24 @@ export default function AstronautView({ location, terrain, onClose }) {
       </Button>
     </div>
     <div className="astronaut-scene" data-phase={phase}>
-      <canvas ref={canvas} tabIndex={phase === 'ready' ? 0 : -1} aria-label="Lunar surface. Drag or use the arrow keys to look around."
+      <canvas ref={canvas} tabIndex={phase === 'ready' ? 0 : -1} aria-label="Lunar surface. Drag or use arrow keys to look around. Scroll or press plus or minus to zoom."
         onPointerDown={startLook} onPointerMove={moveLook} onPointerUp={endLook} onLostPointerCapture={endLook} onKeyDown={keyLook} />
       {phase === 'ready' && <span className="map-hud astronaut-heading">{String(bearing).padStart(3, '0')}° · EYE LEVEL 1.7 M</span>}
       {phase !== 'ready' && <p className="astronaut-status" role="status">{
         { loading: 'Loading detailed lunar terrain…', descending: 'Descending to the surface', error: 'The surface view could not load. Check that WebGL 2 is available and try reopening it.' }[phase]
       }</p>}
+      {phase === 'ready' && <div className="astronaut-zoom">
+        <Button type="button" variant="outline" size="icon" aria-label="Zoom in" onClick={() => zoom.current?.(-.15)}>
+          <PlusIcon aria-hidden="true" />
+        </Button>
+        <Button type="button" variant="outline" size="icon" aria-label="Zoom out" onClick={() => zoom.current?.(.15)}>
+          <MinusIcon aria-hidden="true" />
+        </Button>
+      </div>}
     </div>
     <div className="astronaut-footer">
       <span>NASA LRO / LOLA · 80 m elevation near site · Sun and Earth from the ephemeris · simulated texture</span>
-      <span>Drag or use arrow keys to look around</span>
+      <span>Drag or use arrow keys to look around · Scroll or use +/− to zoom</span>
     </div>
   </dialog>;
 }
