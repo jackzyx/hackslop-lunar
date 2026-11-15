@@ -157,9 +157,10 @@ html:has(#intro:not([hidden])) { --scrollbar-opacity: 0; transition: none; }
 @media (prefers-reduced-motion: reduce) { .site-starfield { transition: none; } }
 .top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding: 28px 0 12px; }
 .brand { display: inline-flex; align-items: center; gap: 12px; margin-bottom: 4px; font-size: 24px; font-weight: 700; letter-spacing: 0.12em; color: var(--primary); white-space: nowrap; }
-.brand > span { position: relative; padding-bottom: 6px; }
-.brand > span::after { content: ""; position: absolute; left: 0; right: 0.12em; bottom: 0; height: 2px; background: linear-gradient(90deg, var(--primary), rgb(255 176 0 / 0.35) 60%, transparent); box-shadow: 0 0 8px rgb(255 176 0 / 0.5); }
-.brand > span::before { content: ""; position: absolute; right: -0.4em; top: 0.1em; width: 6px; height: 6px; background: var(--primary); box-shadow: 0 0 8px var(--primary); }
+.brand span { position: relative; padding-bottom: 6px; }
+.brand span::after { content: ""; position: absolute; left: 0; right: 0.12em; bottom: 0; height: 2px; background: linear-gradient(90deg, var(--primary), rgb(255 176 0 / 0.35) 60%, transparent); box-shadow: 0 0 8px rgb(255 176 0 / 0.5); }
+.brand > a { display: inline-flex; align-items: center; gap: inherit; color: inherit; text-decoration: none; }
+.brand > a:focus-visible { outline: 1px solid var(--primary); outline-offset: 4px; }
 .brand-mark { width: 1.35em; height: 1.35em; flex: none; filter: drop-shadow(0 0 6px rgb(255 176 0 / 0.6)); }
 .brand-orbit { transform-box: fill-box; transform-origin: center; animation: brand-spin 24s linear infinite; }
 @keyframes brand-spin { to { transform: rotate(360deg); } }
@@ -269,21 +270,21 @@ html:has(#intro:not([hidden])) { --scrollbar-opacity: 0; transition: none; }
 .mapwrap svg.crosshair { pointer-events: none; z-index: 2; }
 .crosshair .ch-line { stroke: rgb(255 176 0 / 0.45); stroke-width: 0.7; stroke-dasharray: 3 3; fill: none; }
 .crosshair .ch-mark { stroke: var(--primary); stroke-width: 1.4; fill: none; }
-.crosshair text { font-size: 10px; }
+.crosshair text { font-size: 7.5px; }
 .crosshair[data-bad] .ch-mark { stroke: var(--critical); }
 .crosshair[data-bad] .ch-line { stroke: rgb(255 90 60 / 0.5); }
 .shadow-surface { position:absolute; inset:0; }
 .mapwrap canvas { background: #000; }
-.mapwrap svg text { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; fill: var(--foreground); stroke: #000; stroke-width: 3px; paint-order: stroke; }
+.mapwrap svg text { font-family: var(--font-mono); font-size: 7.5px; letter-spacing: 0.06em; fill: var(--foreground); stroke: #000; stroke-width: 2.2px; paint-order: stroke; }
 .mapwrap .ring, .mapwrap .meridian { fill: none; stroke: rgb(255 176 0 / 0.35); stroke-width: 0.6; stroke-dasharray: 2 3; }
-.mapwrap .grid-label { fill: rgb(255 191 71 / 0.85); font-size: 9px; }
-.mapwrap .cross { stroke: var(--primary); stroke-width: 1.5; }
-.mapwrap .pin-lit { fill: var(--sun); stroke: #000; stroke-width: 1.5; filter: drop-shadow(0 0 4px var(--sun)); }
-.mapwrap .pin-dark { fill: #000; stroke: var(--primary); stroke-width: 1.5; }
-.mapwrap .pin-other { fill: var(--primary); stroke: #000; stroke-width: 1; }
-.mapwrap .bracket { fill: none; stroke: var(--primary); stroke-width: 1.5; }
-.mapwrap .pin-label { font-size: 10.5px; font-weight: 600; fill: #ffd98a; }
-.mapwrap .scale { fill: none; stroke: var(--foreground); stroke-width: 1.5; }
+.mapwrap .grid-label { fill: rgb(255 191 71 / 0.85); font-size: 6.5px; }
+.mapwrap .cross { stroke: var(--primary); stroke-width: 1.1; }
+.mapwrap .pin-lit { fill: var(--sun); stroke: #000; stroke-width: 1.1; filter: drop-shadow(0 0 3px var(--sun)); }
+.mapwrap .pin-dark { fill: #000; stroke: var(--primary); stroke-width: 1.1; }
+.mapwrap .pin-other { fill: var(--primary); stroke: #000; stroke-width: .8; }
+.mapwrap .bracket { fill: none; stroke: var(--primary); stroke-width: 1.1; }
+.mapwrap .pin-label { font-size: 8px; font-weight: 600; fill: #ffd98a; }
+.mapwrap .scale { fill: none; stroke: var(--foreground); stroke-width: 1.1; }
 /* 3D view: holographic amber terrain, same frame and pins as the 2D map */
 .terrain3d { overflow: hidden; cursor: none; touch-action: none; user-select: none;
   background: radial-gradient(ellipse at 50% 60%, rgb(255 176 0 / 0.09), transparent 70%), #000; }
@@ -311,12 +312,13 @@ html:has(#intro:not([hidden])) { --scrollbar-opacity: 0; transition: none; }
 @media (prefers-reduced-motion: reduce) { .terrain3d::after { animation: none; background: none; } }
 .terrain3d-msg { top: 50%; left: 50%; translate: -50% -50%; font-size: 12px; }
 .map-surface-eye {
-  position: absolute; z-index: 3; width: 30px; height: 30px; cursor: pointer;
+  position: absolute; z-index: 3; width: 22px; height: 22px; cursor: pointer;
   color: var(--sun); border-color: var(--primary); background: #110d06;
   box-shadow: 0 0 10px rgb(0 0 0 / .8); transition: background-color 120ms ease, color 120ms ease;
 }
 .map-surface-eye:hover { background: var(--primary); color: #070502; }
-.mapwrap .map-surface-eye svg, .mapwrap .map-ask button svg { position: static; width: 15px; height: 15px; }
+.mapwrap .map-surface-eye svg, .mapwrap .map-ask button svg { position: static; width: 12px; height: 12px; }
+.terrain3d .map-surface-eye svg { width: 12px; height: 12px; }
 .map-ask-actions { flex-wrap: wrap; }
 .astronaut-view {
   position: fixed; inset: 0; margin: auto; width: min(1120px, calc(100% - 24px)); max-height: calc(100dvh - 24px);

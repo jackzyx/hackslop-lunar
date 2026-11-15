@@ -75,7 +75,7 @@ export default function App() {
       <div className="shell" id="site-top">
         {policyPage && <PolicyPage page={page} onRoute={followRoute} />}
         {plannerReady && page === 'about' && <About onCompare={() => navigate('compare')} onRoute={followRoute} paused={paused} />}
-        {plannerReady && <Planner hidden={page !== 'compare'} />}
+        {plannerReady && <Planner hidden={page !== 'compare'} onRoute={followRoute} />}
         {!policyPage && !plannerReady && <main className="policy-page" role="status">{plannerError ? 'Could not load the planner. Refresh to try again.' : 'Loading planner.'}</main>}
         <SiteFooter page={page} onRoute={followRoute} paused={paused} onToggleAnimations={plannerReady && page === 'about' ? () => setPaused(value => !value) : undefined} />
       </div>
@@ -83,7 +83,7 @@ export default function App() {
   );
 }
 
-function Planner({ hidden }) {
+function Planner({ hidden, onRoute }) {
   const [initialTime] = useState(() => initialLandingTime(t0, data.ephemeris.count));
   const [date, setDate] = useState(() => iso(initialTime));
   const [delay, setDelay] = useState(0);
@@ -169,7 +169,7 @@ function Planner({ hidden }) {
       <div hidden={hidden}>
         <header className="top">
           <div className="min-w-0 flex-1 basis-80">
-            <h1 className="brand glow">
+            <h1 className="brand glow"><a href={routeUrl('compare')} onClick={onRoute} title="Home">
               {/* mark: a half-lit disc (sun and shade) inside a targeting ring */}
               <svg className="brand-mark" viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor">
                 <circle className="brand-orbit" cx="16" cy="16" r="14" strokeWidth="1.2" strokeDasharray="3 2.5" opacity=".6" />
@@ -178,7 +178,7 @@ function Planner({ hidden }) {
                 <path d="M0.5 16h3M28.5 16h3M16 0.5v3M16 28.5v3" strokeWidth="1.6" />
               </svg>
               <span>SUN SHADE</span>
-            </h1>
+            </a></h1>
             <p className="tag">Sunlight and Earth contact at the lunar south pole, and what a launch slip does to them</p>
           </div>
           <div className="tools">

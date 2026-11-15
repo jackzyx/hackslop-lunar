@@ -97,7 +97,7 @@ export function mapOverlay(view, picks, i0, size, height = size) {
       if (inView(p, -18)) { g += `<text class="grid-label" x="${p[0].toFixed(1)}" y="${p[1].toFixed(1)}" text-anchor="middle">${names[lon]}</text>`; break; }
     }
   }
-  if (inView(pole)) g += `<path class="cross" d="M${pole[0] - 9},${pole[1]}h18M${pole[0]},${pole[1] - 9}v18"/><text x="${pole[0] + 10}" y="${pole[1] - 8}">POLE</text>`;
+  if (inView(pole)) g += `<path class="cross" d="M${pole[0] - 6},${pole[1]}h12M${pole[0]},${pole[1] - 6}v12"/><text x="${pole[0] + 7}" y="${pole[1] - 5}">POLE</text>`;
 
   // Sites: the other six as small lettered pins, the chosen two with a target bracket and a name.
   const pickY = picks.map((id) => sites[id].terrain_modelled === false ? Infinity : toPx(toMap(sites[id].lat, sites[id].lon))[1]);
@@ -105,13 +105,13 @@ export function mapOverlay(view, picks, i0, size, height = size) {
   for (const site of chosenLast) {
     const p = toPx(toMap(site.lat, site.lon)), k = picks.indexOf(site.id), [x, y] = p;
     if (!inView(p)) continue;
-    if (k < 0) { g += `<circle class="pin-other" cx="${x}" cy="${y}" r="3"/><text class="grid-label" x="${x + 6}" y="${y + 4}">${site.id}</text>`; continue; }
+    if (k < 0) { g += `<circle class="pin-other" cx="${x}" cy="${y}" r="2.2"/><text class="grid-label" x="${x + 4.5}" y="${y + 3}">${site.id}</text>`; continue; }
     const lit = vis(site.id).sun[i0] > 0, above = pickY[k] <= pickY[1 - k]; // upper pick labelled above, lower below
-    g += `<path class="bracket" d="M${x - 13},${y - 7}v-6h6M${x + 7},${y - 13}h6v6M${x + 13},${y + 7}v6h-6M${x - 7},${y + 13}h-6v-6"/>` +
-      `<circle data-site-index="${k}" class="${lit ? "pin-lit" : "pin-dark"}" cx="${x}" cy="${y}" r="5.5"/>` +
-      `<text data-site-index="${k}" class="pin-label" aria-label="${siteLabel(site.name, k)}${lit ? "" : " · SUN HIDDEN"}" x="${Math.min(size - 80, Math.max(80, x))}" y="${y + (above ? -20 : 30)}" text-anchor="middle">${siteLabel(site.name, k)}</text>`;
+    g += `<path class="bracket" d="M${x - 9},${y - 5}v-4h4M${x + 5},${y - 9}h4v4M${x + 9},${y + 5}v4h-4M${x - 5},${y + 9}h-4v-4"/>` +
+      `<circle data-site-index="${k}" class="${lit ? "pin-lit" : "pin-dark"}" cx="${x}" cy="${y}" r="3.8"/>` +
+      `<text data-site-index="${k}" class="pin-label" aria-label="${siteLabel(site.name, k)}${lit ? "" : " · SUN HIDDEN"}" x="${Math.min(size - 60, Math.max(60, x))}" y="${y + (above ? -14 : 20)}" text-anchor="middle">${siteLabel(site.name, k)}</text>`;
   }
   const len = km * kmPx;
-  g += `<path class="scale" d="M14,${height - 14}h${len.toFixed(1)}M14,${height - 18}v8M${(14 + len).toFixed(1)},${height - 18}v8"/><text x="14" y="${height - 24}">${km} KM</text>`;
+  g += `<path class="scale" d="M12,${height - 12}h${len.toFixed(1)}M12,${height - 15}v6M${(12 + len).toFixed(1)},${height - 15}v6"/><text x="12" y="${height - 19}">${km} KM</text>`;
   return g;
 }

@@ -216,8 +216,8 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
     const other = all[1 - index] && sites[all[1 - index]];
     const leftSide = left > 87 || (left > 13 && other && x <= toMap(other.lat, other.lon)[0]);
     if (!hasSurfaceTerrain(x, y)) return null;
-    return <SurfaceEye key={id} name={site.name} style={{ left: `${left}%`, top: `clamp(15px, ${top}%, 100% - 15px)`,
-      translate: leftSide ? 'calc(-100% - 13px) -50%' : '13px -50%' }} onOpen={trigger => openSurface(site, trigger)} />;
+    return <SurfaceEye key={id} name={site.name} style={{ left: `${left}%`, top: `clamp(11px, ${top}%, 100% - 11px)`,
+      translate: leftSide ? 'calc(-100% - 15px) -50%' : '15px -50%' }} onOpen={trigger => openSurface(site, trigger)} />;
   });
 
   const askDialog = ask && (() => {
