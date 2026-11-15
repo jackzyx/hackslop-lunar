@@ -238,6 +238,7 @@ export async function playIntro({ ms, sun, positions, terrain, terrainReady, onL
   el.append(reticle);
   const clock = createIntroClock();
   const key = (ev) => {
+    if (ev.repeat) return;
     if (el.hidden) return;
     ev.preventDefault();
     ev.stopImmediatePropagation();

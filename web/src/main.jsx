@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import "./styles/index.css";
 import { playIntro } from './intro/intro.js';
 import { loadRealtimeScene } from './intro/realtime-scene.js';
+import { waitForIntroStart } from './intro/wait-for-start.js';
 import { initialTerrain } from './terrain/startup.js';
 import { loadPlannerData } from './lib/data.js';
 import { currentPage, isPolicyPage, migrateLegacyRoute } from './lib/routes.js';
@@ -28,11 +29,15 @@ if (page !== 'compare' || matchMedia('(prefers-reduced-motion: reduce)').matches
   loadApp();
   overlay.hidden = true;
 } else {
+  const startRequested = waitForIntroStart(overlay);
   fetch(new URL('intro-scene.json', document.baseURI)).then(response => {
     if (!response.ok) throw new Error('Intro scene unavailable');
     return response.json();
-  }).then(loadRealtimeScene).then(scene => {
-    if (currentPage() === 'compare' && overlay.dataset.bootSkipped !== 'true') {
+  }).then(loadRealtimeScene).then(async scene => {
+    const initialise = await startRequested;
+    if (initialise && currentPage() === 'compare' && overlay.dataset.bootSkipped !== 'true') {
+      // Refresh the timestamp if the visitor spent time on the waiting screen.
+      scene = await loadRealtimeScene(scene);
       if (scene.appModule) {
         const preload = document.createElement('link');
         preload.rel = 'modulepreload';

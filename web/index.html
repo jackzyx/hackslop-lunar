@@ -18,8 +18,12 @@
       .intro-line{position:absolute;left:50%;bottom:40px;transform:translateX(-50%);width:min(780px,calc(100% - 68px));padding:12px 18px;background:#000c;border:1px solid #382600;font:22px sans-serif;color:#ffd98a}
       #intro-boot{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden}
       #intro-boot svg{width:min(80vw,70vh);height:min(80vw,70vh);animation:boot-orbit 30s linear infinite}
+      .intro:not([data-phase]) .intro-line{display:none}
+      .intro-initialise{position:absolute;left:50%;bottom:max(42px,8vh);transform:translateX(-50%);width:max-content;max-width:calc(100% - 32px);padding:12px 8px;border:0;background:transparent;color:#ffb000;font:clamp(12px,2vw,18px) monospace;letter-spacing:.12em;cursor:pointer;animation:initialise-blink 1.6s step-end infinite}
+      .intro[data-initialised] .intro-initialise,.intro[data-phase] .intro-initialise{display:none}
+      @keyframes initialise-blink{0%,100%{opacity:1}50%{opacity:.25}}
       @keyframes boot-orbit{to{transform:rotate(360deg)}}
-      @media(prefers-reduced-motion:reduce){#intro-boot svg{animation:none}}
+      @media(prefers-reduced-motion:reduce){#intro-boot svg,.intro-initialise{animation:none}}
     </style>
     <script>
       if (/\/(privacy|terms)$/.test(location.pathname)) {
@@ -42,6 +46,7 @@
     <!-- Intro (src/intro/intro.js). Plain HTML outside React so it covers the page from the first paint. -->
     <div class="intro" id="intro">
       <div id="intro-boot" aria-hidden="true"><svg viewBox="0 0 600 600" fill="none"><circle cx="300" cy="300" r="225" stroke="#ffb000" opacity=".2"/><circle cx="300" cy="300" r="110" stroke="#ffb000" opacity=".3"/><circle cx="300" cy="300" r="12" fill="#fff0c2"/><circle cx="525" cy="300" r="5" fill="#38d4ff"/></svg></div>
+      <button type="button" class="intro-initialise">[PRESS ANY KEY TO INITIALISE]</button>
       <div class="intro-scene" aria-hidden="true"><canvas></canvas></div>
       <p class="intro-line"><span></span></p>
       <button type="button" class="skip">Skip intro</button>
@@ -59,13 +64,21 @@
         if (intro.dataset.phase) return;
         intro.dataset.bootSkipped = 'true';
         intro.hidden = true;
+        intro.dispatchEvent(new Event('intro:skip'));
       });
+      function initialiseIntro() {
+        const intro = document.getElementById('intro');
+        if (intro.hidden || intro.dataset.phase || intro.dataset.initialised) return;
+        intro.dataset.initialised = 'true';
+        intro.dispatchEvent(new Event('intro:initialise'));
+      }
+      document.querySelector('.intro-initialise').addEventListener('click', initialiseIntro);
       addEventListener('keydown', event => {
         const intro = document.getElementById('intro');
-        if (intro.hidden || intro.dataset.phase) return;
+        if (intro.hidden || intro.dataset.phase || intro.dataset.initialised) return;
         event.preventDefault();
         event.stopImmediatePropagation();
-        introSkip.click();
+        initialiseIntro();
       }, true);
     </script>
     <script type="module" src="/src/main.jsx"></script>
