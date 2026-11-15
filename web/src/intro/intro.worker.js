@@ -1,6 +1,7 @@
 import { spherePixels } from './intro-pixels.js';
 import { paint, shadeView, terrainFrom } from '../terrain/shadow.js';
 import { createGPUShadow } from '../terrain/shadow-gpu.js';
+import { APPROACH_TERRAIN } from '../terrain/regional-terrain.js';
 
 self.onmessage = async ({ data: { terrain, sun, quality, textureUrl, approachUrl, closeView } }) => {
   const previewMoon = spherePixels(sun, 256, null);
@@ -60,7 +61,7 @@ async function loadApproachTerrain(url) {
   if (!url) return null;
   try {
     const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
-    if (response.ok) return terrainFrom(await response.arrayBuffer(), { n: 1200, px: 1.5, half: 900 });
+    if (response.ok) return terrainFrom(await response.arrayBuffer(), APPROACH_TERRAIN);
   } catch { /* Retain the existing overview if the optional wide terrain fails. */ }
   return null;
 }

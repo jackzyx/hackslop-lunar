@@ -28,6 +28,7 @@ function gesture(pointers, bounds) {
 // The Sun direction comes from the first chosen site's row of the same table the cards use.
 export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terrain, terrainErr, interacting = false, onPlace }) {
   const wrapper = useRef(null), surface = useRef(null), renderer = useRef(null), down = useRef(null);
+  const keepCamera = useRef(null);
   const [pointer, setPointer] = useState(null);
   const [placeMsg, setPlaceMsg] = useState(null);
   const [ask, setAsk] = useState(null); // right-click dialog: the ground under the click
@@ -157,9 +158,13 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
   }
   // Adding a site must not move the map under the user's pointer.
   function placeHere(lat, lon, name) {
-    hold.current = { cx: view.cx, cy: view.cy, half: view.half };
+    if (is3d) keepCamera.current = { lat, lon };
+    else hold.current = zoom ? { cx: view.cx, cy: view.cy, half: view.half } : null;
     const err = onPlace(lat, lon, name);
-    if (err) hold.current = null;
+    if (err) {
+      hold.current = null;
+      keepCamera.current = null;
+    }
     return err;
   }
   function place(event) {
@@ -167,7 +172,10 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
     down.current = null;
     if (ask) { if (start) setAsk(null); return; } // a click outside the dialog closes it
     if (!onPlace || !terrain || !start || Math.hypot(event.clientX - start.x, event.clientY - start.y) > 5) return; // a drag pans
-    const g = groundAt(event);
+    placeGround(groundAt(event));
+  }
+  function placeGround(g) {
+    if (ask) { setAsk(null); return; }
     if (!g) return;
     if (g.km > MAX_POLE_KM) { setPlaceMsg(`Too far from the pole (${Math.round(g.km)} km). Custom sites must be within ${MAX_POLE_KM} km.`); return; }
     setPlaceMsg(placeHere(g.lat, g.lon));
@@ -185,12 +193,32 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
     if (!err) setAsk(null);
   }
 
+  const askDialog = ask && (() => {
+    const x = ask.x ?? ask.sx / mapWidth, y = ask.y ?? ask.sy / MAP;
+    const far = ask.km > MAX_POLE_KM, right = x > 0.6, low = y > 0.6;
+    const position = is3d
+      ? { [right ? "left" : "right"]: 0, [low ? "top" : "bottom"]: 0 }
+      : { left: `${x * 100}%`, top: `${y * 100}%`, translate: `${right ? "-100%" : "0"} ${low ? "-100%" : "0"}` };
+    return <form className="map-ask" onSubmit={submitAsk} aria-label="Add a custom landing site" style={position}
+      onPointerDown={(e) => e.stopPropagation()} onPointerUp={(e) => e.stopPropagation()} onPointerMove={(e) => e.stopPropagation()}
+      onContextMenu={(e) => e.stopPropagation()} onKeyDown={(e) => { e.stopPropagation(); if (e.key === "Escape") setAsk(null); }}>
+      <p className="hud-label">ADD CUSTOM LANDING SITE?</p>
+      <p className="map-ask-where">{Math.abs(ask.lat).toFixed(3)}°S {ask.lon.toFixed(2)}°E · {ask.km.toFixed(1)} km from pole</p>
+      {far ? <p className="map-ask-err" role="alert">Too far from the pole. Custom sites must be within {MAX_POLE_KM} km.</p>
+        : <label className="map-ask-name">Name<input name="name" autoFocus maxLength={60} placeholder="e.g. Ridge north spur" autoComplete="off" /></label>}
+      <div className="map-ask-actions">
+        <Button type="button" variant="ghost" size="xs" onClick={() => setAsk(null)}>CANCEL</Button>
+        {!far && <Button type="submit" variant="outline" size="xs">ADD AND COMPARE</Button>}
+      </div>
+    </form>;
+  })();
+
   return (
     <Card className="hud mapcard">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="hud-title">SUNLIGHT AT LANDING</h2>
         <div className="flex flex-wrap items-center gap-1">
-          <Button type="button" variant="outline" size="xs" aria-pressed={is3d} disabled={!terrain} onClick={() => setIs3d(!is3d)}>{is3d ? "2D MAP" : "3D VIEW"}</Button>
+          <Button type="button" variant="outline" size="xs" aria-pressed={is3d} disabled={!terrain} onClick={() => { setAsk(null); setPointer(null); setIs3d(!is3d); }}>{is3d ? "2D MAP" : "3D VIEW"}</Button>
           {!is3d && <><Button type="button" variant="outline" size="icon-xs" aria-label="Zoom out" disabled={!terrain || view.half >= maxHalf} onClick={() => changeView(1.25)}>
             <MinusIcon aria-hidden="true" className="size-3" />
           </Button>
@@ -200,7 +228,9 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
           <Button type="button" variant="outline" size="xs" disabled={!mapPicks.length} onClick={onZoom}>{zoom ? "WHOLE REGION" : "CLOSE-UP"}</Button>
         </div>
       </div>
-      {is3d && terrain && <Terrain3D terrain={terrain} picks={picks} i0={i0} zoom={zoom} interacting={interacting} />}
+      {is3d && terrain && <Terrain3D terrain={terrain} picks={picks} i0={i0} zoom={zoom} interacting={interacting}
+        keepCamera={keepCamera} ask={ask} dialog={askDialog} onGroundClick={onPlace && placeGround}
+        onGroundContext={onPlace && (ground => { setAsk(ground); setPlaceMsg(null); })} />}
       <div ref={wrapper} className="mapwrap" hidden={is3d} data-pan={terrain ? (dragging ? "dragging" : "ready") : undefined}
         onPointerEnter={trackPointer}
         onPointerDown={(e) => { down.current = e.button === 0 ? { x: e.clientX, y: e.clientY } : null; trackPointer(e); startPan(e); }}
@@ -223,32 +253,17 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
             </g>;
           })()}
         </svg>}
-        {ask && (() => {
-          const far = ask.km > MAX_POLE_KM, right = ask.sx > mapWidth * 0.6, low = ask.sy > MAP * 0.6;
-          return <form className="map-ask" onSubmit={submitAsk} aria-label="Add a custom landing site"
-            style={{ left: `${ask.sx / mapWidth * 100}%`, top: `${ask.sy / MAP * 100}%`, translate: `${right ? "-100%" : "0"} ${low ? "-100%" : "0"}` }}
-            onPointerDown={(e) => e.stopPropagation()} onPointerUp={(e) => e.stopPropagation()} onPointerMove={(e) => e.stopPropagation()}
-            onContextMenu={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === "Escape") setAsk(null); }}>
-            <p className="hud-label">ADD CUSTOM LANDING SITE?</p>
-            <p className="map-ask-where">{Math.abs(ask.lat).toFixed(3)}°S {ask.lon.toFixed(2)}°E · {ask.km.toFixed(1)} km from pole</p>
-            {far ? <p className="map-ask-err" role="alert">Too far from the pole. Custom sites must be within {MAX_POLE_KM} km.</p>
-              : <label className="map-ask-name">Name<input name="name" autoFocus maxLength={60} placeholder="e.g. Ridge north spur" autoComplete="off" /></label>}
-            <div className="map-ask-actions">
-              <Button type="button" variant="ghost" size="xs" onClick={() => setAsk(null)}>CANCEL</Button>
-              {!far && <Button type="submit" variant="outline" size="xs">ADD AND COMPARE</Button>}
-            </div>
-          </form>;
-        })()}
+        {!is3d && askDialog}
         <span className="map-hud br">LOLA 500 M · MOON_ME</span>
       </div>
       <p className="caption">
         {terrainErr ? `Terrain did not load (${terrainErr}).` : terrain
-          ? (is3d ? `Real NASA terrain at landing, ${when}, 00:00 UTC, heights ×${EXAG}. Bright = sunlit, dark = shadow, contours every 500 m. Drag to orbit, scroll or pinch to zoom.`
+          ? (is3d ? `NASA terrain, heights ×${EXAG}. Center: sunlight at landing (${when}), contours every 500 m. Surroundings: shaded relief. Hold Shift and move the mouse or left-drag to pan. Middle-drag to orbit and scroll to zoom. On touch screens, drag to orbit and use two fingers to pan or pinch to zoom.`
             : `Real NASA terrain at landing, ${when}, 00:00 UTC. Light = sunlit, black = shadow. Earth-facing side (0°) up.`)
           : "Loading terrain…"}
       </p>
       {mapPicks.length < picks.length && <p className="caption">Apollo 11 is outside the south-pole map coverage.</p>}
-      {onPlace && terrain && !is3d && <p className="caption" role="status">{placeMsg ?? `Click any spot within ${MAX_POLE_KM} km of the pole to drop a custom site as site 2, or right-click to name it first. Drag to pan, scroll to zoom.`}</p>}
+      {onPlace && terrain && <p className="caption" role="status">{placeMsg ?? `Click any spot within ${MAX_POLE_KM} km of the pole to drop a custom site as site 2, or right-click to name it first.${is3d ? "" : " Drag to pan, scroll to zoom."}`}</p>}
     </Card>
   );
 }

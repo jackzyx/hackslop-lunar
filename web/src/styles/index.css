@@ -285,9 +285,21 @@ html:has(#intro:not([hidden])) { --scrollbar-opacity: 0; transition: none; }
 .mapwrap .pin-label { font-size: 10.5px; font-weight: 600; fill: #ffd98a; }
 .mapwrap .scale { fill: none; stroke: var(--foreground); stroke-width: 1.5; }
 /* 3D view: holographic amber terrain, same frame and pins as the 2D map */
-.terrain3d { overflow: hidden; cursor: grab; touch-action: none; user-select: none;
+.terrain3d { overflow: hidden; cursor: none; touch-action: none; user-select: none;
   background: radial-gradient(ellipse at 50% 60%, rgb(255 176 0 / 0.09), transparent 70%), #000; }
-.terrain3d:active { cursor: grabbing; }
+.terrain-cursor {
+  position: absolute; z-index: 3; width: 16px; height: 16px; translate: -50% -50%;
+  border: 1px solid var(--critical); border-radius: 50%; pointer-events: none; visibility: hidden;
+  box-shadow: 0 0 4px #000;
+}
+.terrain-cursor span {
+  position: absolute; top: 50%; left: 50%; width: 5px; height: 5px;
+  border-radius: 50%; background: var(--critical); box-shadow: 0 0 4px var(--critical);
+  translate: calc(-50% + var(--dot-x, 0px)) calc(-50% + var(--dot-y, 0px));
+  transition: translate 70ms ease-out;
+}
+.terrain3d[data-panning]:not(:has(.map-ask:hover)) .terrain-cursor { visibility: visible; }
+@media (prefers-reduced-motion: reduce) { .terrain-cursor span { transition: none; } }
 .mapwrap.terrain3d canvas { background: transparent; }
 .terrain3d svg { pointer-events: none; z-index: 1; }
 .terrain3d .stem { stroke: var(--primary); stroke-width: 1.2; }

@@ -1,7 +1,7 @@
 // Solar-system approach aligned with the south-polar map.
 import { mapView, mapViewport, toMap, R_KM } from "../terrain/shadow.js";
 import { prepareIntroAssets, stopIntroAssetPreparation } from './intro-assets.js';
-import { spherePixels } from './intro-pixels.js';
+import { earthPixels, spherePixels } from './intro-pixels.js';
 import { siteLabel } from '../lib/site-label.js';
 import { LOCK_DELAY, HOLD, cameraProgress, reticleState, reticleCorners } from './reticle.js';
 import { createStars, drawStars } from '../lib/starfield.js';
@@ -99,14 +99,23 @@ function drawLock(g, t, P, R, k) {
   g.restore();
 }
 
-let earthImageReady;
-function loadEarthImage() {
-  return earthImageReady ??= (async () => {
+const EARTH_TEXTURE_SIZE = 512;
+let earthTextureReady;
+function loadEarthTexture() {
+  return earthTextureReady ??= (async () => {
     const image = new Image();
     image.decoding = 'async';
     image.src = new URL('earth-blue-marble.webp', document.baseURI).href;
-    try { await image.decode(); return image; }
-    catch { return null; }
+    try {
+      await image.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = EARTH_TEXTURE_SIZE;
+      const context = canvas.getContext('2d', { willReadFrequently: true });
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      return context.getImageData(0, 0, canvas.width, canvas.height);
+    } catch {
+      return null;
+    }
   })();
 }
 
@@ -210,7 +219,10 @@ export async function playIntro({ ms, sun, positions, terrain, terrainReady, onL
   const closeView = introTerrainView(view);
   quality.closeTerrain = Math.max(768, Math.min(1536, Math.ceil(768 * closeView.half / (view.half * 2))));
   pos.landing = [pos.moon[0] + view.cx, pos.moon[1] + view.cy];
-  let moon = imageCanvas(spherePixels(sun, 256, null), 256), earth, land, landApproach;
+  const earthLightAngle = Math.atan2(pos.earth[1] - pos.sun[1], pos.sun[0] - pos.earth[0]);
+  const earthLight = [Math.cos(earthLightAngle), Math.sin(earthLightAngle)];
+  let earth = imageCanvas(earthPixels(earthLight, 128, null), 128);
+  let moon = imageCanvas(spherePixels(sun, 256, null), 256), land, landApproach;
   let shownMoon, shownLand, shownClose, closeLand, shownWide, wideLand, wideHalf, wideReadyAt, terrainUnavailable = false, elapsed = 0;
   let assetVersion = 0, drawnVersion = -1, settled = false, drawnWidth = 0, drawnHeight = 0, drawnSize;
   const stars = createStars(220);
@@ -379,9 +391,9 @@ export async function playIntro({ ms, sun, positions, terrain, terrainReady, onL
   addEventListener("keydown", key, true);
   skip.onclick = dismiss;
   stopIntro = finish;
-  loadEarthImage().then(image => {
-    if (over || !image) return;
-    earth = image;
+  loadEarthTexture().then(texture => {
+    if (over || !texture) return;
+    earth = imageCanvas(earthPixels(earthLight, EARTH_TEXTURE_SIZE, texture), EARTH_TEXTURE_SIZE);
     el.dataset.earth = 'nasa-blue-marble';
     assetVersion++;
   });
@@ -421,9 +433,18 @@ export async function playIntro({ ms, sun, positions, terrain, terrainReady, onL
     const ps = S(pos.sun);
     if (on(ps, 60)) {
       const r = Math.max(R_SUN * k, 9), glow = g.createRadialGradient(ps[0], ps[1], 0, ps[0], ps[1], r * 5);
-      glow.addColorStop(0, "#fff6d8"); glow.addColorStop(0.2, "rgba(255,190,80,0.9)"); glow.addColorStop(1, "rgba(255,150,40,0)");
+      glow.addColorStop(0.2, "rgba(255,178,57,0.42)");
+      glow.addColorStop(0.45, "rgba(255,136,36,0.12)");
+      glow.addColorStop(1, "rgba(255,112,22,0)");
       g.fillStyle = glow;
       g.beginPath(); g.arc(ps[0], ps[1], r * 5, 0, 2 * Math.PI); g.fill();
+      const disc = g.createRadialGradient(ps[0], ps[1], 0, ps[0], ps[1], r);
+      disc.addColorStop(0, "#fff9dd");
+      disc.addColorStop(0.55, "#ffe9a1");
+      disc.addColorStop(0.85, "#ffc258");
+      disc.addColorStop(1, "#e98526");
+      g.fillStyle = disc;
+      g.beginPath(); g.arc(ps[0], ps[1], r, 0, 2 * Math.PI); g.fill();
       label(ps, r, "Sun");
     } else {
       // Sun off screen: mark its direction on the edge, so the lit side always has a reason.
@@ -441,18 +462,7 @@ export async function playIntro({ ms, sun, positions, terrain, terrainReady, onL
     const earthLabelAlpha = 1 - smoothstep(2 + LOCK_DELAY - .12, 2 + LOCK_DELAY, t);
     const pe = S(pos.earth), re = Math.max(R_EARTH * k, 18);
     if (on(pe, re)) {
-      if (earth) {
-        g.save();
-        g.beginPath(); g.arc(pe[0], pe[1], re, 0, 2 * Math.PI); g.clip();
-        g.drawImage(earth, pe[0] - re, pe[1] - re, 2 * re, 2 * re);
-        g.restore();
-      } else {
-        g.fillStyle = "#38d4ff";
-        g.beginPath(); g.arc(pe[0], pe[1], re, 0, 2 * Math.PI); g.fill();
-      }
-      const phi = Math.atan2(pos.earth[1], -pos.earth[0]); // toward the Sun, canvas angle
-      g.fillStyle = "rgba(0,0,0,0.78)";
-      g.beginPath(); g.arc(pe[0], pe[1], re, phi + Math.PI / 2, phi + 1.5 * Math.PI); g.closePath(); g.fill();
+      g.drawImage(earth, pe[0] - re, pe[1] - re, 2 * re, 2 * re);
       if (re < 120 && earthLabelAlpha > 0) {
         g.globalAlpha = earthLabelAlpha;
         label(pe, re, "Earth");
