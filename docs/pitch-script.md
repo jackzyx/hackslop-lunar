@@ -2,7 +2,7 @@
 
 Read aloud at about 150 words a minute. **Bold** = do this. Times are cumulative.
 The deck is [sun-shade-pitch-v3.pptx](sun-shade-pitch-v3.pptx) (Morph transitions, builds play
-on their own; advance manually). The app stays open on the second screen the whole time.
+on their own; advance manually). On slide 1 let sunlight finish sweeping the Moon (4 s) while you open. The app stays open on the second screen the whole time.
 Every number below comes from the app or `web/src/data/validation.json`. Do not add others.
 
 Roles: **Speaker** talks and runs the deck. **Driver** runs the app on the second screen.
@@ -47,7 +47,7 @@ Roles: **Speaker** talks and runs the deck. **Driver** runs the app on the secon
 
 > Complex lunar data, turned into a clear comparison.
 
-If the demo stalls, say the three steps on the slide (respond, compare, decide) and advance by 1:55.
+If the demo stalls: type **6** then **Enter** to jump to the hidden backup slide (slip, on-time and astronaut-view captures), narrate it, then type **4** **Enter** to continue at 1:55. If even that fails, say the three steps on the slide (respond, compare, decide).
 
 **Advance.**
 
