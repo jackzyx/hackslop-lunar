@@ -19,7 +19,7 @@
       #intro-boot{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden}
       #intro-boot svg{width:min(80vw,70vh);height:min(80vw,70vh);animation:boot-orbit 30s linear infinite}
       .intro:not([data-phase]) .intro-line{display:none}
-      .intro-initialise{position:absolute;left:50%;bottom:max(42px,8vh);transform:translateX(-50%);width:max-content;max-width:calc(100% - 32px);padding:12px 8px;border:0;background:transparent;color:#ffb000;font:clamp(12px,2vw,18px) monospace;letter-spacing:.12em;cursor:pointer;animation:initialise-blink 1.6s step-end infinite}
+      .intro-initialise{position:absolute;z-index:1;left:50%;bottom:max(42px,8vh);transform:translateX(-50%);width:max-content;max-width:calc(100% - 32px);padding:12px 8px;border:0;background:transparent;color:#ffb000;font:clamp(12px,2vw,18px) monospace;letter-spacing:.12em;cursor:pointer;animation:initialise-blink 1.6s step-end infinite}
       .intro[data-initialised] .intro-initialise,.intro[data-phase] .intro-initialise{display:none}
       @keyframes initialise-blink{0%,100%{opacity:1}50%{opacity:.25}}
       @keyframes boot-orbit{to{transform:rotate(360deg)}}
