@@ -2,13 +2,16 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { MinusIcon, PlusIcon } from "lucide-react";
 import { createShadowRenderer } from "@/terrain/shadow-renderer.js";
 import { sites, sunAt } from "@/lib/data.js";
-import { mapView, mapViewport, MIN_MAP_HALF, transformMapViewport } from "@/terrain/shadow.js";
+import { mapView, mapViewport, MIN_MAP_HALF, toMap, transformMapViewport } from "@/terrain/shadow.js";
 import { mapOverlay } from "@/lib/charts.js";
 import { fromMap, poleKm, MAX_POLE_KM } from "@/domain/custom-site.js";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Terrain3D from "@/components/Terrain3D";
+import SurfaceEye from "@/components/SurfaceEye";
+import AstronautView from "@/components/AstronautView";
 import { EXAG } from "@/terrain/terrain-3d.js";
+import { hasSurfaceTerrain } from "@/terrain/surface-terrain.js";
 
 const MAP = 360; // canvas pixels; CSS scales it to the panel
 const CENTER = { x: 0, y: 0 };
@@ -40,6 +43,7 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
   const [wheeling, setWheeling] = useState(false);
   const [painted, setPainted] = useState(null);
   const [is3d, setIs3d] = useState(false);
+  const [surfaceLocation, setSurfaceLocation] = useState(null);
   const mapPicks = picks.filter(id => sites[id].terrain_modelled !== false);
   const zoom = closeUp && mapPicks.length > 0;
   const sunSite = mapPicks[0] ?? "A";
@@ -83,6 +87,7 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
   }
 
   const wheelZoom = useEffectEvent(event => {
+    if (event.target.closest('.map-ask')) return false;
     const bounds = surface.current.getBoundingClientRect();
     const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? bounds.height : 1;
     if (bounds.height <= 0 || !event.deltaY || !event.cancelable) return false;
@@ -193,9 +198,32 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
     if (!err) setAsk(null);
   }
 
+  function openSurface({ lat, lon, name }, trigger, camera = {}) {
+    const [x, y] = toMap(lat, lon);
+    if (!hasSurfaceTerrain(x, y)) return;
+    setSurfaceLocation({ x, y, lon, name: name ?? `${Math.abs(lat).toFixed(3)}°S · ${lon.toFixed(2)}°E`, trigger,
+      sun: sunAt(sunSite, i0), yaw: camera.yaw ?? 0, pitch: camera.pitch ?? -87,
+      height: Math.min(120, Math.max(8, camera.height ?? overlay.half)) });
+    setPointer(null);
+  }
+
+  const mapEyes = !is3d && terrain && !ask && [...new Set(mapPicks)].map((id, index, all) => {
+    const site = sites[id];
+    const [x, y] = toMap(site.lat, site.lon);
+    const left = 50 + (x - overlay.cx) / (2 * overlay.half * overlay.aspect) * 100;
+    const top = 50 - (y - overlay.cy) / (2 * overlay.half) * 100;
+    if (left < 0 || left > 100 || top < 0 || top > 100) return null;
+    const other = all[1 - index] && sites[all[1 - index]];
+    const leftSide = left > 87 || (left > 13 && other && x <= toMap(other.lat, other.lon)[0]);
+    if (!hasSurfaceTerrain(x, y)) return null;
+    return <SurfaceEye key={id} name={site.name} style={{ left: `${left}%`, top: `clamp(15px, ${top}%, 100% - 15px)`,
+      translate: leftSide ? 'calc(-100% - 13px) -50%' : '13px -50%' }} onOpen={trigger => openSurface(site, trigger)} />;
+  });
+
   const askDialog = ask && (() => {
     const x = ask.x ?? ask.sx / mapWidth, y = ask.y ?? ask.sy / MAP;
     const far = ask.km > MAX_POLE_KM, right = x > 0.6, low = y > 0.6;
+    const surfaceAvailable = hasSurfaceTerrain(...toMap(ask.lat, ask.lon));
     const position = is3d
       ? { [right ? "left" : "right"]: 0, [low ? "top" : "bottom"]: 0 }
       : { left: `${x * 100}%`, top: `${y * 100}%`, translate: `${right ? "-100%" : "0"} ${low ? "-100%" : "0"}` };
@@ -207,6 +235,8 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
       {far ? <p className="map-ask-err" role="alert">Too far from the pole. Custom sites must be within {MAX_POLE_KM} km.</p>
         : <label className="map-ask-name">Name<input name="name" autoFocus maxLength={60} placeholder="e.g. Ridge north spur" autoComplete="off" /></label>}
       <div className="map-ask-actions">
+        {surfaceAvailable && <SurfaceEye name={`${Math.abs(ask.lat).toFixed(3)}°S · ${ask.lon.toFixed(2)}°E`}
+          onOpen={trigger => openSurface(ask, trigger, ask.surfaceCamera)} />}
         <Button type="button" variant="ghost" size="xs" onClick={() => setAsk(null)}>CANCEL</Button>
         {!far && <Button type="submit" variant="outline" size="xs">ADD AND COMPARE</Button>}
       </div>
@@ -230,7 +260,7 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
       </div>
       {is3d && terrain && <Terrain3D terrain={terrain} picks={picks} i0={i0} zoom={zoom} interacting={interacting}
         keepCamera={keepCamera} ask={ask} dialog={askDialog} onGroundClick={onPlace && placeGround}
-        onGroundContext={onPlace && (ground => { setAsk(ground); setPlaceMsg(null); })} />}
+        onOpenSurface={openSurface} onGroundContext={onPlace && (ground => { setAsk(ground); setPlaceMsg(null); })} />}
       <div ref={wrapper} className="mapwrap" hidden={is3d} data-pan={terrain ? (dragging ? "dragging" : "ready") : undefined}
         onPointerEnter={trackPointer}
         onPointerDown={(e) => { down.current = e.button === 0 ? { x: e.clientX, y: e.clientY } : null; trackPointer(e); startPan(e); }}
@@ -254,6 +284,7 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
           })()}
         </svg>}
         {!is3d && askDialog}
+        {mapEyes}
         <span className="map-hud br">LOLA 500 M · MOON_ME</span>
       </div>
       <p className="caption">
@@ -263,7 +294,9 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
           : "Loading terrain…"}
       </p>
       {mapPicks.length < picks.length && <p className="caption">Apollo 11 is outside the south-pole map coverage.</p>}
+      {terrain && <p className="caption">Use the eye beside a selected site or right-click on the detailed map to open astronaut view.</p>}
       {onPlace && terrain && <p className="caption" role="status">{placeMsg ?? `Click any spot within ${MAX_POLE_KM} km of the pole to drop a custom site as site 2, or right-click to name it first.${is3d ? "" : " Drag to pan, scroll to zoom."}`}</p>}
+      {surfaceLocation && <AstronautView location={surfaceLocation} terrain={terrain} onClose={() => setSurfaceLocation(null)} />}
     </Card>
   );
 }

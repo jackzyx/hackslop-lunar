@@ -310,6 +310,35 @@ html:has(#intro:not([hidden])) { --scrollbar-opacity: 0; transition: none; }
 @keyframes holo-sweep { from { background-position: 0 -20%; } to { background-position: 0 120%; } }
 @media (prefers-reduced-motion: reduce) { .terrain3d::after { animation: none; background: none; } }
 .terrain3d-msg { top: 50%; left: 50%; translate: -50% -50%; font-size: 12px; }
+.map-surface-eye {
+  position: absolute; z-index: 3; width: 30px; height: 30px; cursor: pointer;
+  color: var(--sun); border-color: var(--primary); background: #110d06;
+  box-shadow: 0 0 10px rgb(0 0 0 / .8); transition: background-color 120ms ease, color 120ms ease;
+}
+.map-surface-eye:hover { background: var(--primary); color: #070502; }
+.mapwrap .map-surface-eye svg, .mapwrap .map-ask button svg { position: static; width: 15px; height: 15px; }
+.map-ask-actions { flex-wrap: wrap; }
+.astronaut-view {
+  position: fixed; inset: 0; margin: auto; width: min(1120px, calc(100% - 24px)); max-height: calc(100dvh - 24px);
+  max-width: none; padding: 0; overflow: auto; background: #0b0a08; color: var(--foreground);
+  border: 1px solid rgb(255 176 0 / .5); box-shadow: 0 0 42px rgb(0 0 0 / .8);
+}
+.astronaut-view::backdrop { background: rgb(0 0 0 / .86); }
+.astronaut-header, .astronaut-footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; padding: 12px 16px;
+}
+.astronaut-header p { font: 13px var(--font-mono); color: var(--muted-foreground); overflow-wrap: anywhere; }
+.astronaut-scene { position: relative; height: clamp(180px, 67dvh, 720px); background: #020204; container-type: size; }
+.astronaut-scene canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.astronaut-scene canvas:focus-visible { outline: 1px solid var(--primary); outline-offset: -2px; }
+.astronaut-scene[data-phase="ready"] canvas { cursor: grab; }
+.astronaut-scene[data-phase="ready"] canvas:active { cursor: grabbing; }
+.astronaut-heading { top: 10px; left: 10px; }
+.astronaut-status {
+  position: absolute; inset: auto 12px 12px; width: fit-content; max-width: calc(100% - 24px); margin-inline: auto; padding: 6px 10px;
+  text-align: center; background: rgb(0 0 0 / .82); border: 1px solid var(--border); color: var(--foreground); font: 12px var(--font-mono);
+}
+.astronaut-footer { font: 11px var(--font-mono); color: var(--muted-foreground); }
 .caption { font-size: 13px; line-height: 1.4; }
 .link-btn { color: var(--primary); text-decoration: underline; cursor: pointer; }
 

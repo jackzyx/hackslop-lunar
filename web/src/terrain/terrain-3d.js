@@ -95,7 +95,11 @@ export function eyeOf({ target, yaw, pitch, dist }) {
   return [target[0] + dist * Math.cos(p) * Math.sin(y), target[1] + dist * Math.cos(p) * Math.cos(y), target[2] + dist * Math.sin(p)];
 }
 export function cameraMatrix(cam, aspect) {
-  return mul(perspective(40 * Math.PI / 180, aspect, cam.dist * 0.02, cam.dist * 3 + 800), lookAt(eyeOf(cam), cam.target));
+  return viewProjection(eyeOf(cam), cam.target, aspect, 40, cam.dist * 0.02, cam.dist * 3 + 800);
+}
+
+export function viewProjection(eye, target, aspect, fov, near, far) {
+  return mul(perspective(fov * Math.PI / 180, aspect, near, far), lookAt(eye, target));
 }
 
 export function panCamera(cam, dx, dy, viewportHeight, terrain, regional) {

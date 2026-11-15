@@ -5,8 +5,10 @@ import { heightAt, mapView, toMap } from "@/terrain/shadow.js";
 import { data, sites, sunAt, vis } from "@/lib/data.js";
 import { siteLabel } from "@/lib/site-label.js";
 import { fromMap, MAX_POLE_KM } from "@/domain/custom-site.js";
+import SurfaceEye from "@/components/SurfaceEye";
+import { hasSurfaceTerrain } from "@/terrain/surface-terrain.js";
 
-export default function Terrain3D({ terrain, picks, i0, zoom, interacting, onGroundClick, onGroundContext, ask, dialog, keepCamera }) {
+export default function Terrain3D({ terrain, picks, i0, zoom, interacting, onGroundClick, onGroundContext, onOpenSurface, ask, dialog, keepCamera }) {
   const mount = useRef(null), wrap = useRef(null), gfx = useRef(null), pointers = useRef(new Map());
   const mouse = useRef(null);
   const cursor = useRef(null), cursorReset = useRef(null);
@@ -200,7 +202,10 @@ export default function Terrain3D({ terrain, picks, i0, zoom, interacting, onGro
     e.preventDefault();
     if (pointers.current.size) return;
     const ground = groundAt(position(e));
-    if (ground) onGroundContext(ground);
+    if (ground) onGroundContext({ ...ground, surfaceCamera: approachCamera() });
+  }
+  function approachCamera() {
+    return { yaw: (cam.yaw + 180) % 360, pitch: -Math.max(57, Math.min(87, cam.pitch)), height: cam.dist * 0.32 };
   }
   function key(e) {
     const shift = { ArrowLeft: [36, 0], ArrowRight: [-36, 0], ArrowUp: [0, 36], ArrowDown: [0, -36] }[e.key];
@@ -215,6 +220,7 @@ export default function Terrain3D({ terrain, picks, i0, zoom, interacting, onGro
 
   // Pins: the chosen sites (lit or dark at landing), custom sites, and the pole; none behind a ridge.
   const pins = [];
+  const eyes = [];
   const hover = useMemo(() => onGroundClick && !ask && !navigating && !shiftPanning ? groundAt(pointer) : null,
     [Boolean(onGroundClick), ask, navigating, shiftPanning, pointer, terrain, regional, cam, size, failed]);
   function worldAt(x, y) {
@@ -256,6 +262,13 @@ export default function Terrain3D({ terrain, picks, i0, zoom, interacting, onGro
       if (k < 0) { pins.push(<g key={s.id} transform={`translate(${p[0]},${p[1]})`}><path className="stem" d="M0,0v-12" /><circle className="pin-other" cy="-12" r="3" /><text x="6" y="-9">{s.id}</text></g>); continue; }
       const lit = vis(s.id).sun[i0] > 0, other = pickX[1 - k] ?? null;
       const side = other === null ? 0 : p[0] < other ? -1 : 1; // two picks: labels lean apart
+      const top = p[1] + 3;
+      if (!ask && !navigating && !shiftPanning && !failed && hasSurfaceTerrain(...world) && p[0] >= 0 && p[0] <= size.w && top >= 0 && top <= size.h) {
+        const leftSide = p[0] > size.w - 47 || (p[0] > 47 && side < 0);
+        eyes.push(<SurfaceEye key={s.id} name={s.name} style={{ left: p[0], top: Math.max(15, Math.min(size.h - 15, top)),
+          translate: leftSide ? 'calc(-100% - 12px) -50%' : '12px -50%' }}
+          onOpen={trigger => onOpenSurface(s, trigger, approachCamera())} />);
+      }
       const label = siteLabel(s.name, k), wide = label.length * 7.2; // Geist Mono at 10.5 px measures 6.9 px a character
       const lx = side < 0 ? Math.max(wide + 6, p[0] - 10) : side > 0 ? Math.min(size.w - wide - 6, p[0] + 10) : Math.min(size.w - wide / 2 - 4, Math.max(wide / 2 + 4, p[0]));
       pins.push(<g key={s.id} transform={`translate(${p[0]},${p[1]})`}>
@@ -283,6 +296,7 @@ export default function Terrain3D({ terrain, picks, i0, zoom, interacting, onGro
       <div ref={mount} className="shadow-surface" />
       {size && <svg viewBox={`0 0 ${size.w} ${size.h}`} aria-hidden="true">{pins}</svg>}
       <div ref={cursor} className="terrain-cursor" hidden aria-hidden="true"><span /></div>
+      {eyes}
       {dialog}
       {failed && <p className="map-hud terrain3d-msg">3D view needs WebGL 2. Switch back to 2D.</p>}
       <span className="map-hud br">{regional ? "LOLA · REGIONAL RELIEF" : "LOLA 500 M · MOON_ME"} · HEIGHT ×{EXAG}</span>
