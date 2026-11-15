@@ -2,7 +2,7 @@
 
 Read aloud at about 150 words a minute. **Bold** = do this. Times are cumulative.
 The deck is [sun-shade-pitch-v3.pptx](sun-shade-pitch-v3.pptx) (Morph transitions, builds play
-on their own; advance manually). On slide 1 let sunlight finish sweeping the Moon (4 s) while you open. The app stays open on the second screen the whole time.
+on their own; advance manually). On slide 1 the Moon rises and the Sun catches its limb (about 3 s) while you open. The app stays open on the second screen the whole time.
 Every number below comes from the app or `web/src/data/validation.json`. Do not add others.
 
 Roles: **Speaker** talks and runs the deck. **Driver** runs the app on the second screen.
@@ -51,24 +51,27 @@ If the demo stalls: type **6** then **Enter** to jump to the hidden backup slide
 
 **Advance.**
 
-## Slide 4 · Value and evidence (1:55 to 2:30)
+## Slide 4 · Value and evidence (1:55 to 2:35)
 
-> Can you trust it? Terrain is NASA LOLA. Sun and Earth positions come from NASA's SPICE
-> with the DE440 ephemeris. We checked our angles against JPL Horizons at three sites over 30 days,
-> hour by hour, and they agree to better than a thousandth of a degree.
+> Can you trust it? Okay, but what do these names actually mean?
 >
-> We are also clear about the limits. Sunlight is not electrical power, and seeing the Earth
-> is not a guaranteed radio link. This is a first answer in seconds, not certified mission software.
+> LOLA is a laser on a NASA spacecraft that measured the height of the whole Moon. That's our terrain.
+> SPICE is NASA's toolkit for where the Sun, Earth and Moon are, and DE440 is JPL's standard table of their positions.
+> To check ourselves, we compared with JPL Horizons, NASA's public "where is it in the sky" service:
+> three sites, every hour for 30 days, matching to better than a thousandth of a degree.
+>
+> The limits: sunlight isn't power, and seeing the Earth isn't a guaranteed radio link.
+> It's a fast first answer, not certified mission software.
 
 **Advance.**
 
-## Slide 5 · Takeaway (2:30 to 2:50)
+## Slide 5 · Takeaway (2:35 to 2:55)
 
 > Sun Shade shows how a change of landing date changes your options. Find the light,
 > compare the trade-offs, make the next decision. It's open source at the link on screen.
 > Thank you. We're happy to take questions.
 
-**Stop by 3:00.** 10 s of buffer. Leave this slide up; keep the app on the second screen.
+**Stop by 3:00.** 5 s of buffer. Leave this slide up; keep the app on the second screen.
 
 ---
 
