@@ -13,6 +13,7 @@ import DetailTabs from "@/components/DetailTabs";
 import About from "@/components/About";
 import LandingDatePicker from "@/components/LandingDatePicker";
 import HelpTip from '@/components/HelpTip';
+import { initialLandingTime } from '@/lib/landing-time.js';
 import AmbientStars from '@/components/AmbientStars';
 import { currentPage, isPolicyPage, pageForPath, routeUrl } from "@/lib/routes.js";
 
@@ -83,10 +84,11 @@ export default function App() {
 }
 
 function Planner({ hidden }) {
-  const [date, setDate] = useState("2026-11-20");
+  const [initialTime] = useState(() => initialLandingTime(t0, data.ephemeris.count));
+  const [date, setDate] = useState(() => iso(initialTime));
   const [delay, setDelay] = useState(0);
   const [hourOffset, setHourOffset] = useState(0);
-  const [plannedHour, setPlannedHour] = useState(0);
+  const [plannedHour, setPlannedHour] = useState(() => new Date(initialTime).getUTCHours());
   const slipTrack = useRef(null);
   const hourTrack = useRef(null);
   const [interacting, setInteracting] = useState(false);
@@ -146,7 +148,7 @@ function Planner({ hidden }) {
   };
 
   const dateMin = iso(t0 + (MAX_DELAY_D + 1) * DAY);
-  const dateMax = iso(t0 + data.ephemeris.count * H - (MAX_DELAY_D + 31) * DAY);
+  const dateMax = iso(t0 + data.ephemeris.count * H - (MAX_DELAY_D + 32) * DAY);
   const shiftSlip = (days) => setDelay(current => Math.max(-MAX_DELAY_D, Math.min(MAX_DELAY_D, current + days)));
   const iPlanned = (Date.parse(`${date}T00:00:00Z`) - t0) / H + plannedHour;
   const totalSlip = delay * 24 + hourOffset;
