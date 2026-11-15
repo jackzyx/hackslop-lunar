@@ -68,7 +68,7 @@ If the demo stalls: type **6** then **Enter** to jump to the hidden backup slide
 ## Slide 5 · Takeaway (2:35 to 2:55)
 
 > Sun Shade shows how a change of landing date changes your options. Find the light,
-> compare the trade-offs, make the next decision. It's open source at the link on screen.
+> compare the trade-offs, make the next decision. Scan the code on screen to try it yourself.
 > Thank you. We're happy to take questions.
 
 **Stop by 3:00.** 5 s of buffer. Leave this slide up; keep the app on the second screen.
