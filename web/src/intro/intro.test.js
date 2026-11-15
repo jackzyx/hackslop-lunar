@@ -83,4 +83,3 @@ test('wide map handoff preserves its aspect ratio while shrinking', () => {
   near(1200*aspect*h.scaleX,target.width,1e-9);
   near(1200*h.scaleY,target.height,1e-9);
 });
-

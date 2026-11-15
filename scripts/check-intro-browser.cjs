@@ -18,6 +18,8 @@ const replay = page => page.evaluate(async () => {
     const errors = []; page.on('pageerror', error => errors.push(error.message));
     await page.goto(base + '#compare');
     await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'playing');
+    const epoch = await page.locator('#intro').getAttribute('data-epoch');
+    assert.ok(Math.abs(Date.now() - Date.parse(epoch)) < 60000, 'intro must use the current UTC time');
     await page.waitForFunction(() => document.querySelector('#intro').dataset.earth === 'nasa-blue-marble');
     await page.waitForFunction(() => document.querySelector('.intro-reticle')?.dataset.state === 'locked');
     assert.equal(await page.locator('.intro-reticle i').count(), 4);
@@ -37,11 +39,12 @@ const replay = page => page.evaluate(async () => {
     assert.ok(jump <= .1, `intro skipped ${jump}s after synthetic stall`);
     await page.waitForFunction(() => Number(document.querySelector('#intro').dataset.time) >= 4.05);
     assert.ok(await page.locator('#intro').evaluate(el => Number(el.dataset.regionalSpan) >= 1700), 'wide terrain must be available during the early lunar approach');
-    await page.screenshot({ path: 'docs/intro-regional-blend-preview.png' });
+    await page.screenshot({ path: '.slide-tools/intro-regional-blend-preview.png' });
     await page.waitForFunction(() => Number(document.querySelector('#intro').dataset.time) > 5.1);
     assert.ok(await page.locator('#intro').evaluate(el => Number(el.dataset.closeResolution) >= 512), 'localized terrain must be ready during approach, before the live map loads');
-    await page.screenshot({ path: 'docs/intro-close-detail-preview.png' });
+    await page.screenshot({ path: '.slide-tools/intro-close-detail-preview.png' });
     await page.waitForFunction(() => Number(document.querySelector('#intro').dataset.time) > 5.8);
+    await page.waitForFunction(() => document.querySelectorAll('.intro-site-marker span').length === 2);
     await page.screenshot({ path: '.slide-tools/intro-smooth.png' });
     const names = await page.locator('.intro-site-marker span').allTextContents();
     await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'revealing');

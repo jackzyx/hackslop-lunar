@@ -198,9 +198,10 @@ export function terrainHandoff(width, height, size, target, aspect = 1) {
 }
 
 let stopIntro;
-export async function playIntro({ sun, positions, terrain, terrainReady, onLanding, picks, when, zoom = true, center }) {
+export async function playIntro({ ms, sun, positions, terrain, terrainReady, onLanding, picks, when, zoom = true, center }) {
   stopIntro?.();
   const el = document.querySelector("#intro"), layer = el.querySelector(".intro-scene");
+  el.dataset.epoch = new Date(ms).toISOString();
   const cv = layer.querySelector("canvas"), g = cv.getContext("2d");
   const line = el.querySelector(".intro-line span"), skip = el.querySelector(".skip");
   const quality = introResolution(innerWidth, innerHeight, devicePixelRatio || 1);
