@@ -1,0 +1,9 @@
+{
+  "startUtc": "2025-01-01T00:00:00Z",
+  "stepMs": 3600000,
+  "count": 52585,
+  "frame": "MOON_ME",
+  "correction": "LT+S",
+  "units": "km",
+  "layout": "little-endian float64: sun xyz, earth xyz, per UTC hour"
+}
