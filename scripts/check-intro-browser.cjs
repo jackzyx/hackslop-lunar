@@ -17,6 +17,7 @@ const replay = page => page.evaluate(async () => {
     const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 2 });
     const errors = []; page.on('pageerror', error => errors.push(error.message));
     await page.goto(base + '#compare');
+    await page.keyboard.press('Enter');
     await page.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'playing');
     const epoch = await page.locator('#intro').getAttribute('data-epoch');
     assert.ok(Math.abs(Date.now() - Date.parse(epoch)) < 60000, 'intro must use the current UTC time');
@@ -80,6 +81,7 @@ const replay = page => page.evaluate(async () => {
     const slow = await browser.newPage(); slow.on('pageerror', error => errors.push(error.message));
     await slow.route('**/moon-albedo-4k.jpg', async route => { await new Promise(resolve => setTimeout(resolve, 1200)); await route.continue(); });
     await slow.goto(base + '#compare');
+    await slow.getByRole('button', { name: '[PRESS ANY KEY TO INITIALISE]', exact: true }).click();
     await slow.waitForFunction(() => document.querySelector('#intro').dataset.phase === 'playing');
     await slow.getByRole('button', { name: /SKIP INTRO/i }).click();
     await slow.waitForFunction(() => document.querySelector('#intro').hidden);
