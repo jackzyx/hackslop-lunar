@@ -238,6 +238,7 @@ export async function playIntro({ ms, sun, positions, terrain, terrainReady, sta
   el.append(reticle);
   const clock = createIntroClock();
   const key = (ev) => {
+    if (ev.key === 'F11' || ev.code === 'F11' || ev.key === 'Fn') return;
     if (!started) return; // The inline waiting-screen handler consumes the start key.
     if (ev.repeat) return;
     if (el.hidden) return;

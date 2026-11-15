@@ -72,6 +72,7 @@
       }
       document.querySelector('.intro-initialise').addEventListener('click', initialiseIntro);
       addEventListener('keydown', event => {
+        if (event.key === 'F11' || event.code === 'F11' || event.key === 'Fn') return;
         const intro = document.getElementById('intro');
         if (intro.hidden || (intro.dataset.phase && intro.dataset.phase !== 'waiting') || intro.dataset.initialised) return;
         event.preventDefault();
