@@ -1,8 +1,12 @@
-export const appBase = new URL('./', location.href);
-const pages = ['compare', 'about', 'privacy', 'terms', 'accessibility'];
+export const pages = ['compare', 'about', 'privacy', 'terms', 'accessibility'];
+let appBase;
+
+function baseUrl() {
+  return appBase ??= new URL('./', location.href);
+}
 
 export function routeUrl(page) {
-  return new URL(page, appBase).pathname;
+  return new URL(page, baseUrl()).pathname;
 }
 
 export function pageForPath(pathname) {
@@ -18,7 +22,7 @@ export function isPolicyPage(page) {
 }
 
 export function migrateLegacyRoute() {
-  if (location.pathname !== appBase.pathname && location.pathname !== routeUrl('index.html')) return;
+  if (location.pathname !== baseUrl().pathname && location.pathname !== routeUrl('index.html')) return;
   const { hash, search } = location;
   if (hash === '#about' || hash === '#about-sources' || hash === '#compare') {
     const page = hash === '#compare' ? 'compare' : 'about';

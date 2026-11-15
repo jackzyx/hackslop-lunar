@@ -1,6 +1,7 @@
 import path from "node:path";
 import fs from 'node:fs';
 import { sunVector } from './src/terrain/shadow.js';
+import { pages } from './src/lib/routes.js';
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
@@ -22,9 +23,44 @@ const introScenePlugin = {
   },
 };
 
+const appPaths = new Set(pages.map(page => `/${page}`));
+
+function pageRoutes(server, directory) {
+  const errorPage = path.join(directory, '404.html');
+  return () => server.middlewares.use(async (req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+    const pathname = req.url.split('?', 1)[0];
+    if (appPaths.has(pathname)) {
+      req.url = `/index.html${req.url.slice(pathname.length)}`;
+      return next();
+    }
+    if (pathname === '/index.html') return next();
+    if (req.headers.accept && !req.headers.accept.includes('text/html') && !req.headers.accept.includes('*/*')) return next();
+
+    try {
+      const html = await fs.promises.readFile(errorPage);
+      res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8', 'Content-Length': html.length });
+      res.end(req.method === 'HEAD' ? undefined : html);
+    } catch (error) {
+      next(error);
+    }
+  });
+}
+
+const pageRoutesPlugin = {
+  name: 'page-routes',
+  configureServer(server) {
+    return pageRoutes(server, server.config.publicDir);
+  },
+  configurePreviewServer(server) {
+    return pageRoutes(server, path.resolve(server.config.root, server.config.build.outDir));
+  },
+};
+
 // Relative base so the built app runs from any folder, a USB stick or a Pages subpath.
 export default {
   base: "./",
-  plugins: [introScenePlugin, react(), tailwindcss()],
+  appType: 'mpa',
+  plugins: [introScenePlugin, pageRoutesPlugin, react(), tailwindcss()],
   resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } },
 };

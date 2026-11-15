@@ -21,6 +21,22 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             path = "/index.html"
         return super().translate_path(path)
 
+    def send_error(self, code, message=None, explain=None):
+        if code == 404 and "text/html" in self.headers.get("Accept", "text/html"):
+            try:
+                html = (pathlib.Path(self.directory) / "404.html").read_bytes()
+            except OSError:
+                pass
+            else:
+                self.send_response(404)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(html)))
+                self.end_headers()
+                if self.command != "HEAD":
+                    self.wfile.write(html)
+                return
+        super().send_error(code, message, explain)
+
 
 if __name__ == "__main__":
     here = str(pathlib.Path(__file__).resolve().parent)
