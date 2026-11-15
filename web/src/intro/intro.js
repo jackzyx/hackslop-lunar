@@ -6,22 +6,7 @@ import { siteLabel } from '../lib/site-label.js';
 import { LOCK_DELAY, HOLD, cameraProgress, reticleState, reticleCorners } from './reticle.js';
 import { createStars, drawStars } from '../lib/starfield.js';
 
-const RAD = Math.PI / 180, AU = 149.6e6, MOON_DIST = 384400, R_SUN = 696000, R_EARTH = 6371;
-
-// Sun's geocentric ecliptic longitude in deg (Astronomical Almanac low-precision formula, ~0.01 deg).
-export function sunLongitude(ms) {
-  const n = ms / 864e5 - 10957.5; // days from J2000.0, 2000-01-01 12:00 UTC
-  const g = (357.528 + 0.9856003 * n) * RAD;
-  return (((280.46 + 0.9856474 * n + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) % 360) + 360) % 360;
-}
-
-// Ecliptic positions in km, viewed from the south with Earth up; ignores orbit tilt.
-export function scene(ms, sun) {
-  const ls = sunLongitude(ms), ss = Math.atan2(sun[1], sun[0]) / RAD, up = ls - ss;
-  const at = (lam, r) => [r * Math.sin((lam - up) * RAD), r * Math.cos((lam - up) * RAD)]; // clockwise from the south
-  const earth = at(ls + 180, AU), m = at(ls + 180 - ss, MOON_DIST);
-  return { sun: [0, 0], earth, moon: [earth[0] + m[0], earth[1] + m[1]] };
-}
+const AU = 149.6e6, R_SUN = 696000, R_EARTH = 6371;
 
 // Camera keyframes: [seconds, body to centre on, half the view in km].
 // The camera holds on the Moon for HOLD seconds while the south-pole lock-on plays (drawLock).
@@ -213,13 +198,13 @@ export function terrainHandoff(width, height, size, target, aspect = 1) {
 }
 
 let stopIntro;
-export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, picks, when, zoom = true, center }) {
+export async function playIntro({ sun, positions, terrain, terrainReady, onLanding, picks, when, zoom = true, center }) {
   stopIntro?.();
   const el = document.querySelector("#intro"), layer = el.querySelector(".intro-scene");
   const cv = layer.querySelector("canvas"), g = cv.getContext("2d");
   const line = el.querySelector(".intro-line span"), skip = el.querySelector(".skip");
   const quality = introResolution(innerWidth, innerHeight, devicePixelRatio || 1);
-  const pos = scene(ms, sun), T = 250;
+  const pos = { ...positions }, T = 250;
   const view = { ...mapView(picks, zoom), ...center };
   const closeView = introTerrainView(view);
   quality.closeTerrain = Math.max(768, Math.min(1536, Math.ceil(768 * closeView.half / (view.half * 2))));
@@ -425,7 +410,7 @@ export async function playIntro({ ms, sun, terrain, terrainReady, onLanding, pic
     const on = ([x, y], m) => x > -m && x < W + m && y > -m && y < H + m;
 
     g.lineWidth = 1;
-    for (const [c, r] of [[pos.sun, AU], [pos.earth, MOON_DIST]]) {
+    for (const [c, r] of [[pos.sun, Math.hypot(...pos.earth)], [pos.earth, Math.hypot(pos.moon[0] - pos.earth[0], pos.moon[1] - pos.earth[1])]]) {
       const R = r * k, p = S(c), a = 0.5 * Math.min(1, Math.max(0, (4 * Math.min(W, H) - R) / (3 * Math.min(W, H))));
       if (R < 12 || a <= 0) continue; // fade an orbit out before it turns into a straight line
       g.strokeStyle = `rgba(255,176,0,${a})`;

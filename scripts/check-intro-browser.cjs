@@ -4,11 +4,12 @@ const assert = require('node:assert/strict');
 const base = process.env.TEST_URL || 'http://127.0.0.1:5174/';
 // Exercise cached playback directly; the planner no longer has a replay button.
 const replay = page => page.evaluate(async () => {
-  const [{ playIntro }, { initialTerrain }, scene] = await Promise.all([
+  const [{ playIntro }, { initialTerrain }, metadata, { loadRealtimeScene }] = await Promise.all([
     import('/src/intro/intro.js'), import('/src/terrain/startup.js'),
     fetch('/intro-scene.json').then(response => response.json()),
+    import('/src/intro/realtime-scene.js'),
   ]);
-  void playIntro({ ...scene, terrain: await initialTerrain() });
+  void playIntro({ ...await loadRealtimeScene(metadata), terrain: await initialTerrain() });
 });
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || (process.platform === 'win32' ? 'C:/Program Files/Google/Chrome/Application/chrome.exe' : undefined), headless: true });

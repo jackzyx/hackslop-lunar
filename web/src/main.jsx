@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import "./styles/index.css";
 import { playIntro } from './intro/intro.js';
+import { loadRealtimeScene } from './intro/realtime-scene.js';
 import { initialTerrain } from './terrain/startup.js';
 import { loadPlannerData } from './lib/data.js';
 import { currentPage, isPolicyPage, migrateLegacyRoute } from './lib/routes.js';
@@ -30,7 +31,7 @@ if (page !== 'compare' || matchMedia('(prefers-reduced-motion: reduce)').matches
   fetch(new URL('intro-scene.json', document.baseURI)).then(response => {
     if (!response.ok) throw new Error('Intro scene unavailable');
     return response.json();
-  }).then(scene => {
+  }).then(loadRealtimeScene).then(scene => {
     if (currentPage() === 'compare' && overlay.dataset.bootSkipped !== 'true') {
       if (scene.appModule) {
         const preload = document.createElement('link');
