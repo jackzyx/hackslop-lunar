@@ -40,7 +40,6 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
   const [wheeling, setWheeling] = useState(false);
   const [painted, setPainted] = useState(null);
   const [is3d, setIs3d] = useState(false);
-  const [moonSurface, setMoonSurface] = useState(false);
   const mapPicks = picks.filter(id => sites[id].terrain_modelled !== false);
   const zoom = closeUp && mapPicks.length > 0;
   const sunSite = mapPicks[0] ?? "A";
@@ -220,9 +219,6 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
         <h2 className="hud-title">SUNLIGHT AT LANDING</h2>
         <div className="flex flex-wrap items-center gap-1">
           <Button type="button" variant="outline" size="xs" aria-pressed={is3d} disabled={!terrain} onClick={() => { setAsk(null); setPointer(null); setIs3d(!is3d); }}>{is3d ? "2D MAP" : "3D VIEW"}</Button>
-          {is3d && <Button type="button" variant="outline" size="xs" onClick={() => { setAsk(null); setMoonSurface(surface => !surface); }}>
-            {moonSurface ? "TOPOGRAPHY" : "MOON SURFACE"}
-          </Button>}
           {!is3d && <><Button type="button" variant="outline" size="icon-xs" aria-label="Zoom out" disabled={!terrain || view.half >= maxHalf} onClick={() => changeView(1.25)}>
             <MinusIcon aria-hidden="true" className="size-3" />
           </Button>
@@ -232,7 +228,7 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
           <Button type="button" variant="outline" size="xs" disabled={!mapPicks.length} onClick={onZoom}>{zoom ? "WHOLE REGION" : "CLOSE-UP"}</Button>
         </div>
       </div>
-      {is3d && terrain && <Terrain3D terrain={terrain} picks={picks} i0={i0} zoom={zoom} interacting={interacting} moonSurface={moonSurface}
+      {is3d && terrain && <Terrain3D terrain={terrain} picks={picks} i0={i0} zoom={zoom} interacting={interacting}
         keepCamera={keepCamera} ask={ask} dialog={askDialog} onGroundClick={onPlace && placeGround}
         onGroundContext={onPlace && (ground => { setAsk(ground); setPlaceMsg(null); })} />}
       <div ref={wrapper} className="mapwrap" hidden={is3d} data-pan={terrain ? (dragging ? "dragging" : "ready") : undefined}
@@ -262,7 +258,7 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
       </div>
       <p className="caption">
         {terrainErr ? `Terrain did not load (${terrainErr}).` : terrain
-          ? (is3d ? `${moonSurface ? `NASA lunar imagery at natural terrain height. Landing-time shadows (${when}) in the central region. Outside that region, lighting follows the Sun angle.` : `NASA terrain, heights ×${EXAG}. Center: sunlight at landing (${when}), contours every 500 m. Surroundings: shaded relief.`} Hold Shift and move the mouse or left-drag to pan. Middle-drag to orbit and scroll to zoom. On touch screens, drag to orbit and use two fingers to pan or pinch to zoom.`
+          ? (is3d ? `NASA terrain, heights ×${EXAG}. Center: sunlight at landing (${when}), contours every 500 m. Surroundings: shaded relief. Hold Shift and move the mouse or left-drag to pan. Middle-drag to orbit and scroll to zoom. On touch screens, drag to orbit and use two fingers to pan or pinch to zoom.`
             : `Real NASA terrain at landing, ${when}, 00:00 UTC. Light = sunlit, black = shadow. Earth-facing side (0°) up.`)
           : "Loading terrain…"}
       </p>

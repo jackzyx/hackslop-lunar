@@ -1,6 +1,6 @@
 // World axes: x, y in map km (+y toward lon 0), z = height km x EXAG.
 import { createGPUShadow } from './shadow-gpu.js';
-import { heightAt, R_KM } from './shadow.js';
+import { heightAt } from './shadow.js';
 import { regionalMesh, regionalRelief } from './regional-terrain.js';
 import { createTerrainMarkers } from './terrain-markers.js';
 
@@ -19,39 +19,19 @@ precision highp float;
 in vec3 v;
 uniform sampler2D shade;
 uniform sampler2D reliefMap;
-uniform sampler2D moonMap;
 uniform vec3 amber, sun;
-uniform vec3 sunDirection;
 uniform vec3 invalidTint;
 uniform vec4 targets[3];
 uniform int targetCount;
 uniform float halfKm, reliefHalf;
-uniform bool expanded, moonSurface;
+uniform bool expanded;
 out vec4 color;
 float line(float f) { return 1.0 - min(abs(fract(f - 0.5) - 0.5) / max(fwidth(f), 1e-5), 1.0); }
 float markerRing(float radius, float center, float width, float aa) {
   return 1.0 - smoothstep(width, width + aa, abs(radius - center));
 }
-float moonAlbedo(float radius) {
-  const float pi = 3.141592653589793;
-  float lon = radius > 0.0 ? atan(v.x, v.y) : 0.0;
-  float colat = 2.0 * atan(radius / ${2 * R_KM});
-  vec2 uv = vec2(0.5 + lon / (2.0 * pi), 1.0 - colat / pi);
-  vec2 dx = dFdx(uv), dy = dFdy(uv);
-  dx.x -= round(dx.x);
-  dy.x -= round(dy.x);
-  vec3 albedo = textureGrad(moonMap, uv, dx, dy).rgb;
-  return mix(0.4, 1.0, dot(albedo, vec3(0.2126, 0.7152, 0.0722)));
-}
-float regionalSunlight(float relief) {
-  vec2 p = v.xy / ${2 * R_KM};
-  vec3 up = normalize(vec3(2.0 * p.yx, dot(p, p) - 1.0));
-  float incidence = max(0.0, dot(up, sunDirection));
-  return 0.06 + 0.8 * sqrt(incidence) * mix(0.65, 1.0, relief);
-}
 void main() {
   float radius = length(v.xy);
-  float albedo = moonSurface ? moonAlbedo(radius) : 1.0;
   float opacity = expanded ? 1.0 - smoothstep(740.0, 895.0, radius) : 1.0;
   if (opacity <= 0.0) discard;
   float detailRadius = halfKm - 1.0;
@@ -61,27 +41,22 @@ void main() {
   if (shadowWeight < 1.0) {
     vec2 uv = vec2(v.x + reliefHalf, reliefHalf - v.y) / (2.0 * reliefHalf);
     float relief = textureLod(reliefMap, uv, log2(1.0 + beyond / 75.0)).r;
-    c = moonSurface ? vec3(albedo * regionalSunlight(relief)) : amber * (0.08 + 0.27 * relief);
+    c = amber * (0.08 + 0.27 * relief);
   }
   if (shadowWeight > 0.0) {
     vec2 p = clamp(v.xy, vec2(1.0 - halfKm), vec2(halfKm - 1.0));
     vec4 s = textureLod(shade, vec2(p.x + halfKm, halfKm - p.y) / (2.0 * halfKm), 0.0);
     float b = clamp((s.r * 255.0 - 14.0) / 226.0, 0.0, 1.0);
-    vec3 lit;
-    if (moonSurface) {
-      lit = vec3(albedo * (0.055 + 0.945 * b));
-    } else {
-      float grid = max(line(v.x / ${GRID_KM.toFixed(1)}), line(v.y / ${GRID_KM.toFixed(1)}));
-      lit = mix(amber * 0.04, mix(amber, sun, b * b), b) + amber * 0.1 * grid;
-    }
-    c = mix(c, lit, shadowWeight);
+    vec3 lit = mix(amber * 0.04, mix(amber, sun, b * b), b);
+    float grid = max(line(v.x / ${GRID_KM.toFixed(1)}), line(v.y / ${GRID_KM.toFixed(1)}));
+    c = mix(c, lit + amber * 0.1 * grid, shadowWeight);
   }
-  if (!moonSurface && beyond < 180.0) {
+  if (beyond < 180.0) {
     float minor = mix(0.45, 1.0, shadowWeight) * (1.0 - smoothstep(0.0, 90.0, beyond));
     float major = 1.0 - smoothstep(15.0, 180.0, beyond);
     c += amber * (0.3 * minor * line(v.z / ${CONTOUR_KM.toFixed(1)}) + 0.55 * major * line(v.z / ${MAJOR_KM.toFixed(1)}));
   }
-  if (!moonSurface) c *= 0.84 + 0.16 * step(1.0, mod(gl_FragCoord.y, 3.0));
+  c *= 0.84 + 0.16 * step(1.0, mod(gl_FragCoord.y, 3.0));
   for (int i = 0; i < targetCount; i++) {
     vec4 target = targets[i];
     float r = length(v.xy - target.xy) / target.z;
@@ -145,13 +120,13 @@ export function panCamera(cam, dx, dy, viewportHeight, terrain, regional) {
 
 // True when the terrain rises above the sight line from the eye to a ground point (world units).
 // Skips the last 1 km next to the point (its own surface) and allows 50 m of mesh-vs-grid slack.
-export function hidden(t, eye, [x, y, z], exag = EXAG) {
+export function hidden(t, eye, [x, y, z]) {
   const dx = x - eye[0], dy = y - eye[1], len = Math.hypot(dx, dy);
   if (len <= 1) return false;
   const n = Math.min(800, Math.ceil(len / (t.px / 2))), end = 1 - 1 / len;
   for (let i = 1; i < n && i / n < end; i++) {
     const f = i / n, h = heightAt(t, eye[0] + dx * f, eye[1] + dy * f);
-    if (h * exag > eye[2] + (z - eye[2]) * f + 0.05 * exag) return true;
+    if (h * EXAG > eye[2] + (z - eye[2]) * f + 0.05 * EXAG) return true; // NaN (off the grid) compares false
   }
   return false;
 }
@@ -163,7 +138,7 @@ export function project(m, [x, y, z], w, h) {
   return [(c[0] / c[2] + 1) / 2 * w, (1 - c[1] / c[2]) / 2 * h];
 }
 
-export function terrainSurfaceHeight(terrain, x, y, exag = EXAG) {
+export function terrainSurfaceHeight(terrain, x, y) {
   const stride = terrain.px * STEP;
   const c = (x + terrain.half - terrain.px / 2) / stride;
   const r = (terrain.half - y - terrain.px / 2) / stride;
@@ -177,10 +152,10 @@ export function terrainSurfaceHeight(terrain, x, y, exag = EXAG) {
   const meters = u + v <= 1
     ? terrain.h[i] * (1 - u - v) + east * u + south * v
     : terrain.h[below + STEP] * (u + v - 1) + east * (1 - v) + south * (1 - u);
-  return meters * exag / 1000;
+  return meters * EXAG / 1000;
 }
 
-export function pickTerrain(terrain, regional, cam, x, y, aspect, regionalHeight, exag = EXAG) {
+export function pickTerrain(terrain, regional, cam, x, y, aspect, regionalHeight) {
   const eye = eyeOf(cam);
   const view = lookAt(eye, cam.target);
   const spread = Math.tan(20 * Math.PI / 180);
@@ -199,9 +174,9 @@ export function pickTerrain(terrain, regional, cam, x, y, aspect, regionalHeight
   const point = t => [eye[0] + ray[0] * t, eye[1] + ray[1] * t, eye[2] + ray[2] * t];
   const clearance = t => {
     const [px, py, pz] = point(t);
-    const core = terrainSurfaceHeight(terrain, px, py, exag);
+    const core = terrainSurfaceHeight(terrain, px, py);
     const height = Number.isFinite(core) ? core : regional && Math.hypot(px, py) < 895
-      ? (regionalHeight ? regionalHeight(px, py) : heightAt(regional, px, py)) * exag
+      ? (regionalHeight ? regionalHeight(px, py) : heightAt(regional, px, py)) * EXAG
       : NaN;
     return pz - height;
   };
@@ -318,22 +293,14 @@ export function createTerrain3D(terrain, canvas, colors) {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  const moonMap = gl.createTexture();
-  gl.activeTexture(gl.TEXTURE2);
-  gl.bindTexture(gl.TEXTURE_2D, moonMap);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([170, 170, 170, 255]));
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.activeTexture(gl.TEXTURE0);
-  const u = Object.fromEntries(['mvp', 'exag', 'shade', 'reliefMap', 'moonMap', 'moonSurface', 'amber', 'sun', 'sunDirection', 'halfKm', 'reliefHalf', 'expanded', 'targetCount', 'targets[0]', 'invalidTint'].map(n => [n, gl.getUniformLocation(program, n)]));
-  gl.uniform1f(u.halfKm, terrain.half); gl.uniform1i(u.shade, 0);
+  const u = Object.fromEntries(['mvp', 'exag', 'shade', 'reliefMap', 'amber', 'sun', 'halfKm', 'reliefHalf', 'expanded', 'targetCount', 'targets[0]', 'invalidTint'].map(n => [n, gl.getUniformLocation(program, n)]));
+  gl.uniform1f(u.exag, EXAG); gl.uniform1f(u.halfKm, terrain.half); gl.uniform1i(u.shade, 0);
   gl.uniform1i(u.reliefMap, 1);
-  gl.uniform1i(u.moonMap, 2);
   gl.uniform3fv(u.amber, amber); gl.uniform3fv(u.sun, rgb(colors.sun));
   gl.uniform3fv(u.invalidTint, invalid);
   gl.enable(gl.DEPTH_TEST);
-  let sunKey, uploadedMoonTexture;
+  let sunKey;
   return {
     extend(wide) {
       if (gl.isContextLost()) return false;
@@ -356,7 +323,7 @@ export function createTerrain3D(terrain, canvas, colors) {
     },
     regionalHeight(x, y) { return regionalHeight?.(x, y); },
     // sun: MOON_ME unit vector; size: shadow texture pixels (the full 500 km square).
-    render({ sun, size, mvp, width, height, markers, eye, moonSurface, moonTexture }) {
+    render({ sun, size, mvp, width, height, markers, eye }) {
       if (gl.isContextLost()) return;
       gl.useProgram(program);
       const key = `${sun}:${size}`;
@@ -366,20 +333,10 @@ export function createTerrain3D(terrain, canvas, colors) {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, shadow.canvas);
       }
-      if (moonSurface && moonTexture && moonTexture !== uploadedMoonTexture) {
-        gl.activeTexture(gl.TEXTURE2);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, moonTexture);
-        gl.generateMipmap(gl.TEXTURE_2D);
-        gl.activeTexture(gl.TEXTURE0);
-        uploadedMoonTexture = moonTexture;
-      }
       if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
       gl.viewport(0, 0, width, height);
       gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.uniformMatrix4fv(u.mvp, false, mvp);
-      gl.uniform1f(u.exag, moonSurface ? 1 : EXAG);
-      gl.uniform1i(u.moonSurface, Boolean(moonSurface));
-      gl.uniform3fv(u.sunDirection, sun);
       gl.uniform1i(u.expanded, Boolean(surroundings));
       const targets = markers.map(({ world, bad }) => {
         const distance = Math.max(1, Math.hypot(world[0] - eye[0], world[1] - eye[1], world[2] - eye[2]));
