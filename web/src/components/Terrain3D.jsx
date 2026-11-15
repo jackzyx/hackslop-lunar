@@ -6,7 +6,7 @@ import { data, sites, sunAt, vis } from "@/lib/data.js";
 import { siteLabel } from "@/lib/site-label.js";
 import { fromMap, MAX_POLE_KM } from "@/domain/custom-site.js";
 
-export default function Terrain3D({ terrain, picks, i0, zoom, interacting, onGroundClick, onGroundContext, ask, dialog, keepCamera }) {
+export default function Terrain3D({ terrain, picks, i0, zoom, interacting, onGroundClick, onGroundContext, ask, dialog, keepCamera, moonSurface }) {
   const mount = useRef(null), wrap = useRef(null), gfx = useRef(null), pointers = useRef(new Map());
   const mouse = useRef(null);
   const cursor = useRef(null), cursorReset = useRef(null);
@@ -17,6 +17,7 @@ export default function Terrain3D({ terrain, picks, i0, zoom, interacting, onGro
   const [size, setSize] = useState(null); // CSS pixels
   const [failed, setFailed] = useState(false);
   const [regional, setRegional] = useState(null);
+  const [moonTexture, setMoonTexture] = useState(null);
   const mapPicks = picks.filter(id => sites[id].terrain_modelled !== false);
   const sunSite = mapPicks[0] ?? "A";
   const viewKey = (zoom ? mapPicks.join(":") : "") + `|${zoom}`;
@@ -79,7 +80,19 @@ export default function Terrain3D({ terrain, picks, i0, zoom, interacting, onGro
     return () => { c.removeEventListener("webglcontextlost", lost); gfx.current?.dispose(); gfx.current = null; c.remove(); };
   }, [terrain]);
 
-  const mvp = useMemo(() => size && cameraMatrix(cam, size.w / size.h), [cam, size]);
+  useEffect(() => {
+    if (!moonSurface || moonTexture) return;
+    const texture = new Image();
+    texture.onload = () => setMoonTexture(texture);
+    texture.src = new URL("moon-albedo-4k.jpg", document.baseURI).href;
+    return () => { texture.onload = null; };
+  }, [moonSurface, moonTexture]);
+
+  const exag = moonSurface ? 1 : EXAG;
+  const viewCam = useMemo(() => moonSurface
+    ? { ...cam, target: [cam.target[0], cam.target[1], cam.target[2] / EXAG] }
+    : cam, [cam, moonSurface]);
+  const mvp = useMemo(() => size && cameraMatrix(viewCam, size.w / size.h), [viewCam, size]);
   const orbit = (dYaw, dPitch, scale = 1) => setCam(c => ({
     ...c,
     yaw: (c.yaw + dYaw + 360) % 360,
@@ -175,7 +188,7 @@ export default function Terrain3D({ terrain, picks, i0, zoom, interacting, onGro
   }
   function groundAt(pos) {
     if (!pos || !size || failed) return null;
-    const world = pickTerrain(terrain, regional, cam, pos.x * 2 - 1, 1 - pos.y * 2, size.w / size.h, gfx.current?.regionalHeight);
+    const world = pickTerrain(terrain, regional, viewCam, pos.x * 2 - 1, 1 - pos.y * 2, size.w / size.h, gfx.current?.regionalHeight, exag);
     if (!world) return null;
     return { ...fromMap(world[0], world[1]), km: Math.hypot(world[0], world[1]), world, x: pos.x, y: pos.y };
   }
@@ -216,10 +229,10 @@ export default function Terrain3D({ terrain, picks, i0, zoom, interacting, onGro
   // Pins: the chosen sites (lit or dark at landing), custom sites, and the pole; none behind a ridge.
   const pins = [];
   const hover = useMemo(() => onGroundClick && !ask && !navigating && !shiftPanning ? groundAt(pointer) : null,
-    [Boolean(onGroundClick), ask, navigating, shiftPanning, pointer, terrain, regional, cam, size, failed]);
+    [Boolean(onGroundClick), ask, navigating, shiftPanning, pointer, terrain, regional, viewCam, size, failed, exag]);
   function worldAt(x, y) {
-    const z = terrainSurfaceHeight(terrain, x, y);
-    return [x, y, Number.isFinite(z) ? z : (heightAt(terrain, x, y) || 0) * EXAG];
+    const z = terrainSurfaceHeight(terrain, x, y, exag);
+    return [x, y, Number.isFinite(z) ? z : (heightAt(terrain, x, y) || 0) * exag];
   }
   const target = ask ?? hover;
   const markers = useMemo(() => {
@@ -230,19 +243,19 @@ export default function Terrain3D({ terrain, picks, i0, zoom, interacting, onGro
       selected.push({ world: target.world, bad: target.km > MAX_POLE_KM });
     }
     return selected;
-  }, [picks, terrain, target, cam.dist]);
+  }, [picks, terrain, target, cam.dist, exag]);
   useEffect(() => {
     if (!mvp || !gfx.current) return;
     const dpr = Math.min(2, devicePixelRatio);
     const frame = requestAnimationFrame(() => gfx.current?.render({
-      sun: sunAt(sunSite, i0), size: interacting ? 512 : 1000, mvp, markers, eye: eyeOf(cam),
+      sun: sunAt(sunSite, i0), size: interacting ? 512 : 1000, mvp, markers, eye: eyeOf(viewCam), moonSurface, moonTexture,
       width: Math.round(size.w * dpr), height: Math.round(size.h * dpr),
     }));
     return () => cancelAnimationFrame(frame);
-  }, [mvp, size, sunSite, i0, interacting, regional, terrain, cam, markers]);
+  }, [mvp, size, sunSite, i0, interacting, regional, terrain, viewCam, markers, moonSurface, moonTexture]);
   if (mvp) {
-    const eye = eyeOf(cam);
-    const ground = world => hidden(terrain, eye, world) ? null : project(mvp, world, size.w, size.h);
+    const eye = eyeOf(viewCam);
+    const ground = world => hidden(terrain, eye, world, exag) ? null : project(mvp, world, size.w, size.h);
     const at = (lat, lon) => ground(worldAt(...toMap(lat, lon)));
     const pole = ground(worldAt(0, 0));
     if (pole) pins.push(<g key="pole" transform={`translate(${pole[0]},${pole[1]})`}><path className="cross" d="M-7,0h14M0,-7v14" /><text x="-9" y="14" textAnchor="end">POLE</text></g>);
@@ -269,8 +282,9 @@ export default function Terrain3D({ terrain, picks, i0, zoom, interacting, onGro
   }
   return (
     <div ref={wrap} className="mapwrap terrain3d" tabIndex={0} role="application"
+      data-style={moonSurface ? "moon-surface" : "topography"}
       data-panning={dragPanning || shiftPanning || undefined}
-      aria-label={`3D view of the lunar south pole terrain, heights exaggerated ${EXAG} times. Hold Shift and move the mouse, left-drag, or use Shift plus arrow keys to pan. Middle-drag or use arrow keys to orbit. Scroll, pinch or use plus and minus to zoom.`}
+      aria-label={`3D view of the lunar south pole ${moonSurface ? "at natural terrain height" : `with heights exaggerated ${EXAG} times`}. Hold Shift and move the mouse, left-drag, or use Shift plus arrow keys to pan. Middle-drag or use arrow keys to orbit. Scroll, pinch or use plus and minus to zoom.`}
       onPointerEnter={e => { if (e.pointerType === "mouse") updateCursor(position(e), 0, 0); }}
       onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerLeave={() => {
         mouse.current = null;
@@ -285,7 +299,7 @@ export default function Terrain3D({ terrain, picks, i0, zoom, interacting, onGro
       <div ref={cursor} className="terrain-cursor" hidden aria-hidden="true"><span /></div>
       {dialog}
       {failed && <p className="map-hud terrain3d-msg">3D view needs WebGL 2. Switch back to 2D.</p>}
-      <span className="map-hud br">{regional ? "LOLA · REGIONAL RELIEF" : "LOLA 500 M · MOON_ME"} · HEIGHT ×{EXAG}</span>
+      <span className="map-hud br">{moonSurface ? "MOON SURFACE" : `${regional ? "LOLA · REGIONAL RELIEF" : "LOLA 500 M · MOON_ME"} · HEIGHT ×${EXAG}`}</span>
     </div>
   );
 }

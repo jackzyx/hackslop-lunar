@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { cameraMatrix, project, hidden, EXAG } from "./terrain-3d.js";
+import { cameraMatrix, project, hidden, pickTerrain, EXAG } from "./terrain-3d.js";
 import { TERRAIN } from "./shadow.js";
 
 test("orbit camera puts its target at the centre and lon 0 (+y) up the screen when looking from 180", () => {
@@ -22,4 +22,15 @@ test("a ridge between the eye and a pin hides it; flat ground does not", () => {
   for (let r = 0; r < t.n; r++) for (let c = 0; c < t.n; c++) if (Math.abs(t.half - (r + 0.5) * t.px + 50) < 2) t.h[r * t.n + c] = 3000; // 3 km ridge along y = -50
   assert.equal(hidden(t, eye, pin), true);
   assert.equal(hidden(t, [0, -100, 20 * EXAG], pin), false, "seen from high above the ridge");
+});
+
+test("the center ray picks the same coordinates at natural and exaggerated terrain heights", () => {
+  const terrain = { n: 12, px: 1, half: 6, h: new Int16Array(144).fill(2000) };
+  for (const exag of [1, EXAG]) {
+    const target = [0, 0, 2 * exag];
+    const cam = { target, yaw: 180, pitch: 40, dist: 12 };
+    const hit = pickTerrain(terrain, null, cam, 0, 0, 1, undefined, exag);
+    assert.ok(hit);
+    assert.ok(Math.hypot(...hit.map((value, axis) => value - target[axis])) < 0.002);
+  }
 });
