@@ -207,7 +207,7 @@ export function terrainHandoff(width, height, size, target, aspect = 1) {
 }
 
 let stopIntro;
-export async function playIntro({ ms, sun, positions, terrain, terrainReady, onLanding, picks, when, zoom = true, center }) {
+export async function playIntro({ ms, sun, positions, terrain, terrainReady, startRequested, onStart, onLanding, picks, when, zoom = true, center }) {
   stopIntro?.();
   const el = document.querySelector("#intro"), layer = el.querySelector(".intro-scene");
   el.dataset.epoch = new Date(ms).toISOString();
@@ -228,7 +228,7 @@ export async function playIntro({ ms, sun, positions, terrain, terrainReady, onL
   const stars = createStars(220);
   el.hidden = false;
 
-  let raf = 0, over = false, landing, sceneAnimation, snapshot, snapshotSource, layoutChanged, targetObserver, decorations;
+  let raf = 0, over = false, started = !startRequested, landing, sceneAnimation, snapshot, snapshotSource, layoutChanged, targetObserver, decorations;
   const markers = [], handoffAnimations = [];
   const reticle = document.createElement('div');
   reticle.className = 'intro-reticle';
@@ -238,6 +238,7 @@ export async function playIntro({ ms, sun, positions, terrain, terrainReady, onL
   el.append(reticle);
   const clock = createIntroClock();
   const key = (ev) => {
+    if (!started) return; // The inline waiting-screen handler consumes the start key.
     if (ev.repeat) return;
     if (el.hidden) return;
     ev.preventDefault();
@@ -247,6 +248,7 @@ export async function playIntro({ ms, sun, positions, terrain, terrainReady, onL
   const finish = () => {
     if (over) return;
     over = true;
+    if (!started) el.dispatchEvent(new Event('intro:skip'));
     cancelAnimationFrame(raf);
     removeEventListener("keydown", key, true);
     skip.onclick = null;
@@ -555,7 +557,7 @@ export async function playIntro({ ms, sun, positions, terrain, terrainReady, onL
   const tick = (now) => {
     // If an unusually slow connection has not delivered even preview terrain,
     // hold the lunar approach instead of revealing an empty surface or skipping it.
-    const t = clock(now, document.hidden || (elapsed >= LOCK_T + HOLD - 0.2 && !land && !terrainUnavailable && Boolean(terrain || terrainReady)));
+    const t = clock(now, !started || document.hidden || (elapsed >= LOCK_T + HOLD - 0.2 && !land && !terrainUnavailable && Boolean(terrain || terrainReady)));
     elapsed = t;
     // Evaluate the large planner module only after the moving camera has landed.
     if (t >= LAND_T && !landing) loadLanding();
@@ -574,11 +576,22 @@ export async function playIntro({ ms, sun, positions, terrain, terrainReady, onL
     if (t >= END) loadLanding().then(reveal);
     else raf = requestAnimationFrame(tick);
   };
-  el.dataset.phase = 'playing';
+  el.dataset.phase = started ? 'playing' : 'waiting';
+  el.dataset.time = '0.000';
   el.dataset.assets = 'loading';
   draw(0);
   document.getElementById('intro-boot')?.setAttribute('hidden', '');
   raf = requestAnimationFrame(tick);
+  if (startRequested) {
+    startRequested.then(initialise => {
+      if (over) return;
+      if (!initialise) { dismiss(); return; }
+      // Keep the same scene, canvas, stars and clock; only release the time-zero hold.
+      started = true;
+      el.dataset.phase = 'playing';
+      onStart?.();
+    });
+  }
   const readyTerrain = terrainReady ? await terrainReady : terrain;
   if (over) return;
   await prepareIntroAssets({ terrain: readyTerrain, sun, quality, closeView, textureUrl: new URL('moon-albedo-4k.jpg', document.baseURI).href, approachUrl: new URL('terrain_approach_1500m.bin', document.baseURI).href }, assets => {

@@ -38,6 +38,13 @@ test('intro clock resumes smoothly after a long frame or a hidden tab', () => {
   near(clock(8032), .082, 1e-9);
 });
 
+test('intro clock holds the first frame and starts without counting waiting time', () => {
+  const clock = createIntroClock();
+  assert.equal(clock(1000, true), 0);
+  assert.equal(clock(61000, true), 0);
+  assert.equal(clock(61016), .016);
+});
+
 test('oversized lunar images are cropped to the visible viewport before drawing', () => {
   const crop = clippedImage(1000, 1000, -4500, -4500, 10000, 10000, 1000, 600);
   assert.deepEqual(crop, [450,450,100,60,0,0,1000,600]);

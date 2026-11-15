@@ -33,11 +33,8 @@ if (page !== 'compare' || matchMedia('(prefers-reduced-motion: reduce)').matches
   fetch(new URL('intro-scene.json', document.baseURI)).then(response => {
     if (!response.ok) throw new Error('Intro scene unavailable');
     return response.json();
-  }).then(loadRealtimeScene).then(async scene => {
-    const initialise = await startRequested;
-    if (initialise && currentPage() === 'compare' && overlay.dataset.bootSkipped !== 'true') {
-      // Refresh the timestamp if the visitor spent time on the waiting screen.
-      scene = await loadRealtimeScene(scene);
+  }).then(loadRealtimeScene).then(scene => {
+    if (currentPage() === 'compare' && overlay.dataset.bootSkipped !== 'true') {
       if (scene.appModule) {
         const preload = document.createElement('link');
         preload.rel = 'modulepreload';
@@ -45,8 +42,9 @@ if (page !== 'compare' || matchMedia('(prefers-reduced-motion: reduce)').matches
         preload.href = new URL(scene.appModule, document.baseURI).href;
         document.head.append(preload);
       }
-      try { if (localStorage.getItem('sun-shade-intro') !== 'always') localStorage.setItem('sun-shade-intro', 'seen'); } catch {}
-      playIntro({ ...scene, terrainReady, onLanding: loadApp });
+      playIntro({ ...scene, terrainReady, startRequested, onStart: () => {
+        try { if (localStorage.getItem('sun-shade-intro') !== 'always') localStorage.setItem('sun-shade-intro', 'seen'); } catch {}
+      }, onLanding: loadApp }).catch(() => { loadApp(); overlay.hidden = true; });
       loadPlannerData().catch(() => {});
     } else loadApp();
   }).catch(() => { loadApp(); overlay.hidden = true; });
