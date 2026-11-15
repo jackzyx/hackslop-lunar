@@ -1,7 +1,7 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { MinusIcon, PlusIcon } from "lucide-react";
 import { createShadowRenderer } from "@/terrain/shadow-renderer.js";
-import { sites, sunAt } from "@/lib/data.js";
+import { earthAt, sites, sunAt } from "@/lib/data.js";
 import { mapView, mapViewport, MIN_MAP_HALF, toMap, transformMapViewport } from "@/terrain/shadow.js";
 import { mapOverlay } from "@/lib/charts.js";
 import { fromMap, poleKm, MAX_POLE_KM } from "@/domain/custom-site.js";
@@ -202,7 +202,7 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
     const [x, y] = toMap(lat, lon);
     if (!hasSurfaceTerrain(x, y)) return;
     setSurfaceLocation({ x, y, lon, name: name ?? `${Math.abs(lat).toFixed(3)}°S · ${lon.toFixed(2)}°E`, trigger,
-      sun: sunAt(sunSite, i0), yaw: camera.yaw ?? 0, pitch: camera.pitch ?? -87,
+      sun: sunAt(sunSite, i0), earth: earthAt(sunSite, i0), yaw: camera.yaw ?? 0, pitch: camera.pitch ?? -87,
       height: Math.min(120, Math.max(8, camera.height ?? overlay.half)) });
     setPointer(null);
   }

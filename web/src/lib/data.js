@@ -68,6 +68,8 @@ export const forgetVis = (id) => { delete visCache[id]; };
 // Sun unit vector (MOON_ME) at hour i, from one site's row; the same over the whole region.
 export const sunAt = (id, i) => { const e = data.ephemeris.sites[id]; return sunVector(sites[id].lat, sites[id].lon, e.sun_az[i], e.sun_el[i]); };
 
+export const earthAt = (id, i) => { const e = data.ephemeris.sites[id]; return sunVector(sites[id].lat, sites[id].lon, e.earth_az[i], e.earth_el[i]); };
+
 export const iso = (ms) => new Date(ms).toISOString().slice(0, 10);
 const dateFormats = new Map();
 export const fmtDate = (ms, options) => {

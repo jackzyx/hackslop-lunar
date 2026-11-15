@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { ArrowLeftIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { loadRegionalTerrain } from '@/terrain/regional-terrain.js';
@@ -9,6 +9,20 @@ export default function AstronautView({ location, terrain, onClose }) {
   const draw = useRef(null), drag = useRef(null);
   const [phase, setPhase] = useState('loading');
   const [bearing, setBearing] = useState(0);
+  const [closing, setClosing] = useState(false);
+
+  // Play the collapse animation, then unmount; reduced motion closes at once.
+  function close() {
+    if (closing) return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) onClose();
+    else setClosing(true);
+  }
+  const finish = useEffectEvent(() => onClose());
+  useEffect(() => {
+    if (!closing) return;
+    const timer = setTimeout(finish, 560);
+    return () => clearTimeout(timer);
+  }, [closing]);
 
   useEffect(() => {
     const modal = dialog.current;
@@ -23,14 +37,14 @@ export default function AstronautView({ location, terrain, onClose }) {
     const element = canvas.current;
     const controller = new AbortController();
     const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(12000)]);
-    const localSun = surfaceFrame(location.x, location.y)(location.sun);
+    const toLocal = surfaceFrame(location.x, location.y);
     let renderer, frame, observer, camera, pending = false, ready = false;
     function repaint() {
       if (pending || !ready || controller.signal.aborted) return;
       pending = true;
       frame = requestAnimationFrame(() => {
         pending = false;
-        renderer.draw(camera, localSun);
+        renderer.draw(camera);
       });
     }
     function lost(e) {
@@ -49,7 +63,7 @@ export default function AstronautView({ location, terrain, onClose }) {
       const scene = { ...location, terrain, regional, detail };
       const mesh = surfaceMesh(scene);
       const arrival = surfacePanorama(scene);
-      renderer = createSurfaceRenderer(element, mesh);
+      renderer = createSurfaceRenderer(element, mesh, toLocal(location.sun), toLocal(location.earth));
       observer = new ResizeObserver(repaint);
       observer.observe(element);
       const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -59,7 +73,7 @@ export default function AstronautView({ location, terrain, onClose }) {
       function animate(now) {
         const progress = duration ? Math.max(0, Math.min(1, (now - start) / duration)) : 1;
         camera = descentCamera(location, arrival, progress);
-        renderer.draw(camera, localSun);
+        renderer.draw(camera);
         if (progress < 1) frame = requestAnimationFrame(animate);
         else {
           ready = true;
@@ -111,13 +125,13 @@ export default function AstronautView({ location, terrain, onClose }) {
   }
 
   return <dialog ref={dialog} className="astronaut-view" aria-labelledby="astronaut-title"
-    onCancel={e => { e.preventDefault(); onClose(); }}>
+    data-closing={closing || undefined} onCancel={e => { e.preventDefault(); close(); }}>
     <div className="astronaut-header">
       <div>
         <h2 id="astronaut-title" className="hud-title">ASTRONAUT VIEW</h2>
         <p>{location.name}</p>
       </div>
-      <Button type="button" variant="outline" size="sm" autoFocus onClick={onClose}>
+      <Button type="button" variant="outline" size="sm" autoFocus onClick={close}>
         <ArrowLeftIcon aria-hidden="true" /> BACK TO MAP
       </Button>
     </div>
@@ -130,7 +144,7 @@ export default function AstronautView({ location, terrain, onClose }) {
       }</p>}
     </div>
     <div className="astronaut-footer">
-      <span>NASA LRO / LOLA · 80 m elevation near site · simulated lighting and texture</span>
+      <span>NASA LRO / LOLA · 80 m elevation near site · Sun and Earth from the ephemeris · simulated texture</span>
       <span>Drag or use arrow keys to look around</span>
     </div>
   </dialog>;

@@ -324,6 +324,40 @@ html:has(#intro:not([hidden])) { --scrollbar-opacity: 0; transition: none; }
   border: 1px solid rgb(255 176 0 / .5); box-shadow: 0 0 42px rgb(0 0 0 / .8);
 }
 .astronaut-view::backdrop { background: rgb(0 0 0 / .86); }
+/* Opening: a glowing line draws out sideways, then the panel opens vertically and the HUD flickers on. */
+.astronaut-view[open] { animation: hud-open 760ms cubic-bezier(.77, 0, .18, 1) both; }
+.astronaut-view[open]::after {
+  content: ""; position: absolute; inset: 0; z-index: 5; pointer-events: none;
+  background: linear-gradient(transparent calc(50% - 1px), #fff6dc calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
+    repeating-linear-gradient(transparent 0 2px, rgb(0 0 0 / .35) 2px 4px), var(--primary);
+  animation: hud-flash 760ms ease-out both;
+}
+.astronaut-view[open] > * { animation: hud-flicker 1000ms linear both; }
+.astronaut-view[open]::backdrop { animation: hud-fade 300ms ease-out both; }
+/* Closing: the reverse; the panel folds to a line, which shrinks to a point. */
+.astronaut-view[open][data-closing] { pointer-events: none; animation: hud-close 540ms cubic-bezier(.77, 0, .18, 1) both; }
+.astronaut-view[open][data-closing]::after { animation: hud-flash-in 540ms ease-in both; }
+.astronaut-view[open][data-closing] > * { animation: hud-fade-out 160ms linear both; }
+.astronaut-view[open][data-closing]::backdrop { animation: hud-fade 540ms ease-in reverse both; }
+@keyframes hud-close {
+  0% { clip-path: inset(0); }
+  55% { clip-path: inset(calc(50% - 1px) 0 calc(50% - 1px) 0); }
+  100% { clip-path: inset(calc(50% - 1px) 50% calc(50% - 1px) 50%); }
+}
+@keyframes hud-flash-in { 0% { opacity: 0; } 50%, 100% { opacity: 1; } }
+@keyframes hud-fade-out { to { opacity: 0; } }
+@keyframes hud-open {
+  0% { clip-path: inset(calc(50% - 1px) 50% calc(50% - 1px) 50%); }
+  42% { clip-path: inset(calc(50% - 1px) 0 calc(50% - 1px) 0); }
+  100% { clip-path: inset(0); }
+}
+@keyframes hud-flash { 0%, 42% { opacity: 1; } 80%, 100% { opacity: 0; } }
+@keyframes hud-flicker { 0%, 55% { opacity: 0; } 60% { opacity: 1; } 64% { opacity: .2; } 70%, 100% { opacity: 1; } }
+@keyframes hud-fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .astronaut-view[open], .astronaut-view[open]::after, .astronaut-view[open] > *, .astronaut-view[open]::backdrop { animation: none; }
+  .astronaut-view[open]::after { display: none; }
+}
 .astronaut-header, .astronaut-footer {
   display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; padding: 12px 16px;
 }

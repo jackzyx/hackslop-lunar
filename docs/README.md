@@ -1,6 +1,7 @@
 # Presentation and visual references
 
-- [sun-shade-pitch-v3.pptx](sun-shade-pitch-v3.pptx): current five-slide presentation with stars, sparse constellations, fade animations, timed speaker notes, and demo cues. Plan: 2:50 including the demo, ten seconds of buffer, then two minutes of Q&A.
+- [sun-shade-pitch-v3.pptx](sun-shade-pitch-v3.pptx): current five-slide presentation with stars, sparse constellations, Morph transitions (fade fallback), staggered float-in builds, timed speaker notes, and demo cues. Plan: 2:50 including the demo, ten seconds of buffer, then two minutes of Q&A.
+- [pitch-script.md](pitch-script.md): read-aloud script for the 3:00 talk and demo, plus short Q&A answers.
 - [screenshots/](screenshots/): site screenshots and visual previews.
 - [slide-assets/](slide-assets/): source artwork used by the earlier slide generator.
 - [prototype/](prototype/): historical physical-prototype files and their associated preview.
