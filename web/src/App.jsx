@@ -94,6 +94,7 @@ function Planner({ hidden, onRoute }) {
   const [interacting, setInteracting] = useState(false);
   const [picks, setPicks] = useState(["A", "B"]);
   const [zoom, setZoom] = useState(true);
+  const [landAt, setLandAt] = useState(null); // LAND in Best landing days: fly to that site
   const [tab, setTab] = useState("skylines");
   const [terrain, setTerrain] = useState(null);
   const [terrainErr, setTerrainErr] = useState(null);
@@ -221,11 +222,11 @@ function Planner({ hidden, onRoute }) {
 
         <main className="console" id="compare-main" tabIndex={-1}>
           <SiteCard n={1} st={stats[0]} onPick={(id) => setPicks([id, picks[1]])} onRemove={removeSite} />
-          <ShadowMap picks={picks} i0={i0} when={when} zoom={zoom} onZoom={() => setZoom(!zoom)} terrain={terrain} terrainErr={terrainErr} interacting={interacting} onPlace={placeSite} />
+          <ShadowMap picks={picks} i0={i0} when={when} zoom={zoom} onZoom={() => setZoom(!zoom)} terrain={terrain} terrainErr={terrainErr} interacting={interacting} onPlace={placeSite} landAt={landAt} />
           <SiteCard n={2} st={stats[1]} onPick={(id) => setPicks([picks[0], id])} onRemove={removeSite} />
         </main>
 
-        <DetailTabs picks={picks} i0={i0} tab={tab} onTab={setTab} customKey={customKey} terrain={terrain} iPlanned={iPlanned} dateMax={dateMax} onShiftDate={shiftSlip} onLand={(d, hour = 0) => { setDate(d); setPlannedHour(hour); setDelay(0); setHourOffset(0); }} />
+        <DetailTabs picks={picks} i0={i0} tab={tab} onTab={setTab} customKey={customKey} terrain={terrain} iPlanned={iPlanned} dateMax={dateMax} onShiftDate={shiftSlip} onLand={(d, hour = 0, id) => { setDate(d); setPlannedHour(hour); setDelay(0); setHourOffset(0); setZoom(true); setLandAt({ id, trigger: document.activeElement }); }} />
         <p className="foot">Half sunlight = 360 of 720 hours. Verdicts test delays of 0 to {MAX_DELAY_D} days from the planned date. Landing times are UTC, in one-hour steps. Hover the charts for detail.</p>
       </div>
   );

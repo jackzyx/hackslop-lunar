@@ -106,12 +106,12 @@ function BestDays({ n, id, iPlanned, dateMax, onLand }) {
               <TableCell>{k === 0 ? label.toUpperCase() : ""}</TableCell>
               <TableCell>{fmtDate(t0 + r.i * H, { weekday: "short", year: "numeric" })}<br />{hourLabel}</TableCell>
               <TableCell>{Math.round(r.sunlit)} h</TableCell><TableCell>{Math.round(r.earth)} h</TableCell>
-              <TableCell><Button type="button" variant="outline" size="xs" onClick={() => onLand(day, landingHour)} aria-label={`Plan landing on ${day} at ${hourLabel}`}>LAND</Button></TableCell>
+              <TableCell><Button type="button" variant="outline" size="xs" onClick={() => onLand(day, landingHour, id)} aria-label={`Plan landing on ${day} at ${hourLabel}`}>LAND</Button></TableCell>
             </TableRow>;
           }))}
         </TableBody>
       </Table>
-      <p className="caption">“Best of both” maximises the weaker of sunlight and Earth hours. Searches every hour; equal scores favour the earliest time. Options are at least 7 days apart. LAND keeps the recommended time and resets both slip sliders to 0. Earth = line of sight, not a radio link.</p>
+      <p className="caption">“Best of both” maximises the weaker of sunlight and Earth hours. Searches every hour; equal scores favour the earliest time. Options are at least 7 days apart. LAND keeps the recommended time, resets both slip sliders to 0 and flies you down to the site. Earth = line of sight, not a radio link.</p>
     </Card>
   );
 }

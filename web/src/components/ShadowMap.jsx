@@ -1,7 +1,7 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { MinusIcon, PlusIcon } from "lucide-react";
 import { createShadowRenderer } from "@/terrain/shadow-renderer.js";
-import { earthAt, sites, sunAt } from "@/lib/data.js";
+import { earthAt, reducedMotion, sites, sunAt } from "@/lib/data.js";
 import { mapView, mapViewport, MIN_MAP_HALF, toMap, transformMapViewport } from "@/terrain/shadow.js";
 import { mapOverlay } from "@/lib/charts.js";
 import { fromMap, poleKm, MAX_POLE_KM } from "@/domain/custom-site.js";
@@ -29,7 +29,7 @@ function gesture(pointers, bounds) {
 
 // Real terrain with the shadows at the landing instant (shadow.js), lon 0 up, 90 E right.
 // The Sun direction comes from the first chosen site's row of the same table the cards use.
-export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terrain, terrainErr, interacting = false, onPlace }) {
+export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terrain, terrainErr, interacting = false, onPlace, landAt }) {
   const wrapper = useRef(null), surface = useRef(null), renderer = useRef(null), down = useRef(null);
   const keepCamera = useRef(null);
   const [pointer, setPointer] = useState(null);
@@ -206,6 +206,16 @@ export default function ShadowMap({ picks, i0, when, zoom: closeUp, onZoom, terr
       height: Math.min(120, Math.max(8, camera.height ?? overlay.half)) });
     setPointer(null);
   }
+
+  const landHere = useEffectEvent(({ id, trigger }) => openSurface(sites[id], trigger));
+  useEffect(() => {
+    if (!landAt || !sites[landAt.id]) return;
+    const smooth = !reducedMotion();
+    surface.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'center' });
+    if (!terrain) return; // no terrain yet: the map still shows the new landing time
+    const timer = setTimeout(() => landHere(landAt), smooth ? 900 : 0); // let the scroll settle on the map first
+    return () => clearTimeout(timer);
+  }, [landAt, terrain]);
 
   const mapEyes = !is3d && terrain && !ask && [...new Set(mapPicks)].map((id, index, all) => {
     const site = sites[id];
